@@ -1,0 +1,218 @@
+# Documentacion de mejoras 
+# 1. Cambiar el enum de categorias por un endpoint aparte (funciona pero para efectos de la demo de dejara de esta manera)
+# 2. Diferenciar entre error 400 y 422 (uno para sintaxis y otro para errores de logica de negocio como precios negativos por ejemplo) en el endpoint de post
+openapi: 3.0.3
+info:
+  title: EcoMarket API
+  description: API para la plataforma de comercio de productores locales EcoMarket.
+  version: 1.0.0
+  contact:
+    name: Equipo de Arquitectura EcoMarket
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Servidor de Desarrollo (Mock/Local)
+
+# -------------------------------------------------------------------------
+# COMPONENTES REUTILIZABLES
+# -------------------------------------------------------------------------
+components:
+  securitySchemes:
+    # Definición de Autenticación Bearer (JWT)
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Esquema base para errores
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Datos de entrada inválidos"
+        code:
+          type: string
+          example: "INVALID_INPUT"
+
+    # Input: Datos necesarios para CREAR un producto (sin ID ni timestamp)
+    ProductoInput:
+      type: object
+      required:
+        - nombre
+        - descripcion
+        - precio
+        - categoria
+        - productor_id
+        - disponible
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "Miel Orgánica de Abeja Melipona"
+        descripcion:
+          type: string
+          example: "Miel virgen 100% natural recolectada en la sierra de Nayarit."
+        precio:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01 # Fuerza 2 decimales
+          description: Precio unitario en MXN
+          example: 150.50
+        categoria:
+          type: string
+          enum: [frutas, verduras, lacteos, miel, conservas]
+          example: "miel"
+        productor_id:
+          type: integer
+          description: ID del productor dueño del producto
+          example: 42
+        disponible:
+          type: boolean
+          default: true
+          example: true
+
+    # Output: El producto completo tal como se guarda en BD
+    Producto:
+      allOf:
+        - $ref: '#/components/schemas/ProductoInput'
+        - type: object
+          required:
+            - id
+            - creado_en
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 101
+            creado_en:
+              type: string
+              format: date-time
+              example: "2024-02-26T14:30:00Z"
+
+# -------------------------------------------------------------------------
+# DEFINICIÓN DE ENDPOINTS (PATHS)
+# -------------------------------------------------------------------------
+paths:
+  /productos:
+    get:
+      summary: Listar productos disponibles
+      description: Obtiene el catálogo de productos con opciones de filtrado.
+      operationId: getProductos
+      parameters:
+        - in: query
+          name: categoria
+          schema:
+            type: string
+            enum: [frutas, verduras, lacteos, miel, conservas]
+          description: Filtrar por categoría de alimento.
+        - in: query
+          name: productor_id
+          schema:
+            type: integer
+          description: Filtrar productos de un productor específico.
+      responses:
+        '200':
+          description: Lista de productos obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Producto'
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Crear un nuevo producto
+      description: Registra un producto en el catálogo. Requiere autenticación.
+      operationId: createProducto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductoInput'
+      responses:
+        '201':
+          description: Producto creado exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Producto'
+        '400':
+          description: Error de validación (ej. precio negativo, categoría inválida).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                categoria_invalida:
+                  value:
+                    status: 400
+                    message: "La categoría 'electrónica' no es válida."
+                    code: "VALIDATION_ERROR"
+        '401':
+          description: No autorizado (Token faltante o inválido).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Entidad no procesable (Errores de validación de campos).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                precio_negativo:
+                  value:
+                    status: 422
+                    message: "El precio no puede ser negativo."
+                    code: "VALIDATION_ERROR"
+                    fields: ["precio"] # Opcional: indicar qué campo falló
+
+  /productos/{id}:
+    get:
+      summary: Obtener detalle de un producto
+      description: Retorna la información completa de un producto específico por su ID.
+      operationId: getProductoById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID único del producto.
+      responses:
+        '200':
+          description: Producto encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Producto'
+        '400':
+          description: ID inválido (ej. no es un número).
+        '404':
+          description: Producto no encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                status: 404
+                message: "El producto con ID 999 no existe."
+                code: "RESOURCE_NOT_FOUND"

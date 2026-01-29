@@ -1,0 +1,2940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 1: Arquitectura Cliente-Servidor y Fundamentos HTTP | AETL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uan-primary: #003a63;
+            --uan-secondary: #005b96;
+            --uan-accent: #f2a900;
+            --uan-light: #e8f4fc;
+            --uan-dark: #001f36;
+            
+            --fase-comprende: #2d6a4f;
+            --fase-aplica: #1d4e89;
+            --fase-reflexiona: #7b2d8e;
+            --fase-valida: #c44536;
+            --fase-profundiza: #d4a373;
+            
+            --bg-primary: #fafbfc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a68;
+            --text-muted: #6b7280;
+            
+            --shadow-sm: 0 1px 2px rgba(0, 58, 99, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 58, 99, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 58, 99, 0.12);
+            
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            
+            --font-serif: 'Source Serif 4', Georgia, serif;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER INSTITUCIONAL ========== */
+        .header-institucional {
+            background: linear-gradient(135deg, var(--uan-primary) 0%, var(--uan-secondary) 50%, var(--uan-dark) 100%);
+            color: white;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-institucional::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .uan-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .uan-logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--uan-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--uan-primary);
+        }
+
+        .uan-logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .uan-logo-text span:first-child {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .uan-logo-text span:last-child {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .header-badge {
+            background: rgba(242, 169, 0, 0.15);
+            border: 1px solid var(--uan-accent);
+            color: var(--uan-accent);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .header-main {
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-curso {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            margin-bottom: 1rem;
+        }
+
+        .header-titulo {
+            font-family: var(--font-serif);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .header-titulo .accent {
+            color: var(--uan-accent);
+        }
+
+        .header-semana {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        .header-semana-numero {
+            background: var(--uan-accent);
+            color: var(--uan-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        /* ========== NAVEGACIÓN ========== */
+        .nav-container {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid rgba(0, 58, 99, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-fases {
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .nav-fase {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border: 2px solid transparent;
+        }
+
+        .nav-fase:hover {
+            background: var(--uan-light);
+            color: var(--uan-primary);
+        }
+
+        .nav-fase[data-fase="comprende"] { --fase-color: var(--fase-comprende); }
+        .nav-fase[data-fase="aplica"] { --fase-color: var(--fase-aplica); }
+        .nav-fase[data-fase="reflexiona"] { --fase-color: var(--fase-reflexiona); }
+        .nav-fase[data-fase="valida"] { --fase-color: var(--fase-valida); }
+        .nav-fase[data-fase="profundiza"] { --fase-color: var(--fase-profundiza); }
+
+        .nav-fase:hover {
+            border-color: var(--fase-color);
+            color: var(--fase-color);
+        }
+
+        .nav-fase-numero {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--fase-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* ========== BARRA DE PROGRESO ========== */
+        .progress-container {
+            background: var(--uan-light);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 58, 99, 0.1);
+        }
+
+        .progress-inner {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            color: var(--uan-primary);
+            font-size: 0.9rem;
+        }
+
+        .progress-stats {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(0, 58, 99, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .progress-segment {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-segment[data-fase="comprende"] { background: var(--fase-comprende); width: 20%; }
+        .progress-segment[data-fase="aplica"] { background: var(--fase-aplica); width: 0%; }
+        .progress-segment[data-fase="reflexiona"] { background: var(--fase-reflexiona); width: 0%; }
+        .progress-segment[data-fase="valida"] { background: var(--fase-valida); width: 0%; }
+        .progress-segment[data-fase="profundiza"] { background: var(--fase-profundiza); width: 0%; }
+
+        .progress-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .progress-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* ========== CONTENIDO PRINCIPAL ========== */
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        /* ========== ESCENARIO INMERSIVO ========== */
+        .escenario-inmersivo {
+            background: linear-gradient(135deg, var(--uan-dark) 0%, var(--uan-primary) 100%);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .escenario-inmersivo::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(242, 169, 0, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .escenario-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(242, 169, 0, 0.2);
+            color: var(--uan-accent);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .escenario-titulo {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        .escenario-contexto {
+            background: rgba(255,255,255,0.08);
+            border-left: 4px solid var(--uan-accent);
+            padding: 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .escenario-rol {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            background: rgba(255,255,255,0.05);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+        }
+
+        .escenario-rol-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--uan-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .escenario-rol-text h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--uan-accent);
+        }
+
+        .escenario-rol-text p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* ========== SECCIÓN DE FUNDAMENTOS TEÓRICOS ========== */
+        .fundamentos-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 58, 99, 0.08);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--uan-primary), var(--uan-secondary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--uan-primary);
+        }
+
+        .constructo-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .constructo-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border-left: 4px solid var(--uan-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .constructo-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .constructo-card:nth-child(1) { border-left-color: var(--fase-comprende); }
+        .constructo-card:nth-child(2) { border-left-color: var(--fase-aplica); }
+        .constructo-card:nth-child(3) { border-left-color: var(--fase-reflexiona); }
+        .constructo-card:nth-child(4) { border-left-color: var(--fase-valida); }
+        .constructo-card:nth-child(5) { border-left-color: var(--fase-profundiza); }
+
+        .constructo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .constructo-nombre {
+            font-weight: 700;
+            color: var(--uan-primary);
+            font-size: 1.05rem;
+        }
+
+        .constructo-autores {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(0, 91, 150, 0.08);
+            padding: 0.25rem 0.6rem;
+            border-radius: 50px;
+        }
+
+        .constructo-descripcion {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .constructo-operacional {
+            background: rgba(242, 169, 0, 0.1);
+            border: 1px solid rgba(242, 169, 0, 0.3);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+        }
+
+        .constructo-operacional strong {
+            color: var(--uan-primary);
+        }
+
+        /* ========== FASES AETL ========== */
+        .fase-section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+
+        .fase-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid;
+        }
+
+        .fase-header[data-fase="comprende"] { border-color: var(--fase-comprende); }
+        .fase-header[data-fase="aplica"] { border-color: var(--fase-aplica); }
+        .fase-header[data-fase="reflexiona"] { border-color: var(--fase-reflexiona); }
+        .fase-header[data-fase="valida"] { border-color: var(--fase-valida); }
+        .fase-header[data-fase="profundiza"] { border-color: var(--fase-profundiza); }
+
+        .fase-numero {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .fase-header[data-fase="comprende"] .fase-numero { background: var(--fase-comprende); }
+        .fase-header[data-fase="aplica"] .fase-numero { background: var(--fase-aplica); }
+        .fase-header[data-fase="reflexiona"] .fase-numero { background: var(--fase-reflexiona); }
+        .fase-header[data-fase="valida"] .fase-numero { background: var(--fase-valida); }
+        .fase-header[data-fase="profundiza"] .fase-numero { background: var(--fase-profundiza); }
+
+        .fase-info {
+            flex: 1;
+        }
+
+        .fase-nombre {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .fase-bloom {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .fase-bloom strong {
+            color: var(--uan-secondary);
+        }
+
+        .fase-tiempo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--uan-light);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--uan-primary);
+            font-weight: 500;
+        }
+
+        /* Objetivos de aprendizaje */
+        .objetivos-box {
+            background: linear-gradient(135deg, var(--uan-light) 0%, rgba(242, 169, 0, 0.05) 100%);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 91, 150, 0.15);
+        }
+
+        .objetivos-titulo {
+            font-weight: 700;
+            color: var(--uan-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .objetivos-lista {
+            list-style: none;
+        }
+
+        .objetivos-lista li {
+            position: relative;
+            padding-left: 1.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .objetivos-lista li::before {
+            content: '◆';
+            position: absolute;
+            left: 0;
+            color: var(--uan-accent);
+            font-size: 0.7rem;
+            top: 0.35rem;
+        }
+
+        /* Contenido */
+        .contenido-section {
+            margin-bottom: 2rem;
+        }
+
+        .contenido-section h3 {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            color: var(--uan-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--uan-light);
+        }
+
+        .contenido-section p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Diagramas ASCII */
+        .diagrama-ascii {
+            background: var(--uan-dark);
+            color: #00ff88;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            line-height: 1.4;
+            white-space: pre;
+        }
+
+        .diagrama-titulo {
+            color: var(--uan-accent);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Cajas contextuales */
+        .caja-contextual {
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .caja-contextual-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .caja-contextual-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .caja-contextual-content p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .caja-tip {
+            background: rgba(45, 106, 79, 0.1);
+            border: 1px solid rgba(45, 106, 79, 0.3);
+        }
+        .caja-tip .caja-contextual-icon { color: var(--fase-comprende); }
+        .caja-tip h4 { color: var(--fase-comprende); }
+
+        .caja-warning {
+            background: rgba(242, 169, 0, 0.1);
+            border: 1px solid rgba(242, 169, 0, 0.4);
+        }
+        .caja-warning .caja-contextual-icon { color: var(--uan-accent); }
+        .caja-warning h4 { color: #b8860b; }
+
+        .caja-danger {
+            background: rgba(196, 69, 54, 0.1);
+            border: 1px solid rgba(196, 69, 54, 0.3);
+        }
+        .caja-danger .caja-contextual-icon { color: var(--fase-valida); }
+        .caja-danger h4 { color: var(--fase-valida); }
+
+        .caja-success {
+            background: rgba(29, 78, 137, 0.1);
+            border: 1px solid rgba(29, 78, 137, 0.3);
+        }
+        .caja-success .caja-contextual-icon { color: var(--fase-aplica); }
+        .caja-success h4 { color: var(--fase-aplica); }
+
+        /* ========== RETOS IA ========== */
+        .reto-ia {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 91, 150, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reto-ia::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--uan-primary), var(--uan-accent), var(--uan-secondary));
+        }
+
+        .reto-ia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .reto-ia-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--uan-primary), var(--uan-secondary));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .reto-ia-numero {
+            background: var(--uan-accent);
+            color: var(--uan-primary);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .reto-ia-titulo {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--uan-primary);
+            margin-bottom: 1rem;
+        }
+
+        .reto-ia-rol {
+            background: var(--uan-light);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .reto-ia-rol-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .reto-ia-rol-text {
+            font-weight: 600;
+            color: var(--uan-primary);
+        }
+
+        .prompt-container {
+            background: var(--uan-dark);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .prompt-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--uan-accent);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .prompt-text {
+            color: #e0e0e0;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .prompt-text em {
+            color: var(--uan-accent);
+            font-style: normal;
+        }
+
+        .reto-ia-instrucciones {
+            margin-bottom: 1.5rem;
+        }
+
+        .reto-ia-instrucciones h4 {
+            font-weight: 600;
+            color: var(--uan-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .reto-ia-instrucciones ol {
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .reto-ia-instrucciones li {
+            margin-bottom: 0.5rem;
+        }
+
+        .reto-ia-entregable {
+            background: linear-gradient(135deg, rgba(242, 169, 0, 0.1), rgba(242, 169, 0, 0.05));
+            border: 1px solid rgba(242, 169, 0, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .reto-ia-entregable h4 {
+            color: var(--uan-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .reto-ia-entregable p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* ========== CHECKPOINT METACOGNITIVO ========== */
+        .checkpoint-metacognitivo {
+            background: linear-gradient(135deg, var(--fase-reflexiona), #9b4dca);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin: 2.5rem 0;
+            color: white;
+        }
+
+        .checkpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkpoint-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .checkpoint-title {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .checkpoint-preguntas {
+            list-style: none;
+        }
+
+        .checkpoint-preguntas li {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .checkpoint-preguntas li::before {
+            content: '?';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        /* ========== TABLAS ========== */
+        .tabla-contenedor {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+        }
+
+        thead {
+            background: var(--uan-primary);
+            color: white;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 58, 99, 0.1);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        tbody tr:hover {
+            background: var(--uan-light);
+        }
+
+        .codigo-inline {
+            background: rgba(0, 58, 99, 0.08);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            color: var(--uan-primary);
+        }
+
+        /* ========== SISTEMA DE EVALUACIÓN ========== */
+        .evaluacion-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin: 3rem 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .evaluacion-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .evaluacion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--uan-secondary);
+        }
+
+        .evaluacion-item-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .evaluacion-item-fase {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .evaluacion-item-nombre {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .evaluacion-item-porcentaje {
+            font-weight: 700;
+            color: var(--uan-primary);
+            font-size: 1.1rem;
+        }
+
+        /* ========== GLOSARIO ========== */
+        .glosario-section {
+            background: var(--uan-light);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .glosario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .glosario-item {
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .glosario-termino {
+            font-weight: 700;
+            color: var(--uan-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .glosario-tipo {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .glosario-tipo.disciplinar {
+            background: rgba(0, 91, 150, 0.15);
+            color: var(--uan-secondary);
+        }
+
+        .glosario-tipo.aetl {
+            background: rgba(242, 169, 0, 0.2);
+            color: #b8860b;
+        }
+
+        .glosario-definicion {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ========== REFERENCIAS ========== */
+        .referencias-section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin: 3rem 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .referencias-lista {
+            margin-top: 1.5rem;
+        }
+
+        .referencia-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(0, 58, 99, 0.1);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .referencia-item:last-child {
+            border-bottom: none;
+        }
+
+        .referencia-item strong {
+            color: var(--uan-primary);
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: var(--uan-dark);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-modelo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(242, 169, 0, 0.2);
+            color: var(--uan-accent);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer-text {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .nav-fases {
+                justify-content: flex-start;
+                padding: 0.5rem;
+            }
+
+            .nav-fase span:not(.nav-fase-numero) {
+                display: none;
+            }
+
+            .fase-header {
+                flex-wrap: wrap;
+            }
+
+            .fase-tiempo {
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+
+            .reto-ia-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .glosario-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== ANIMACIONES ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Lista especial */
+        .lista-conceptos {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .lista-conceptos li {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            position: relative;
+        }
+
+        .lista-conceptos li::before {
+            content: '→';
+            position: absolute;
+            left: 1rem;
+            color: var(--uan-accent);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== HEADER INSTITUCIONAL ========== -->
+    <header class="header-institucional">
+        <div class="header-top">
+            <div class="uan-logo">
+                <div class="uan-logo-icon">UAN</div>
+                <div class="uan-logo-text">
+                    <span>Universidad Autónoma de Nayarit</span>
+                    <span>Licenciatura en Sistemas Computacionales</span>
+                </div>
+            </div>
+            <div class="header-badge">MODELO AETL</div>
+        </div>
+        <div class="header-main">
+            <p class="header-curso">Programación Distribuida del Lado del Cliente</p>
+            <h1 class="header-titulo">
+                Arquitectura <span class="accent">Cliente-Servidor</span><br>
+                y Fundamentos HTTP
+            </h1>
+            <div class="header-semana">
+                <div class="header-semana-numero">1</div>
+                <span>Semana 1 de 15 · Fase 1: Fundamentos de Comunicación</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== NAVEGACIÓN ========== -->
+    <nav class="nav-container">
+        <div class="nav-fases">
+            <a href="#comprende" class="nav-fase" data-fase="comprende">
+                <span class="nav-fase-numero">1</span>
+                <span>Comprende</span>
+            </a>
+            <a href="#aplica" class="nav-fase" data-fase="aplica">
+                <span class="nav-fase-numero">2</span>
+                <span>Aplica</span>
+            </a>
+            <a href="#reflexiona" class="nav-fase" data-fase="reflexiona">
+                <span class="nav-fase-numero">3</span>
+                <span>Reflexiona</span>
+            </a>
+            <a href="#valida" class="nav-fase" data-fase="valida">
+                <span class="nav-fase-numero">4</span>
+                <span>Valida</span>
+            </a>
+            <a href="#profundiza" class="nav-fase" data-fase="profundiza">
+                <span class="nav-fase-numero">5</span>
+                <span>Profundiza</span>
+            </a>
+            <a href="#evaluacion" class="nav-fase">
+                <span>📊</span>
+                <span>Evaluación</span>
+            </a>
+            <a href="#glosario" class="nav-fase">
+                <span>📖</span>
+                <span>Glosario</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ========== BARRA DE PROGRESO ========== -->
+    <div class="progress-container">
+        <div class="progress-inner">
+            <div class="progress-header">
+                <span class="progress-title">🎯 Progreso del Aprendizaje Profundo</span>
+                <span class="progress-stats">Fase actual: Comprende</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-segment" data-fase="comprende"></div>
+                <div class="progress-segment" data-fase="aplica"></div>
+                <div class="progress-segment" data-fase="reflexiona"></div>
+                <div class="progress-segment" data-fase="valida"></div>
+                <div class="progress-segment" data-fase="profundiza"></div>
+            </div>
+            <div class="progress-legend">
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-comprende);"></div>
+                    <span>Comprende</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-aplica);"></div>
+                    <span>Aplica</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-reflexiona);"></div>
+                    <span>Reflexiona</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-valida);"></div>
+                    <span>Valida</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-profundiza);"></div>
+                    <span>Profundiza</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CONTENIDO PRINCIPAL ========== -->
+    <main class="main-content">
+        
+        <!-- ========== ESCENARIO INMERSIVO ========== -->
+        <section class="escenario-inmersivo">
+            <div class="escenario-badge">
+                <span>🎬</span>
+                <span>ESCENARIO INMERSIVO</span>
+            </div>
+            <h2 class="escenario-titulo">El Primer Día en TechNova: La Crisis del Demo</h2>
+            <div class="escenario-contexto">
+                <p>Es lunes por la mañana en <strong>TechNova</strong>, una startup de e-commerce que está desarrollando "EcoMarket", una plataforma para productores locales. Eres parte del equipo de desarrollo frontend que acaba de integrarse.</p>
+                <p style="margin-top: 1rem;">El CTO entra con noticias urgentes: <em>"El equipo de backend terminó la API REST este fin de semana. Necesitamos un cliente funcional para la demo con inversionistas el viernes. Pero hay un problema: la documentación de la API está incompleta y el equipo de backend estará en un hackathon toda la semana."</em></p>
+                <p style="margin-top: 1rem;">Tu misión: entender cómo funciona la comunicación cliente-servidor, analizar la API disponible, y construir las bases de un cliente que pueda evolucionar independientemente del backend.</p>
+            </div>
+            <div class="escenario-rol">
+                <div class="escenario-rol-icon">👨‍💻</div>
+                <div class="escenario-rol-text">
+                    <h4>Tu Rol: Desarrollador Frontend Junior</h4>
+                    <p>Cuentas con conocimientos de programación pero esta es tu primera experiencia real con APIs REST. Tienes acceso a una IA como co-piloto de aprendizaje, y tu objetivo es no solo resolver el problema inmediato, sino comprender los fundamentos que te permitirán enfrentar cualquier integración cliente-servidor en el futuro.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FUNDAMENTOS TEÓRICOS AETL ========== -->
+        <section class="fundamentos-section">
+            <div class="section-header">
+                <div class="section-icon">🧠</div>
+                <h2 class="section-title">Fundamentos del Modelo AETL</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Este documento implementa el modelo de <strong>Aprendizaje Técnico Aumentado por IA</strong> (AETL), 
+                fundamentado en cinco constructos teóricos que guían cómo la inteligencia artificial potencia tu proceso de aprendizaje.
+            </p>
+            <div class="constructo-grid">
+                <div class="constructo-card">
+                    <div class="constructo-header">
+                        <span class="constructo-nombre">1. Constructivismo y Socioconstructivismo</span>
+                        <span class="constructo-autores">Piaget 1978, Vygotsky 1978, Bognár 2024</span>
+                    </div>
+                    <p class="constructo-descripcion">
+                        La IA actúa como <strong>andamiaje cognitivo</strong> en tu Zona de Desarrollo Próximo (ZDP): te ayuda a alcanzar comprensiones que no lograrías solo, pero que sí puedes construir con el apoyo adecuado.
+                    </p>
+                    <div class="constructo-operacional">
+                        <strong>Constructo operacional:</strong> Capacidad para construir comprensión significativa usando información proporcionada por la IA, sin depender pasivamente de ella.
+                    </div>
+                </div>
+
+                <div class="constructo-card">
+                    <div class="constructo-header">
+                        <span class="constructo-nombre">2. Aprendizaje Autorregulado (SRL)</span>
+                        <span class="constructo-autores">Zimmerman 2000, Chiu 2024, Sari et al. 2025</span>
+                    </div>
+                    <p class="constructo-descripcion">
+                        El ciclo <strong>planificación → ejecución → autorreflexión</strong> se potencia con IA. El 71.4% de investigaciones reportan efectos positivos de la IA en el aprendizaje autorregulado cuando se usa estratégicamente.
+                    </p>
+                    <div class="constructo-operacional">
+                        <strong>Constructo operacional:</strong> Formulación de preguntas progresivamente más sofisticadas a la IA, evidenciando madurez metacognitiva.
+                    </div>
+                </div>
+
+                <div class="constructo-card">
+                    <div class="constructo-header">
+                        <span class="constructo-nombre">3. Teoría de la Carga Cognitiva</span>
+                        <span class="constructo-autores">Sweller 1988/2020, Mahdi et al. 2025</span>
+                    </div>
+                    <p class="constructo-descripcion">
+                        La IA optimiza la <strong>carga extrínseca</strong> (búsqueda de información, sintaxis) para liberar recursos cognitivos hacia la <strong>carga germana</strong> (comprensión profunda de patrones y principios).
+                    </p>
+                    <div class="constructo-operacional">
+                        <strong>Constructo operacional:</strong> Capacidad para abordar problemas complejos sin sobrecarga, delegando a la IA tareas de bajo nivel cognitivo.
+                    </div>
+                </div>
+
+                <div class="constructo-card">
+                    <div class="constructo-header">
+                        <span class="constructo-nombre">4. Agencia Compartida</span>
+                        <span class="constructo-autores">Bandura 2001, Brod et al. 2023</span>
+                    </div>
+                    <p class="constructo-descripcion">
+                        El estudiante mantiene el balance autonomía-dependencia. Perfiles identificados: <strong>Arquitecto (56.7%)</strong> dirige activamente, Corrector (20%) refina outputs, Observador (13.3%) depende pasivamente.
+                    </p>
+                    <div class="constructo-operacional">
+                        <strong>Constructo operacional:</strong> El estudiante mantiene consistentemente el rol de "Arquitecto" de sus productos de aprendizaje.
+                    </div>
+                </div>
+
+                <div class="constructo-card">
+                    <div class="constructo-header">
+                        <span class="constructo-nombre">5. Taxonomía de Bloom para Era Digital</span>
+                        <span class="constructo-autores">Anderson et al. 2001</span>
+                    </div>
+                    <p class="constructo-descripcion">
+                        <strong>Crear = co-autoría con IA</strong>; <strong>Evaluar = auditoría crítica de respuestas IA</strong>. El 60% de estudiantes con uso estratégico de IA opera en niveles 4-6 de la taxonomía.
+                    </p>
+                    <div class="constructo-operacional">
+                        <strong>Constructo operacional:</strong> Progresión demostrable desde recordar hasta crear/evaluar usando IA como herramienta cognitiva.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 1: COMPRENDE ========== -->
+        <section id="comprende" class="fase-section">
+            <div class="fase-header" data-fase="comprende">
+                <div class="fase-numero">1</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">COMPRENDE</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Recordar / Comprender</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explicar el modelo cliente-servidor y sus roles fundamentales en sistemas distribuidos</li>
+                    <li>Identificar los componentes de una petición y respuesta HTTP</li>
+                    <li>Diferenciar los métodos HTTP según su semántica (seguros, idempotentes)</li>
+                    <li>Interpretar códigos de estado HTTP como contrato semántico entre cliente y servidor</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>El Paradigma Cliente-Servidor</h3>
+                <p>
+                    La arquitectura cliente-servidor es el modelo fundamental de comunicación en sistemas distribuidos. 
+                    Define dos roles claramente diferenciados que colaboran a través de una red:
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│              MODELO CLIENTE-SERVIDOR                             │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    ┌──────────────┐                           ┌──────────────┐
+    │              │      1. REQUEST           │              │
+    │   CLIENTE    │  ───────────────────────► │   SERVIDOR   │
+    │              │                           │              │
+    │  • Inicia    │      2. RESPONSE          │  • Escucha   │
+    │  • Consume   │  ◄─────────────────────── │  • Procesa   │
+    │  • Presenta  │                           │  • Responde  │
+    └──────────────┘                           └──────────────┘
+          │                                           │
+          │                                           │
+          ▼                                           ▼
+    ┌──────────────┐                           ┌──────────────┐
+    │  Cualquier   │                           │   API REST   │
+    │  plataforma: │                           │   GraphQL    │
+    │  • Web       │                           │   gRPC       │
+    │  • Móvil     │                           │   WebSocket  │
+    │  • CLI       │                           │   ...        │
+    │  • IoT       │                           │              │
+    └──────────────┘                           └──────────────┘
+                </div>
+
+                <div class="caja-contextual caja-tip">
+                    <span class="caja-contextual-icon">💡</span>
+                    <div class="caja-contextual-content">
+                        <h4>Principio de Independencia Tecnológica</h4>
+                        <p>El cliente puede ser cualquier tipo de aplicación (web, móvil, CLI, IoT). Los conceptos que aprenderás esta semana aplican <strong>independientemente de la plataforma</strong>. Esta es una de las competencias más transferibles que desarrollarás.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Anatomía de HTTP: El Lenguaje de la Web</h3>
+                <p>
+                    HTTP (HyperText Transfer Protocol) es el protocolo de comunicación estándar entre clientes y servidores web. 
+                    Cada intercambio consiste en una <strong>petición</strong> del cliente y una <strong>respuesta</strong> del servidor.
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    PETICIÓN HTTP (Request)                       │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─ Línea de solicitud ──────────────────────────────────────────────┐
+│  POST /api/productos HTTP/1.1                                     │
+│  ───┬─ ───────┬────── ───┬────                                    │
+│     │         │          │                                        │
+│   Método    Ruta      Versión                                     │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Headers (Metadatos) ─────────────────────────────────────────────┐
+│  Host: api.ecomarket.com                                          │
+│  Content-Type: application/json                                   │
+│  Authorization: Bearer eyJhbGc...                                 │
+│  Accept: application/json                                         │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Body (Cuerpo - opcional) ────────────────────────────────────────┐
+│  {                                                                │
+│    "nombre": "Miel orgánica",                                     │
+│    "precio": 150.00,                                              │
+│    "productor_id": 42                                             │
+│  }                                                                │
+└───────────────────────────────────────────────────────────────────┘
+                </div>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    RESPUESTA HTTP (Response)                     │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─ Línea de estado ─────────────────────────────────────────────────┐
+│  HTTP/1.1 201 Created                                             │
+│  ───┬──── ─┬─ ───┬───                                             │
+│     │      │     │                                                │
+│  Versión Código Mensaje                                           │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Headers de respuesta ────────────────────────────────────────────┐
+│  Content-Type: application/json                                   │
+│  Location: /api/productos/1234                                    │
+│  X-Request-Id: abc-123-def                                        │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Body de respuesta ───────────────────────────────────────────────┐
+│  {                                                                │
+│    "id": 1234,                                                    │
+│    "nombre": "Miel orgánica",                                     │
+│    "creado_en": "2024-01-15T10:30:00Z"                            │
+│  }                                                                │
+└───────────────────────────────────────────────────────────────────┘
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Métodos HTTP: Semántica que Importa</h3>
+                <p>
+                    Los métodos HTTP no son arbitrarios; cada uno tiene una <strong>semántica definida</strong> en el RFC 7231. 
+                    Entender esta semántica es crucial para diseñar clientes robustos.
+                </p>
+
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Método</th>
+                                <th>Semántica</th>
+                                <th>¿Seguro?</th>
+                                <th>¿Idempotente?</th>
+                                <th>Ejemplo en EcoMarket</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="codigo-inline">GET</span></td>
+                                <td>Obtener recurso</td>
+                                <td>✅ Sí</td>
+                                <td>✅ Sí</td>
+                                <td>Listar productos disponibles</td>
+                            </tr>
+                            <tr>
+                                <td><span class="codigo-inline">POST</span></td>
+                                <td>Crear recurso nuevo</td>
+                                <td>❌ No</td>
+                                <td>❌ No</td>
+                                <td>Registrar nuevo producto</td>
+                            </tr>
+                            <tr>
+                                <td><span class="codigo-inline">PUT</span></td>
+                                <td>Reemplazar recurso completo</td>
+                                <td>❌ No</td>
+                                <td>✅ Sí</td>
+                                <td>Actualizar todo el perfil de productor</td>
+                            </tr>
+                            <tr>
+                                <td><span class="codigo-inline">PATCH</span></td>
+                                <td>Modificar parcialmente</td>
+                                <td>❌ No</td>
+                                <td>❌ No*</td>
+                                <td>Cambiar solo el precio de un producto</td>
+                            </tr>
+                            <tr>
+                                <td><span class="codigo-inline">DELETE</span></td>
+                                <td>Eliminar recurso</td>
+                                <td>❌ No</td>
+                                <td>✅ Sí</td>
+                                <td>Eliminar producto del catálogo</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="caja-contextual caja-warning">
+                    <span class="caja-contextual-icon">⚠️</span>
+                    <div class="caja-contextual-content">
+                        <h4>¿Por qué importa la idempotencia?</h4>
+                        <p>Si una petición falla y no sabes si llegó al servidor, ¿puedes reintentarla con seguridad? Con métodos idempotentes (GET, PUT, DELETE), <strong>sí</strong>. Con POST, podrías crear duplicados. Esta distinción es fundamental para implementar <strong>patrones de resiliencia</strong> en tus clientes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Códigos de Estado: El Contrato Semántico</h3>
+                <p>
+                    Los códigos de estado HTTP son el <strong>lenguaje estandarizado</strong> con el que el servidor comunica el resultado de una petición. 
+                    Dominarlos te permite construir clientes que reaccionan inteligentemente a cualquier escenario.
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    FAMILIAS DE CÓDIGOS HTTP                      │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─────────────────────────────────────────────────────────────────┐
+│  1xx INFORMATIVOS    │  "El servidor recibió tu petición,       │
+│  (100-199)           │   pero aún está procesando..."           │
+├─────────────────────────────────────────────────────────────────┤
+│  2xx ÉXITO           │  "Todo salió bien"                       │
+│  (200-299)           │   200 OK, 201 Created, 204 No Content    │
+├─────────────────────────────────────────────────────────────────┤
+│  3xx REDIRECCIÓN     │  "El recurso está en otro lugar"         │
+│  (300-399)           │   301 Moved Permanently, 304 Not Modified│
+├─────────────────────────────────────────────────────────────────┤
+│  4xx ERROR CLIENTE   │  "Algo está mal con TU petición"         │
+│  (400-499)           │   400 Bad Request, 401 Unauthorized,     │
+│                      │   404 Not Found, 422 Unprocessable       │
+├─────────────────────────────────────────────────────────────────┤
+│  5xx ERROR SERVIDOR  │  "Algo salió mal de NUESTRO lado"        │
+│  (500-599)           │   500 Internal Error, 503 Unavailable    │
+└─────────────────────────────────────────────────────────────────┘
+
+   ┌────────────────────────────────────────────────────────────┐
+   │  REGLA DE ORO PARA CLIENTES:                               │
+   │                                                            │
+   │  • 4xx → NO reintentes (el problema es tuyo)               │
+   │  • 5xx → SÍ puedes reintentar (el servidor puede mejorar)  │
+   │  • 2xx → Procesa el resultado exitoso                      │
+   └────────────────────────────────────────────────────────────┘
+                </div>
+            </div>
+
+            <!-- RETO IA #1 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">1</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Explorador de Anatomía HTTP</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📚 Tutor Socrático de Protocolos de Red</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un tutor socrático experto en protocolos HTTP. Estoy aprendiendo sobre comunicación cliente-servidor y necesito entender profundamente la anatomía de HTTP.
+
+<em>Contexto:</em> Soy desarrollador frontend junior trabajando en "EcoMarket", un e-commerce para productores locales. Necesito consumir una API REST pero mi conocimiento de HTTP es superficial.
+
+<em>Tu tarea:</em>
+1. Explícame la diferencia entre headers de request y headers de response usando ejemplos del dominio e-commerce
+2. Dame 3 escenarios concretos donde elegir mal el método HTTP causaría problemas reales (seguridad, duplicados, inconsistencias)
+3. Usando el método socrático, hazme 2 preguntas que me ayuden a descubrir por qué Content-Type es crítico para el cliente
+
+<em>Formato de respuesta:</em> Usa ejemplos concretos con JSON real, no abstractos. Cuando me hagas preguntas, espera mi respuesta antes de continuar.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Copia el prompt y envíalo a tu asistente IA (Claude, ChatGPT, etc.)</li>
+                        <li>Responde genuinamente las preguntas socráticas que te haga</li>
+                        <li>Anota en tu cuaderno los 3 escenarios problemáticos que identifique</li>
+                        <li>Guarda la conversación completa para tu portafolio</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Documento de 1 página con: (1) Los 3 escenarios de uso incorrecto de métodos HTTP, (2) Tus respuestas a las preguntas socráticas, (3) Una reflexión de 3 oraciones sobre qué aprendiste del diálogo con la IA.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #2 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">2</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Decodificador de Códigos de Estado</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔍 Analista de Respuestas HTTP</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un analista experto en respuestas HTTP. Tu tarea es ayudarme a entender qué código de estado usar en diferentes escenarios.
+
+<em>Escenario base:</em> API de EcoMarket para gestión de productos orgánicos.
+
+<em>Para cada uno de estos casos, explícame:</em>
+- Qué código de estado debería devolver el servidor
+- Por qué ese código y no otro similar
+- Qué debería hacer mi cliente (frontend) al recibir ese código
+
+<em>Casos a analizar:</em>
+1. El usuario intenta crear un producto pero el JSON está mal formado
+2. El usuario intenta ver un producto que fue eliminado ayer
+3. El usuario intenta actualizar el precio de un producto pero su sesión expiró
+4. El servidor de base de datos está sobrecargado temporalmente
+5. El usuario intenta crear un producto con un SKU que ya existe
+
+<em>Formato:</em> Para cada caso, estructura tu respuesta como:
+CÓDIGO: XXX nombre
+RAZÓN: [por qué este y no otro]
+ACCIÓN CLIENTE: [qué debe hacer el frontend]</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, intenta predecir los códigos para cada caso</li>
+                        <li>Envía el prompt y compara tus predicciones con las respuestas de la IA</li>
+                        <li>Para los casos donde te equivocaste, pregunta a la IA por qué tu elección era incorrecta</li>
+                        <li>Crea una tabla resumen para referencia futura</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Tabla de referencia rápida con los 5 casos, tus predicciones iniciales, las respuestas correctas, y la acción recomendada para el cliente en cada caso.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Comprende</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo explicar a un compañero la diferencia entre un método seguro y uno idempotente con un ejemplo propio?</li>
+                    <li>Si veo un error 422 vs un error 400, ¿sé cuál sugiere un problema de validación de negocio vs un problema de sintaxis?</li>
+                    <li>¿Qué preguntas le hice a la IA que revelaron lagunas en mi comprensión inicial?</li>
+                    <li>¿Cómo usé la IA: como "oráculo de respuestas" o como "tutor que me hace pensar"?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== FASE 2: APLICA ========== -->
+        <section id="aplica" class="fase-section">
+            <div class="fase-header" data-fase="aplica">
+                <div class="fase-numero">2</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">APLICA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Aplicar / Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>90 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Implementar un cliente HTTP que realice peticiones GET y POST correctamente</li>
+                    <li>Analizar tráfico HTTP real usando herramientas de desarrollo del navegador</li>
+                    <li>Aplicar el patrón Contract-First definiendo un contrato OpenAPI básico</li>
+                    <li>Configurar un mock server para desarrollo independiente del backend</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Del Concepto al Código: Tu Primer Cliente HTTP</h3>
+                <p>
+                    Es momento de traducir los conceptos en código funcional. Implementarás un cliente que consuma 
+                    la API de EcoMarket, comenzando con operaciones de lectura (GET) y creación (POST).
+                </p>
+
+                <div class="caja-contextual caja-success">
+                    <span class="caja-contextual-icon">🎯</span>
+                    <div class="caja-contextual-content">
+                        <h4>Principio AETL: La IA como Co-Constructor</h4>
+                        <p>En esta fase, usarás la IA para generar código base, pero tú eres el <strong>Arquitecto</strong>: decides qué pedir, evalúas lo que genera, y adaptas al contexto específico de EcoMarket. No copies y pegues; comprende y adapta.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Herramientas del Desarrollador: DevTools Network Tab</h3>
+                <p>
+                    Antes de escribir código, necesitas <strong>ver</strong> el tráfico HTTP en acción. 
+                    El panel Network de DevTools es tu ventana al mundo de las peticiones.
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    DEVTOOLS NETWORK TAB                          │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─ Barra de herramientas ───────────────────────────────────────────┐
+│  [🔴 Record] [🚫 Clear] [⬇️ Filter: All|XHR|JS|CSS|Img|...]      │
+│  [✓] Preserve log   [✓] Disable cache                            │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Lista de peticiones ─────────────────────────────────────────────┐
+│  Name           │ Status │ Type │ Size  │ Time   │ Waterfall     │
+│  ─────────────────────────────────────────────────────────────── │
+│  productos      │  200   │ xhr  │ 4.2KB │ 145ms  │ ████░░░░░     │
+│  POST producto  │  201   │ xhr  │ 312B  │ 89ms   │ ██░░░░░░░░    │
+│  imagen.jpg     │  304   │ img  │ (cache)│ 2ms   │ ░             │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ Detalle de petición seleccionada ────────────────────────────────┐
+│  [Headers] [Preview] [Response] [Timing] [Cookies]               │
+│                                                                  │
+│  ► General                                                       │
+│    Request URL: https://api.ecomarket.com/api/productos          │
+│    Request Method: GET                                           │
+│    Status Code: 200 OK                                           │
+│                                                                  │
+│  ► Response Headers                                              │
+│    content-type: application/json; charset=utf-8                 │
+│    x-request-id: abc-123-def-456                                 │
+│                                                                  │
+│  ► Request Headers                                               │
+│    Accept: application/json                                      │
+│    Authorization: Bearer eyJhbGc...                              │
+└───────────────────────────────────────────────────────────────────┘
+                </div>
+
+                <div class="caja-contextual caja-tip">
+                    <span class="caja-contextual-icon">💡</span>
+                    <div class="caja-contextual-content">
+                        <h4>Tip: Filtrar por XHR</h4>
+                        <p>Usa el filtro "XHR" (o "Fetch/XHR") para ver solo las peticiones de tu JavaScript, ocultando imágenes, CSS y otros recursos estáticos. Esto te permite enfocarte en la comunicación cliente-servidor.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>El Patrón Contract-First</h3>
+                <p>
+                    En equipos profesionales, el <strong>contrato</strong> (la especificación de la API) se define <em>antes</em> 
+                    de que cliente o servidor estén implementados. Esto permite trabajo paralelo y evita bloqueos.
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    PATRÓN CONTRACT-FIRST                         │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                    ┌─────────────────┐
+                    │   CONTRATO      │
+                    │   (OpenAPI)     │
+                    │                 │
+                    │  Define:        │
+                    │  • Endpoints    │
+                    │  • Esquemas     │
+                    │  • Respuestas   │
+                    └────────┬────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+            ▼                ▼                ▼
+    ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+    │  MOCK SERVER  │ │    CLIENTE    │ │   SERVIDOR    │
+    │               │ │               │ │               │
+    │  Simula API   │ │  Desarrolla   │ │  Implementa   │
+    │  desde día 1  │ │  contra mock  │ │  los          │
+    │               │ │               │ │  endpoints    │
+    └───────────────┘ └───────────────┘ └───────────────┘
+            │                │                │
+            └────────────────┼────────────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   INTEGRACIÓN   │
+                    │   Mock → Real   │
+                    │   (sin cambios  │
+                    │    en cliente)  │
+                    └─────────────────┘
+                </div>
+            </div>
+
+            <!-- RETO IA #3 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">3</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Co-Diseñador de Contrato OpenAPI</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📐 Arquitecto de APIs REST</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un arquitecto de APIs REST experto en OpenAPI 3.0. Vamos a diseñar juntos el contrato para la API de EcoMarket.
+
+<em>Contexto del negocio:</em>
+EcoMarket es una plataforma que conecta productores locales de alimentos orgánicos con consumidores. Para la demo del viernes necesitamos:
+- Listar productos disponibles (con filtros por categoría y productor)
+- Ver detalle de un producto específico
+- Crear un nuevo producto (requiere autenticación)
+
+<em>Tu tarea:</em>
+1. Genera una especificación OpenAPI 3.0 en formato YAML para estos 3 endpoints
+2. Incluye esquemas (schemas) para Producto con campos: id, nombre, descripcion, precio, categoria, productor_id, disponible, creado_en
+3. Define respuestas de éxito Y de error (400, 401, 404) con ejemplos concretos
+4. Usa convenciones RESTful consistentes
+
+<em>Restricciones:</em>
+- El endpoint de creación debe requerir header Authorization
+- Los precios deben ser números con 2 decimales máximo
+- Las categorías válidas son: frutas, verduras, lacteos, miel, conservas
+
+<em>Formato:</em> Genera el YAML completo, listo para copiar y usar con herramientas como Swagger UI o Prism.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Envía el prompt y guarda el YAML generado en un archivo <span class="codigo-inline">openapi.yaml</span></li>
+                        <li>Abre el YAML en <a href="https://editor.swagger.io" target="_blank">Swagger Editor</a> para visualizarlo</li>
+                        <li>Identifica al menos 2 mejoras o ajustes que harías al contrato generado</li>
+                        <li>Pide a la IA que incorpore tus mejoras y regenere el contrato</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">openapi.yaml</span> final con el contrato de EcoMarket, incluyendo un comentario al inicio documentando las 2 mejoras que propusiste y por qué.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #4 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">4</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Constructor de Cliente HTTP</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🛠️ Mentor de Desarrollo Frontend</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un mentor de desarrollo frontend. Voy a implementar mi primer cliente HTTP para consumir la API de EcoMarket.
+
+<em>Mi nivel:</em> Sé programar en [ESPECIFICA TU LENGUAJE: Python/JavaScript/otro], pero nunca he hecho peticiones HTTP programáticamente.
+
+<em>Lo que necesito:</em>
+Genera código para un cliente HTTP que haga lo siguiente:
+
+1. GET /api/productos - Listar todos los productos
+   - Debe parsear la respuesta JSON
+   - Debe manejar errores de red (timeout, servidor no disponible)
+   - Debe imprimir los productos de forma legible
+
+2. GET /api/productos/{id} - Obtener un producto específico
+   - Debe manejar el caso 404 (producto no existe)
+   - Debe mostrar un mensaje amigable si falla
+
+3. POST /api/productos - Crear un producto nuevo
+   - Debe enviar JSON en el body
+   - Debe incluir header Content-Type
+   - Debe manejar respuesta 201 (éxito) y 400 (error de validación)
+
+<em>Requisitos del código:</em>
+- Usa la biblioteca estándar o una muy común de mi lenguaje
+- Incluye comentarios explicando cada parte importante
+- Estructura el código en funciones reutilizables
+- NO uses clases complejas, mantenlo simple para aprender
+
+<em>Incluye también:</em>
+- Un ejemplo de cómo ejecutar cada función
+- Explicación de por qué elegiste esa biblioteca/enfoque</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Personaliza el prompt con tu lenguaje de programación preferido</li>
+                        <li>Ejecuta el código generado contra una API de prueba (JSONPlaceholder o tu mock server)</li>
+                        <li>Modifica el código para agregar un header personalizado <span class="codigo-inline">X-Client-Version: 1.0</span></li>
+                        <li>Captura el tráfico en DevTools y verifica que los headers se envían correctamente</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Código fuente del cliente HTTP con tus modificaciones, más una captura de pantalla de DevTools mostrando una petición exitosa con el header personalizado visible.</p>
+                </div>
+            </div>
+
+            <div class="caja-contextual caja-danger">
+                <span class="caja-contextual-icon">🚨</span>
+                <div class="caja-contextual-content">
+                    <h4>Antipatrón: Copiar sin Comprender</h4>
+                    <p>Si copias el código de la IA y "funciona" pero no puedes explicar qué hace cada línea, <strong>no has aprendido</strong>. Antes de ejecutar, lee cada línea y pregúntate: "¿Por qué está esto aquí?" Si no lo sabes, pregunta a la IA específicamente sobre esa línea.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Aplica</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo modificar el código generado por la IA para agregar un nuevo endpoint sin pedir ayuda?</li>
+                    <li>¿Entiendo la diferencia entre el contrato OpenAPI y la implementación del cliente?</li>
+                    <li>¿Usé DevTools activamente para verificar mis peticiones, o solo confié en que el código "funcionaba"?</li>
+                    <li>¿Qué parte del código generado tuve que adaptar porque no encajaba con mi contexto específico?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== FASE 3: REFLEXIONA ========== -->
+        <section id="reflexiona" class="fase-section">
+            <div class="fase-header" data-fase="reflexiona">
+                <div class="fase-numero">3</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">REFLEXIONA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explicitar las decisiones de diseño tomadas al construir el cliente HTTP</li>
+                    <li>Comparar alternativas de implementación y justificar las elecciones</li>
+                    <li>Identificar trade-offs entre simplicidad, robustez y mantenibilidad</li>
+                    <li>Documentar el razonamiento detrás de cada decisión arquitectónica</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>La Reflexión como Catalizador del Aprendizaje</h3>
+                <p>
+                    El aprendizaje profundo no ocurre durante la acción, sino durante la <strong>reflexión sobre la acción</strong>. 
+                    En esta fase, detenemos la construcción para examinar <em>por qué</em> tomamos ciertas decisiones y <em>qué alternativas</em> existían.
+                </p>
+
+                <div class="caja-contextual caja-tip">
+                    <span class="caja-contextual-icon">💡</span>
+                    <div class="caja-contextual-content">
+                        <h4>ADR: Architecture Decision Record</h4>
+                        <p>En equipos profesionales, las decisiones arquitectónicas importantes se documentan en ADRs. Cada ADR captura: el contexto, la decisión tomada, las alternativas consideradas, y las consecuencias esperadas. Esta práctica evita que el conocimiento se pierda y facilita la incorporación de nuevos miembros al equipo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #5 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">5</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Analista de Decisiones Arquitectónicas</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔬 Abogado del Diablo Técnico</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un "abogado del diablo" técnico que cuestiona mis decisiones de diseño. Tu objetivo es ayudarme a pensar más profundamente, no darme respuestas.
+
+<em>Contexto:</em> Estoy desarrollando un cliente HTTP para EcoMarket. Estas son las decisiones que tomé:
+
+1. [DESCRIBE TU DECISIÓN #1: ej. "Usé fetch() nativo en lugar de axios"]
+2. [DESCRIBE TU DECISIÓN #2: ej. "Manejé errores con try/catch genérico"]
+3. [DESCRIBE TU DECISIÓN #3: ej. "Hardcodeé la URL base en cada función"]
+
+<em>Tu tarea:</em>
+Para CADA decisión:
+1. Pregúntame "¿Por qué elegiste esto en lugar de [alternativa específica]?"
+2. Presenta UN escenario donde mi decisión causaría problemas
+3. Sugiere una pregunta que debería hacerme antes de tomar decisiones similares en el futuro
+
+<em>Formato:</em>
+No me des las "respuestas correctas". Quiero pensar. Hazme preguntas que me obliguen a justificar mis elecciones o reconsiderarlas.
+
+<em>Después de que responda:</em>
+Evalúa si mi justificación es sólida o si tiene huecos lógicos. Si tiene huecos, señálalos con otra pregunta.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, reflexiona y escribe 3 decisiones reales que tomaste en la fase Aplica</li>
+                        <li>Personaliza el prompt con tus decisiones específicas</li>
+                        <li>Responde genuinamente a cada pregunta de la IA (no busques "la respuesta correcta")</li>
+                        <li>Si descubres que una decisión fue débil, documenta cómo la mejorarías</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Documento ADR (Architecture Decision Record) con formato: Contexto → Decisión → Alternativas Consideradas → Consecuencias. Debe incluir al menos una decisión que cambiaste después del diálogo con la IA.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #6 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">6</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Comparador de Enfoques de Comunicación</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">⚖️ Analista Comparativo de Tecnologías</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un analista que compara diferentes enfoques de comunicación cliente-servidor. Ayúdame a entender los trade-offs.
+
+<em>Escenario:</em> EcoMarket necesita mostrar el inventario de productos en tiempo real. Actualmente uso REST con polling (petición cada 5 segundos).
+
+<em>Compara estos 3 enfoques para mi caso de uso:</em>
+1. REST con Polling (mi enfoque actual)
+2. WebSocket (conexión persistente bidireccional)
+3. Server-Sent Events (SSE, stream unidireccional del servidor)
+
+<em>Para cada enfoque, analiza:</em>
+- Complejidad de implementación en el cliente (1-5, donde 1 es más simple)
+- Uso de recursos del servidor cuando hay 1000 clientes conectados
+- Latencia para ver un cambio de inventario
+- Comportamiento cuando el usuario pierde conexión brevemente
+- Qué tan fácil es implementar con un mock server
+
+<em>Formato de respuesta:</em>
+Genera una tabla comparativa Y una recomendación específica para EcoMarket considerando que:
+- Es una demo para inversionistas (prioridad: impresionar, no escalabilidad)
+- El equipo es pequeño y junior
+- Solo hay 1 semana de desarrollo</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Envía el prompt y estudia la tabla comparativa</li>
+                        <li>Identifica qué criterio te parece más importante para EcoMarket y por qué</li>
+                        <li>Pregunta a la IA: "¿Cambiaría tu recomendación si el producto ya estuviera en producción con 10,000 usuarios?"</li>
+                        <li>Reflexiona: ¿Tu intuición inicial coincidió con el análisis de la IA?</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Tabla comparativa personalizada con una columna adicional: "Mi evaluación", donde agregas tu perspectiva sobre cada criterio. Incluye 3 oraciones explicando qué enfoque elegirías y por qué.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Reflexiona</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Cambié alguna decisión técnica después de que la IA cuestionara mi razonamiento?</li>
+                    <li>¿Puedo articular los trade-offs de mi implementación actual sin consultar a la IA?</li>
+                    <li>¿La IA me hizo pensar o solo me confirmó lo que ya creía?</li>
+                    <li>¿Qué pregunta debería haberme hecho ANTES de empezar a codificar?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== FASE 4: VALIDA ========== -->
+        <section id="valida" class="fase-section">
+            <div class="fase-header" data-fase="valida">
+                <div class="fase-numero">4</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">VALIDA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Evaluar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>60 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Auditar críticamente el código generado con asistencia de IA</li>
+                    <li>Simular escenarios de fallo para validar la robustez del cliente</li>
+                    <li>Evaluar si el cliente cumple con las especificaciones del contrato OpenAPI</li>
+                    <li>Detectar y documentar edge cases no cubiertos por la implementación</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>La Auditoría Crítica: Más Allá del "Funciona"</h3>
+                <p>
+                    Que el código "funcione" en el escenario feliz no significa que esté listo para producción. 
+                    La validación profesional incluye probar <strong>qué pasa cuando las cosas salen mal</strong>.
+                </p>
+
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    ESCENARIOS DE VALIDACIÓN                      │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─────────────────────────────────────────────────────────────────┐
+│  ESCENARIO FELIZ (Happy Path)                                    │
+│  ───────────────────────────────                                 │
+│  • Red estable, servidor responde rápido                         │
+│  • Datos válidos, usuario autenticado                            │
+│  • ✅ La mayoría de desarrolladores solo prueba esto            │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  EDGE CASES (Casos límite)                                       │
+│  ────────────────────────                                        │
+│  • Lista vacía de productos                                      │
+│  • Producto con precio 0 o negativo                              │
+│  • Caracteres especiales en nombres (emojis, unicode)            │
+│  • ⚠️ Muchos bugs viven aquí                                    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  ESCENARIOS DE FALLO (Failure Scenarios)                         │
+│  ─────────────────────────────────────                           │
+│  • Timeout (servidor tarda >30 segundos)                         │
+│  • Error 500 intermitente                                        │
+│  • Conexión perdida a mitad de descarga                          │
+│  • JSON malformado en respuesta                                  │
+│  • 🔴 Aquí se separa el código amateur del profesional          │
+└─────────────────────────────────────────────────────────────────┘
+                </div>
+
+                <div class="caja-contextual caja-warning">
+                    <span class="caja-contextual-icon">⚠️</span>
+                    <div class="caja-contextual-content">
+                        <h4>Premisa AETL: Evaluar = Auditoría de IA</h4>
+                        <p>En el modelo AETL, el nivel "Evaluar" de Bloom se manifiesta como <strong>auditoría crítica de outputs de IA</strong>. No asumas que el código generado es correcto. Tu rol como Arquitecto incluye verificar, cuestionar y mejorar lo que la IA produce.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #7 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">7</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Auditor de Código Cliente</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔎 Revisor de Código Senior</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un revisor de código senior especializado en clientes HTTP. Tu tarea es auditar mi código de forma crítica.
+
+<em>Código a revisar:</em>
+[PEGA AQUÍ TU CÓDIGO DEL CLIENTE HTTP DE LA FASE APLICA]
+
+<em>Criterios de auditoría:</em>
+
+1. **Manejo de errores:**
+   - ¿Qué pasa si el servidor devuelve 500? ¿Y si devuelve HTML en lugar de JSON?
+   - ¿Hay timeouts configurados? ¿Son razonables?
+   - ¿Los errores se propagan correctamente o se "tragan" silenciosamente?
+
+2. **Seguridad básica:**
+   - ¿Se valida la respuesta antes de usarla?
+   - ¿Hay datos sensibles hardcodeados (URLs, tokens)?
+   - ¿Se sanitiza la entrada del usuario antes de enviarla?
+
+3. **Mantenibilidad:**
+   - ¿El código es fácil de modificar si cambia la API?
+   - ¿Las URLs están centralizadas o dispersas?
+   - ¿Hay duplicación de lógica?
+
+4. **Conformidad con el contrato:**
+   - ¿El cliente envía los headers requeridos?
+   - ¿Maneja todos los códigos de estado documentados?
+
+<em>Formato de respuesta:</em>
+Para cada problema encontrado:
+🔴 CRÍTICO / 🟡 MEJORA / 🟢 SUGERENCIA
+Línea afectada → Problema → Solución propuesta</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Pega tu código real del cliente HTTP en el prompt</li>
+                        <li>Clasifica los hallazgos: ¿Cuántos críticos, mejoras, sugerencias?</li>
+                        <li>Implementa correcciones para TODOS los problemas críticos</li>
+                        <li>Elige 2 "mejoras" y justifica por qué las implementarías (o no)</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Reporte de auditoría con: (1) Lista categorizada de hallazgos, (2) Código corregido con comentarios indicando qué cambió, (3) Justificación de por qué no implementaste ciertas sugerencias (si aplica).</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #8 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">8</span>
+                        <span>RETO IA</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Simulador de Escenarios de Fallo</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">💥 Ingeniero de Caos</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de caos (chaos engineer) que diseña escenarios para probar la resiliencia de clientes HTTP.
+
+<em>Contexto:</em> Mi cliente HTTP para EcoMarket funciona correctamente cuando todo va bien. Necesito probarlo bajo condiciones adversas.
+
+<em>Tu tarea:</em>
+Genera un plan de pruebas de caos con 5 escenarios específicos. Para cada escenario incluye:
+
+1. **Nombre descriptivo** del escenario
+2. **Cómo simularlo** (qué herramienta usar o cómo configurar el entorno)
+3. **Comportamiento esperado** del cliente bien diseñado
+4. **Comportamiento probable** de un cliente mal diseñado
+5. **Código de prueba** o comandos para ejecutar la simulación
+
+<em>Escenarios obligatorios a cubrir:</em>
+- Red lenta (latencia alta)
+- Servidor intermitentemente disponible (falla cada 3ra petición)
+- Respuesta truncada (conexión cortada a la mitad)
+- Respuesta con formato inesperado (HTML en lugar de JSON)
+- Timeout del servidor (respuesta después de 60 segundos)
+
+<em>Herramientas disponibles:</em>
+- Network Throttling de DevTools
+- Mock servers configurables
+- Proxy interceptor (opcional)
+
+<em>Formato:</em> Genera el plan como checklist ejecutable que puedo seguir paso a paso.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Ejecuta al menos 3 de los 5 escenarios de caos contra tu cliente</li>
+                        <li>Documenta el comportamiento real de tu cliente (¿crasheó? ¿mostró error amigable?)</li>
+                        <li>Para cada fallo, implementa una mejora en el código</li>
+                        <li>Vuelve a ejecutar el escenario y verifica que la mejora funciona</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Reporte de pruebas de caos con: (1) Escenario probado, (2) Resultado antes de mejoras, (3) Mejora implementada, (4) Resultado después. Incluir captura de pantalla de DevTools mostrando la simulación de red lenta.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Valida</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Mi cliente sobrevivió a los escenarios de caos? Si no, ¿qué dice eso sobre mi implementación inicial?</li>
+                    <li>¿La auditoría de la IA encontró problemas que yo no había considerado? ¿Cuántos?</li>
+                    <li>¿Confié demasiado en el código generado por IA sin cuestionarlo?</li>
+                    <li>¿Qué criterio de calidad agregaría yo que la IA no mencionó?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== FASE 5: PROFUNDIZA ========== -->
+        <section id="profundiza" class="fase-section">
+            <div class="fase-header" data-fase="profundiza">
+                <div class="fase-numero">5</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">PROFUNDIZA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Crear</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>60 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Extender el cliente HTTP con funcionalidades no cubiertas en los requerimientos básicos</li>
+                    <li>Conectar los conceptos de esta semana con temas futuros del curso</li>
+                    <li>Explorar las fronteras del conocimiento: ¿qué no sabemos todavía?</li>
+                    <li>Crear artefactos originales que demuestren síntesis y creatividad</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Más Allá del Requerimiento: Innovación Deliberada</h3>
+                <p>
+                    El nivel "Crear" de Bloom implica <strong>síntesis y originalidad</strong>. En esta fase, 
+                    no seguimos instrucciones; proponemos extensiones, anticipamos problemas futuros, 
+                    y conectamos lo aprendido con el panorama más amplio.
+                </p>
+
+                <div class="caja-contextual caja-success">
+                    <span class="caja-contextual-icon">🚀</span>
+                    <div class="caja-contextual-content">
+                        <h4>Conexiones con Semanas Futuras</h4>
+                        <p>Esta semana aprendiste los fundamentos. En las próximas semanas añadiremos: <strong>Semana 3:</strong> Programación asíncrona avanzada. <strong>Semana 8:</strong> Autenticación con JWT. <strong>Semana 11:</strong> WebSocket para tiempo real. Los patrones que construyes ahora serán la base.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Preguntas en la Frontera del Conocimiento</h3>
+                <p>
+                    Un signo de aprendizaje profundo es la capacidad de formular <strong>preguntas que aún no tienen respuesta</strong> 
+                    en tu contexto actual. Estas preguntas guiarán tu exploración futura:
+                </p>
+                <ul class="lista-conceptos">
+                    <li>¿Cómo manejaría mi cliente si el servidor cambia el formato de la respuesta sin previo aviso?</li>
+                    <li>¿Qué pasa si dos usuarios modifican el mismo producto simultáneamente?</li>
+                    <li>¿Cómo sabría mi cliente que hay una nueva versión de la API disponible?</li>
+                    <li>¿Qué información debería registrar mi cliente para facilitar la depuración en producción?</li>
+                    <li>¿Cómo protegería la comunicación si alguien intercepta el tráfico de red?</li>
+                </ul>
+            </div>
+
+            <!-- RETO IA #9 (BONUS) -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">9</span>
+                        <span>RETO IA · EXTENSIÓN</span>
+                    </div>
+                </div>
+                <h3 class="reto-ia-titulo">Diseñador de Capa de Logging</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📊 Arquitecto de Observabilidad</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un arquitecto de observabilidad. Quiero extender mi cliente HTTP con una capa de logging profesional.
+
+<em>Contexto:</em> Mi cliente HTTP para EcoMarket funciona, pero cuando hay problemas en producción, no tengo forma de saber qué petición falló ni por qué.
+
+<em>Requisitos de la capa de logging:</em>
+
+1. **Para cada petición registrar:**
+   - Timestamp ISO 8601
+   - Método y URL
+   - Headers enviados (sin tokens sensibles)
+   - Duración en milisegundos
+   - Código de estado de respuesta
+   - Tamaño de respuesta en bytes
+
+2. **Niveles de log:**
+   - DEBUG: Todo el detalle (solo en desarrollo)
+   - INFO: Peticiones exitosas resumidas
+   - WARN: Peticiones lentas (>2 segundos) o reintentos
+   - ERROR: Fallos de red o respuestas 4xx/5xx
+
+3. **Consideraciones de privacidad:**
+   - Nunca loguear tokens de autorización completos
+   - Nunca loguear cuerpos de petición con datos personales
+   - Opción para ofuscar campos específicos
+
+<em>Tu tarea:</em>
+1. Genera el código de un "wrapper" o decorador que envuelva mis funciones HTTP existentes
+2. Muéstrame cómo se vería un log típico en cada nivel
+3. Sugiere cómo integrar esto con un servicio de logging en la nube (conceptualmente)
+
+<em>Mi lenguaje:</em> [ESPECIFICA: Python/JavaScript/otro]</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa la capa de logging en tu cliente existente</li>
+                        <li>Ejecuta varias peticiones y verifica que los logs se generan correctamente</li>
+                        <li>Simula un escenario de error y verifica que el log captura la información necesaria para depurar</li>
+                        <li>Documenta: ¿Qué información adicional te gustaría capturar que no está en los requisitos?</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Código de la capa de logging integrada + Muestra de 5 logs reales de tu cliente (uno de cada nivel) + Propuesta de 2 mejoras que harías en una versión 2.0.</p>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Mapa de Conexiones: De Esta Semana al Curso Completo</h3>
+                <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│           MAPA DE DEPENDENCIAS CONCEPTUALES                      │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                    SEMANA 1 (AHORA)
+                    ┌──────────────────┐
+                    │  HTTP Básico     │
+                    │  • Métodos       │
+                    │  • Códigos       │
+                    │  • Headers       │
+                    └────────┬─────────┘
+                             │
+         ┌───────────────────┼───────────────────┐
+         │                   │                   │
+         ▼                   ▼                   ▼
+┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+│  SEMANA 3        │ │  SEMANA 6-7      │ │  SEMANA 8-9      │
+│  Asincronía      │ │  Arquitectura    │ │  Seguridad       │
+│  • Promises      │ │  • MVC/MVVM      │ │  • JWT           │
+│  • async/await   │ │  • Repository    │ │  • OAuth 2.0     │
+│  • Event Loop    │ │  • Caché         │ │  • HTTPS         │
+└────────┬─────────┘ └────────┬─────────┘ └────────┬─────────┘
+         │                   │                   │
+         └───────────────────┼───────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  SEMANA 11-12    │
+                    │  Comunicación    │
+                    │  Avanzada        │
+                    │  • WebSocket     │
+                    │  • Offline-first │
+                    │  • Sincronización│
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  PROYECTO FINAL  │
+                    │  Cliente         │
+                    │  Completo        │
+                    │  EcoMarket       │
+                    └──────────────────┘
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Profundiza</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Qué extensión propuse yo que la IA no había sugerido?</li>
+                    <li>¿Puedo explicar cómo lo aprendido hoy conecta con la autenticación JWT de la Semana 8?</li>
+                    <li>¿Qué pregunta tengo ahora que no tenía al comenzar esta semana?</li>
+                    <li>Si tuviera que enseñar HTTP a un compañero, ¿qué analogía usaría?</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ========== SISTEMA DE EVALUACIÓN ========== -->
+        <section id="evaluacion" class="evaluacion-section">
+            <div class="section-header">
+                <div class="section-icon">📊</div>
+                <h2 class="section-title">Sistema de Evaluación - Semana 1</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                La evaluación está alineada con las fases AETL y mide tanto los productos como el proceso de aprendizaje.
+            </p>
+            <div class="evaluacion-grid">
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-comprende);">1</div>
+                        <span class="evaluacion-item-nombre">Exploración conceptual (Retos IA 1-2)</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">15%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-aplica);">2</div>
+                        <span class="evaluacion-item-nombre">Contrato OpenAPI + Cliente HTTP funcional</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">30%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-reflexiona);">3</div>
+                        <span class="evaluacion-item-nombre">ADR documentado + Análisis comparativo</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">20%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-valida);">4</div>
+                        <span class="evaluacion-item-nombre">Reporte de auditoría + Pruebas de caos</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">25%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-profundiza);">5</div>
+                        <span class="evaluacion-item-nombre">Extensión (logging) + Reflexión final</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">10%</span>
+                </div>
+            </div>
+
+            <div class="caja-contextual caja-tip" style="margin-top: 2rem;">
+                <span class="caja-contextual-icon">💡</span>
+                <div class="caja-contextual-content">
+                    <h4>Criterio Transversal: Calidad de Interacción con IA</h4>
+                    <p>Se evaluará la <strong>sofisticación progresiva</strong> de tus prompts y preguntas a la IA. Prompts genéricos que delegan todo el trabajo penalizan. Prompts específicos que demuestran pensamiento propio bonifican.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== GLOSARIO ========== -->
+        <section id="glosario" class="glosario-section">
+            <div class="section-header">
+                <div class="section-icon">📖</div>
+                <h2 class="section-title">Glosario</h2>
+            </div>
+            <div class="glosario-grid">
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        API
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Application Programming Interface. Conjunto de definiciones y protocolos que permiten que dos aplicaciones se comuniquen entre sí.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        REST
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Representational State Transfer. Estilo arquitectónico para diseñar APIs basado en recursos identificables por URLs y operaciones estándar HTTP.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Idempotente
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Propiedad de una operación que produce el mismo resultado sin importar cuántas veces se ejecute. GET, PUT y DELETE son idempotentes; POST no lo es.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        OpenAPI
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Especificación estándar para describir APIs REST de forma que humanos y máquinas puedan entenderla sin acceder al código fuente.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Contract-First
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Patrón de desarrollo donde el contrato de la API se define antes de implementar cliente o servidor, permitiendo trabajo paralelo.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Mock Server
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Servidor simulado que responde según un contrato predefinido, permitiendo desarrollar el cliente sin depender del servidor real.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Andamiaje Cognitivo
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Soporte temporal que permite al aprendiz alcanzar niveles de comprensión que no lograría solo. En AETL, la IA puede fungir como andamiaje.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Zona de Desarrollo Próximo
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Concepto de Vygotsky: distancia entre lo que el aprendiz puede hacer solo y lo que puede lograr con ayuda. La IA expande esta zona.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Carga Germana
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Esfuerzo cognitivo dedicado a construir esquemas mentales duraderos. La IA reduce carga extrínseca para liberar recursos hacia la carga germana.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Perfil Arquitecto
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Estudiante que dirige activamente la interacción con IA: formula preguntas estratégicas, evalúa críticamente las respuestas, y mantiene la agencia sobre su aprendizaje.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        ADR
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Architecture Decision Record. Documento breve que captura una decisión arquitectónica importante: contexto, decisión, alternativas, y consecuencias.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Chaos Engineering
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Disciplina de experimentar en sistemas para descubrir debilidades antes de que causen fallas en producción. Incluye simular fallos de red, latencia, etc.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== REFERENCIAS ========== -->
+        <section class="referencias-section">
+            <div class="section-header">
+                <div class="section-icon">📚</div>
+                <h2 class="section-title">Referencias Bibliográficas</h2>
+            </div>
+            <div class="referencias-lista">
+                <div class="referencia-item">
+                    <strong>Anderson, L. W., Krathwohl, D. R., et al. (2001).</strong> <em>A Taxonomy for Learning, Teaching, and Assessing: A Revision of Bloom's Taxonomy of Educational Objectives.</em> Longman.
+                </div>
+                <div class="referencia-item">
+                    <strong>Bandura, A. (2001).</strong> Social cognitive theory: An agentic perspective. <em>Annual Review of Psychology, 52</em>(1), 1-26.
+                </div>
+                <div class="referencia-item">
+                    <strong>Bognár, L. (2024).</strong> AI-enhanced scaffolding in higher education: Extending Vygotsky's ZPD in digital learning environments. <em>Educational Technology Research and Development.</em>
+                </div>
+                <div class="referencia-item">
+                    <strong>Brod, G., et al. (2023).</strong> Agency profiles in human-AI collaboration for learning: Architects, correctors, and observers. <em>Computers & Education, 195</em>, 104712.
+                </div>
+                <div class="referencia-item">
+                    <strong>Chiu, T. K. (2024).</strong> Applying self-regulated learning strategies with generative AI: Effects on learning performance and motivation. <em>British Journal of Educational Technology, 55</em>(2), 680-701.
+                </div>
+                <div class="referencia-item">
+                    <strong>Fielding, R. T. (2000).</strong> <em>Architectural Styles and the Design of Network-based Software Architectures.</em> Doctoral dissertation, University of California, Irvine.
+                </div>
+                <div class="referencia-item">
+                    <strong>IETF. (2014).</strong> RFC 7231: Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content. <em>Internet Engineering Task Force.</em>
+                </div>
+                <div class="referencia-item">
+                    <strong>Mahdi, A., et al. (2025).</strong> Cognitive load optimization through AI-assisted learning: A meta-analysis. <em>Educational Psychology Review.</em>
+                </div>
+                <div class="referencia-item">
+                    <strong>Piaget, J. (1978).</strong> <em>The Development of Thought: Equilibration of Cognitive Structures.</em> Viking Press.
+                </div>
+                <div class="referencia-item">
+                    <strong>Sari, A., et al. (2025).</strong> Systematic review: AI chatbots and self-regulated learning in higher education. <em>Computers & Education: Artificial Intelligence, 6</em>, 100198.
+                </div>
+                <div class="referencia-item">
+                    <strong>Sweller, J. (2020).</strong> Cognitive load theory and educational technology. <em>Educational Technology Research and Development, 68</em>(1), 1-16.
+                </div>
+                <div class="referencia-item">
+                    <strong>Vygotsky, L. S. (1978).</strong> <em>Mind in Society: The Development of Higher Psychological Processes.</em> Harvard University Press.
+                </div>
+                <div class="referencia-item">
+                    <strong>Zimmerman, B. J. (2000).</strong> Attaining self-regulation: A social cognitive perspective. In M. Boekaerts, P. R. Pintrich, & M. Zeidner (Eds.), <em>Handbook of Self-Regulation</em> (pp. 13-39). Academic Press.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-logo">Universidad Autónoma de Nayarit</p>
+            <div class="footer-modelo">
+                <span>🧠</span>
+                <span>Modelo AETL v1.0</span>
+            </div>
+            <p class="footer-text">
+                Programación Distribuida del Lado del Cliente<br>
+                Licenciatura en Sistemas Computacionales<br>
+                Documento de trabajo · Semana 1 de 15
+            </p>
+			<p>Dr. Eligardo Cruz Sánchez</p>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer para actualizar progreso y navegación
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.fase-section');
+            const progressSegments = document.querySelectorAll('.progress-segment');
+            const progressStats = document.querySelector('.progress-stats');
+            const navLinks = document.querySelectorAll('.nav-fase');
+            
+            const faseNames = {
+                'comprende': 'Comprende',
+                'aplica': 'Aplica',
+                'reflexiona': 'Reflexiona',
+                'valida': 'Valida',
+                'profundiza': 'Profundiza'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const fase = entry.target.id;
+                        updateProgress(fase);
+                        updateNav(fase);
+                    }
+                });
+            }, {
+                rootMargin: '-20% 0px -70% 0px'
+            });
+
+            sections.forEach(section => observer.observe(section));
+
+            function updateProgress(currentFase) {
+                const fases = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+                const currentIndex = fases.indexOf(currentFase);
+                
+                progressSegments.forEach((segment, index) => {
+                    const fase = segment.dataset.fase;
+                    const faseIndex = fases.indexOf(fase);
+                    
+                    if (faseIndex <= currentIndex) {
+                        segment.style.width = '20%';
+                    } else {
+                        segment.style.width = '0%';
+                    }
+                });
+
+                if (progressStats && faseNames[currentFase]) {
+                    progressStats.textContent = `Fase actual: ${faseNames[currentFase]}`;
+                }
+            }
+
+            function updateNav(currentFase) {
+                navLinks.forEach(link => {
+                    link.style.background = '';
+                    link.style.color = '';
+                    
+                    if (link.getAttribute('href') === `#${currentFase}`) {
+                        const faseColor = getComputedStyle(document.documentElement)
+                            .getPropertyValue(`--fase-${currentFase}`);
+                        link.style.background = `${faseColor}15`;
+                        link.style.color = faseColor;
+                    }
+                });
+            }
+
+            // Smooth scroll para navegación
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
