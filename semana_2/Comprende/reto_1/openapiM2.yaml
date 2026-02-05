@@ -1,0 +1,235 @@
+openapi: 3.0.3
+info:
+  title: EcoMarket API
+  description: API completa para la plataforma EcoMarket, permitiendo gestión de productos, productores y pedidos con validación estricta.
+  version: 1.1.0
+  contact:
+    name: Equipo de Arquitectura EcoMarket
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Servidor de Desarrollo (Mock/Local)
+
+# -------------------------------------------------------------------------
+# COMPONENTES REUTILIZABLES
+# -------------------------------------------------------------------------
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Error de validación"
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+
+    # --- ESQUEMAS DE PRODUCTO ---
+    ProductoInput:
+      type: object
+      required: [nombre, descripcion, precio, categoria, productor_id]
+      properties:
+        nombre: { type: string, minLength: 3, example: "Miel Orgánica" }
+        descripcion: { type: string, example: "Miel 100% pura." }
+        precio: { type: number, minimum: 0, example: 150.50 }
+        categoria: { type: string, enum: [frutas, verduras, lacteos, miel, conservas] }
+        productor_id: { type: integer, example: 7 }
+        disponible: { type: boolean, default: true }
+
+    Producto:
+      allOf:
+        - $ref: '#/components/schemas/ProductoInput'
+        - type: object
+          properties:
+            id: { type: integer, example: 101 }
+            creado_en: { type: string, format: date-time }
+
+    # --- ESQUEMAS DE PRODUCTOR ---
+    ProductorInput:
+      type: object
+      required: [nombre, ubicacion]
+      properties:
+        nombre: { type: string, example: "Rancho El Olvido" }
+        ubicacion: { type: string, example: "Tepic, Nayarit" }
+
+    Productor:
+      allOf:
+        - $ref: '#/components/schemas/ProductorInput'
+        - type: object
+          properties:
+            id: { type: integer, example: 7 }
+
+    # --- ESQUEMAS DE PEDIDO ---
+    PedidoInput:
+      type: object
+      required: [producto_id, cantidad, usuario_id]
+      properties:
+        producto_id: { type: integer, example: 42 }
+        cantidad: { type: integer, minimum: 1, example: 2 }
+        usuario_id: { type: integer, example: 5 }
+
+    Pedido:
+      allOf:
+        - $ref: '#/components/schemas/PedidoInput'
+        - type: object
+          properties:
+            id: { type: integer, example: 5001 }
+            estado: { type: string, enum: [pendiente, enviado, cancelado], default: "pendiente" }
+
+# -------------------------------------------------------------------------
+# DEFINICIÓN DE ENDPOINTS
+# -------------------------------------------------------------------------
+paths:
+  # --- PRODUCTOS ---
+  /productos:
+    get:
+      summary: Listar productos con filtros
+      operationId: getProductos
+      parameters:
+        - name: categoria
+          in: query
+          schema: { type: string, enum: [frutas, verduras, lacteos, miel, conservas] }
+        - name: nombre
+          in: query
+          description: Buscar productos por coincidencia de nombre.
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de productos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Producto' } }
+        '422': { description: "Error de validación en query parameters" }
+
+    post:
+      summary: Crear un nuevo producto
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductoInput' }
+      responses:
+        '201': { description: "Creado" }
+        '400': { description: "Error de validación" }
+        '401': { description: "No autorizado - Token inválido o ausente" }
+
+  /productos/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      summary: Detalle de producto
+      responses:
+        '200': { content: { application/json: { schema: { $ref: '#/components/schemas/Producto' } } } }
+        '404': { description: "Producto no encontrado" }
+        '422': { description: "Error de validación en parámetros" }
+    put:
+      summary: Reemplazar producto (Actualización Total)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProductoInput' } } }
+      responses:
+        '200': { description: "Actualizado" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }
+        '404': { description: "Producto no encontrado" }
+        '422': { description: "Error de validación" }
+    patch:
+      summary: Modificar campos (Actualización Parcial)
+      description: Ideal para actualizar solo el precio o la disponibilidad.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { precio: { type: number }, disponible: { type: boolean } } } } }
+      responses:
+        '200': { description: "Modificado" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }
+        '404': { description: "Producto no encontrado" }
+        '422': { description: "Error de validación" }
+    delete:
+      summary: Eliminar producto
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: "Sin contenido" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }
+        '404': { description: "Producto no encontrado" }
+        '422': { description: "Error de validación en parámetros" }
+
+  # --- PRODUCTORES ---
+  /productores:
+    get:
+      summary: Listar productores
+      responses:
+        '200': { content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Productor' } } } } }
+    post:
+      summary: Registrar nuevo productor
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProductorInput' } } }
+      responses:
+        '201': { description: "Creado" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }
+
+  /productores/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      summary: Detalle de productor
+      responses:
+        '200': { content: { application/json: { schema: { $ref: '#/components/schemas/Productor' } } } }
+        '404': { description: "Productor no encontrado" }
+        '422': { description: "Error de validación en parámetros" }
+    delete:
+      summary: Eliminar productor
+      description: Fallará si el productor tiene productos asociados (409 Conflict).
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: "Eliminado" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }
+        '404': { description: "Productor no encontrado" }
+        '409': { description: "Conflicto de integridad referencial" }
+        '422': { description: "Error de validación en parámetros" }
+
+  /productores/{id}/productos:
+    get:
+      summary: Obtener productos de un productor específico (Recurso Anidado)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Producto' } } } } }
+        '404': { description: "Productor no encontrado" }
+        '422': { description: "Error de validación en parámetros" }
+
+  # --- PEDIDOS ---
+  /pedidos:
+    post:
+      summary: Crear pedido
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/PedidoInput' } } }
+      responses:
+        '201': { description: "Pedido realizado" }
+        '400': { description: "Error en la solicitud" }
+        '401': { description: "No autorizado" }

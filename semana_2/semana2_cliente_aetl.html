@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 2: Consumo Completo de APIs REST | AETL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="aetl-styles.css">
+</head>
+<body>
+    <!-- ========== HEADER INSTITUCIONAL ========== -->
+    <header class="header-institucional">
+        <div class="header-top">
+            <div class="uan-logo">
+                <div class="uan-logo-icon">UAN</div>
+                <div class="uan-logo-text">
+                    <span>Universidad Autónoma de Nayarit</span>
+                    <span>Licenciatura en Sistemas Computacionales</span>
+                </div>
+            </div>
+            <div class="header-badge">MODELO AETL</div>
+        </div>
+        <div class="header-main">
+            <p class="header-curso">Programación Distribuida del Lado del Cliente</p>
+            <h1 class="header-titulo">
+                Consumo Completo de <span class="accent">APIs REST</span><br>
+                y Validación de Respuestas
+            </h1>
+            <div class="header-semana">
+                <div class="header-semana-numero">2</div>
+                <span>Semana 2 de 15 · Fase 1: Fundamentos de Comunicación</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== NAVEGACIÓN ========== -->
+    <nav class="nav-container">
+        <div class="nav-fases">
+            <a href="#comprende" class="nav-fase" data-fase="comprende">
+                <span class="nav-fase-numero">1</span>
+                <span>Comprende</span>
+            </a>
+            <a href="#aplica" class="nav-fase" data-fase="aplica">
+                <span class="nav-fase-numero">2</span>
+                <span>Aplica</span>
+            </a>
+            <a href="#reflexiona" class="nav-fase" data-fase="reflexiona">
+                <span class="nav-fase-numero">3</span>
+                <span>Reflexiona</span>
+            </a>
+            <a href="#valida" class="nav-fase" data-fase="valida">
+                <span class="nav-fase-numero">4</span>
+                <span>Valida</span>
+            </a>
+            <a href="#profundiza" class="nav-fase" data-fase="profundiza">
+                <span class="nav-fase-numero">5</span>
+                <span>Profundiza</span>
+            </a>
+            <a href="#evaluacion" class="nav-fase">
+                <span>📊</span>
+                <span>Evaluación</span>
+            </a>
+            <a href="#glosario" class="nav-fase">
+                <span>📖</span>
+                <span>Glosario</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ========== BARRA DE PROGRESO ========== -->
+    <div class="progress-container">
+        <div class="progress-inner">
+            <div class="progress-header">
+                <span class="progress-title">🎯 Progreso del Aprendizaje Profundo</span>
+                <span class="progress-stats">Fase actual: Comprende</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-segment" data-fase="comprende"></div>
+                <div class="progress-segment" data-fase="aplica"></div>
+                <div class="progress-segment" data-fase="reflexiona"></div>
+                <div class="progress-segment" data-fase="valida"></div>
+                <div class="progress-segment" data-fase="profundiza"></div>
+            </div>
+            <div class="progress-legend">
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-comprende);"></div>
+                    <span>Comprende</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-aplica);"></div>
+                    <span>Aplica</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-reflexiona);"></div>
+                    <span>Reflexiona</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-valida);"></div>
+                    <span>Valida</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-profundiza);"></div>
+                    <span>Profundiza</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CONTENIDO PRINCIPAL ========== -->
+    <main class="main-content">
+        
+        <!-- ========== ESCENARIO INMERSIVO ========== -->
+        <section class="escenario-inmersivo">
+            <div class="escenario-badge">
+                <span>🎬</span>
+                <span>ESCENARIO INMERSIVO</span>
+            </div>
+            <h2 class="escenario-titulo">TechNova Día 2: El Catálogo que Nunca Miente</h2>
+            <div class="escenario-contexto">
+                <p>Martes en <strong>TechNova</strong>. Tu cliente HTTP básico funcionó ayer para la prueba inicial. Pero esta mañana, la Product Manager llega con noticias: <em>"Los inversionistas quieren ver operaciones CRUD completas. Necesitan crear productos, actualizarlos y eliminarlos desde la demo. Ah, y algunos productos tienen campos opcionales que a veces vienen vacíos del servidor."</em></p>
+                <p style="margin-top: 1rem;">Peor aún: el equipo de QA reportó que ayer el mock server devolvió un JSON malformado y tu cliente crasheó silenciosamente. <em>"En producción esto pasará. ¿Qué va a mostrar el usuario cuando el servidor falle?"</em></p>
+                <p style="margin-top: 1rem;">Tu misión: construir un cliente CRUD robusto que maneje correctamente todos los casos de error y valide las respuestas antes de usarlas.</p>
+            </div>
+            <div class="escenario-rol">
+                <div class="escenario-rol-icon">🛡️</div>
+                <div class="escenario-rol-text">
+                    <h4>Tu Rol: Constructor de Clientes Defensivos</h4>
+                    <p>Ya sabes hacer peticiones básicas. Esta semana aprenderás a construir clientes que <strong>no confían ciegamente en el servidor</strong>: validan respuestas, manejan casos edge, y fallan elegantemente cuando algo sale mal.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== PREREQUISITOS ========== -->
+        <section class="prerequisitos-box">
+            <h3>🔑 Para tener éxito esta semana, asegúrate de recordar...</h3>
+            <ul class="prerequisitos-lista">
+                <li>Los métodos HTTP (GET, POST, PUT, PATCH, DELETE) y cuándo usar cada uno</li>
+                <li>La diferencia entre códigos 4xx (error del cliente) y 5xx (error del servidor)</li>
+                <li>Cómo inspeccionar tráfico HTTP en DevTools (pestaña Network)</li>
+                <li>La estructura básica de una petición HTTP: método, URL, headers, body</li>
+                <li>El concepto de idempotencia y por qué importa para reintentos</li>
+            </ul>
+        </section>
+
+        <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+        <section class="conexion-semana-anterior">
+            <h3>🔗 Conexión directa con Semana 1</h3>
+            <ul class="conexion-lista">
+                <li><strong>Contrato OpenAPI:</strong> Esta semana usarás el contrato que definiste. Si no lo completaste, necesitarás hacerlo antes de continuar.</li>
+                <li><strong>Cliente HTTP básico:</strong> Extenderás las funciones GET y POST que creaste, agregando PUT, PATCH y DELETE.</li>
+                <li><strong>Códigos de estado:</strong> Lo que aprendiste sobre 4xx vs 5xx ahora lo implementarás en manejo de errores real.</li>
+                <li><strong>Mock server:</strong> Seguirás usando el mock server del contrato para desarrollar sin depender del backend.</li>
+            </ul>
+        </section>
+
+        <!-- ========== ERRORES COMUNES ========== -->
+        <section class="errores-comunes-box">
+            <h3>⚠️ Errores comunes esta semana (que la IA podría no detectar)</h3>
+            <ul class="errores-lista">
+                <li>
+                    <strong>Confundir PUT con PATCH:</strong>
+                    PUT reemplaza TODO el recurso; si omites un campo, se borra. PATCH solo modifica los campos enviados. La IA puede generar código que "funciona" pero usa el verbo incorrecto.
+                </li>
+                <li>
+                    <strong>No validar el tipo de respuesta antes de parsear:</strong>
+                    Asumir que toda respuesta es JSON. Cuando el servidor devuelve HTML de error o texto plano, <code>json.loads()</code> explota.
+                </li>
+                <li>
+                    <strong>Ignorar el código de estado y solo revisar el body:</strong>
+                    Un servidor puede devolver <code>{"message": "OK"}</code> con código 500. Solo leer el body te hace creer que todo salió bien.
+                </li>
+                <li>
+                    <strong>Hardcodear rutas con IDs:</strong>
+                    Construir URLs como <code>"/productos/" + id</code> sin sanitizar. Si <code>id</code> contiene caracteres especiales o es inyectado, rompe o es vulnerable.
+                </li>
+            </ul>
+        </section>
+
+        <!-- ========== FASE 1: COMPRENDE ========== -->
+        <section id="comprende" class="fase-section">
+            <div class="fase-header" data-fase="comprende">
+                <div class="fase-numero">1</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">COMPRENDE</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Recordar / Comprender</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explicar el mapeo completo entre operaciones CRUD y verbos HTTP</li>
+                    <li>Diferenciar entre PUT (reemplazo total) y PATCH (modificación parcial)</li>
+                    <li>Identificar los componentes de una URL REST: path params, query params</li>
+                    <li>Describir estrategias de validación de respuestas JSON</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>CRUD: Las Cuatro Operaciones Fundamentales</h3>
+                <p>
+                    CRUD es el acrónimo para <strong>Create, Read, Update, Delete</strong>: las cuatro operaciones básicas 
+                    de persistencia de datos. En APIs REST, cada operación se mapea a un verbo HTTP específico.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    MAPEO CRUD → HTTP                             │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    OPERACIÓN          VERBO HTTP         EJEMPLO ECOMARKET
+    ─────────          ──────────         ─────────────────
+    
+    CREATE             POST               POST /api/productos
+    (Crear)            └─ Body: datos     └─ Crea nuevo producto
+                                             Responde 201 Created
+    
+    READ               GET                GET /api/productos
+    (Leer)             └─ Sin body        GET /api/productos/42
+                                          └─ Lista o detalle
+                                             Responde 200 OK
+    
+    UPDATE             PUT                PUT /api/productos/42
+    (Actualizar)       └─ Body: recurso   └─ Reemplaza TODO el
+                          COMPLETO           producto 42
+                                             Responde 200 OK
+    
+                       PATCH              PATCH /api/productos/42
+                       └─ Body: solo      └─ Modifica SOLO los
+                          campos a           campos enviados
+                          modificar          Responde 200 OK
+    
+    DELETE             DELETE             DELETE /api/productos/42
+    (Eliminar)         └─ Sin body        └─ Elimina producto 42
+                          (usualmente)       Responde 204 No Content
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Lectura del diagrama:</strong> Cada operación CRUD se traduce a un verbo HTTP. 
+                        Note la distinción crítica entre PUT (reemplazo total) y PATCH (modificación parcial). 
+                        Si usas PUT y omites un campo, ese campo se eliminará del recurso.
+                    </div>
+                </div>
+
+                <div class="caja-contextual caja-warning">
+                    <span class="caja-contextual-icon">⚠️</span>
+                    <div class="caja-contextual-content">
+                        <h4>PUT vs PATCH: El Error Más Común</h4>
+                        <p>Imagina un producto con campos <code>{nombre, precio, descripcion}</code>. Si envías <code>PUT /productos/42</code> con solo <code>{precio: 100}</code>, el resultado será un producto <strong>sin nombre ni descripción</strong>. Con PATCH, solo cambiaría el precio.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Anatomía de URLs REST: Path Params y Query Params</h3>
+                <p>
+                    Las URLs REST siguen convenciones específicas para identificar recursos y modificar comportamiento.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                    ANATOMÍA DE URL REST                          │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+https://api.ecomarket.com/api/productos/42?categoria=frutas&orden=precio
+└─┬─┘   └───────┬───────┘└─┬┘└────┬────┘└┬┘└──────────┬──────────────┘
+  │             │          │      │      │            │
+Esquema      Host      Prefijo  Recurso  ID      Query Params
+(https)   (dominio)    (api)  (colección) (path   (filtros y
+                                         param)   modificadores)
+
+┌─ PATH PARAMETERS ─────────────────────────────────────────────────┐
+│  Identifican UN recurso específico dentro de la colección         │
+│  /productos/42     → El producto con ID 42                        │
+│  /usuarios/abc/pedidos/5  → El pedido 5 del usuario abc           │
+│  Obligatorios para operaciones sobre recurso específico           │
+└───────────────────────────────────────────────────────────────────┘
+
+┌─ QUERY PARAMETERS ────────────────────────────────────────────────┐
+│  Modifican o filtran la respuesta, no identifican recursos        │
+│  ?categoria=frutas     → Filtrar por categoría                    │
+│  ?orden=precio&dir=asc → Ordenar por precio ascendente            │
+│  ?page=2&limit=10      → Paginación                               │
+│  ?fields=nombre,precio → Selección de campos (sparse fieldsets)   │
+│  Opcionales, tienen valores por defecto                           │
+└───────────────────────────────────────────────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Regla clave:</strong> Los path parameters identifican <em>qué</em> recurso quieres. 
+                        Los query parameters modifican <em>cómo</em> lo quieres (filtrado, ordenamiento, paginación). 
+                        Nunca uses query params para identificar el recurso principal de la operación.
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Validación de Respuestas: No Confíes en el Servidor</h3>
+                <p>
+                    Un cliente robusto nunca asume que la respuesta del servidor es correcta. 
+                    La validación ocurre en capas:
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                CAPAS DE VALIDACIÓN DE RESPUESTA                  │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    RESPUESTA DEL SERVIDOR
+            │
+            ▼
+    ┌───────────────────┐
+    │ 1. CÓDIGO ESTADO  │  ¿Es 2xx? Si no, manejar error
+    │    ¿Éxito?        │  ¿Es 4xx? Error del cliente
+    └─────────┬─────────┘  ¿Es 5xx? Error del servidor, reintentar?
+              │
+              ▼
+    ┌───────────────────┐
+    │ 2. CONTENT-TYPE   │  ¿Es application/json?
+    │    ¿Es JSON?      │  Si no, no intentar parsear como JSON
+    └─────────┬─────────┘
+              │
+              ▼
+    ┌───────────────────┐
+    │ 3. PARSEO JSON    │  ¿El body es JSON válido?
+    │    ¿Es válido?    │  Capturar JSONDecodeError
+    └─────────┬─────────┘
+              │
+              ▼
+    ┌───────────────────┐
+    │ 4. ESQUEMA        │  ¿Tiene los campos requeridos?
+    │    ¿Estructura    │  ¿Los tipos son correctos?
+    │     correcta?     │  Usar JSON Schema o validación manual
+    └─────────┬─────────┘
+              │
+              ▼
+    ┌───────────────────┐
+    │ 5. SEMÁNTICA      │  ¿Los valores tienen sentido?
+    │    ¿Datos válidos?│  ¿Precio > 0? ¿Fecha no en futuro?
+    └─────────┬─────────┘
+              │
+              ▼
+        ✅ DATOS SEGUROS PARA USAR
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Defensa en profundidad:</strong> Cada capa captura un tipo diferente de problema. 
+                        Saltar cualquier capa te expone a errores silenciosos o crashes inesperados. 
+                        En producción, el servidor <em>fallará</em> de formas que no anticipaste.
+                    </div>
+                </div>
+
+                <div class="caja-contextual caja-tip">
+                    <span class="caja-contextual-icon">💡</span>
+                    <div class="caja-contextual-content">
+                        <h4>Principio del Cliente Paranoico</h4>
+                        <p>Asume que el servidor puede enviar cualquier cosa: HTML cuando esperabas JSON, campos faltantes, tipos incorrectos, datos sin sentido. Tu cliente debe sobrevivir a todos estos escenarios sin crashear.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #1 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">1</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Cartógrafo de Operaciones CRUD</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📚 Diseñador de APIs REST</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un diseñador de APIs REST que me ayudará a entender el mapeo CRUD completo para EcoMarket.
+
+<em>Contexto:</em> EcoMarket tiene tres recursos principales: Productos, Productores y Pedidos. Necesito entender todas las operaciones CRUD para cada uno.
+
+<em>Tu tarea:</em>
+Para CADA recurso (Productos, Productores, Pedidos), genera una tabla con:
+
+| Operación | Método | Endpoint | Body de ejemplo | Respuesta exitosa | Posibles errores |
+
+<em>Incluye estos casos especiales:</em>
+1. ¿Cómo obtengo los productos de UN productor específico? (recurso anidado)
+2. ¿Cómo busco productos por nombre? (query params)
+3. ¿Cómo actualizo SOLO el precio de un producto sin tocar los demás campos?
+4. ¿Qué pasa si intento eliminar un productor que tiene productos asociados?
+
+<em>Para cada respuesta de error, especifica:</em>
+- Código HTTP apropiado
+- Estructura del body de error (ejemplo JSON)
+- Qué debería hacer el cliente al recibir ese error
+
+<em>Formato:</em> Tablas claras con ejemplos JSON reales, no abstractos.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, intenta diseñar tú mismo los endpoints para Productos</li>
+                        <li>Envía el prompt y compara tu diseño con el de la IA</li>
+                        <li>Identifica al menos 2 decisiones de diseño donde tu enfoque difería</li>
+                        <li>Actualiza tu contrato OpenAPI de la Semana 1 con los endpoints faltantes</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Tabla comparativa: tu diseño inicial vs. diseño de la IA, con justificación de cuál prefieres para cada caso. Actualización del archivo <span class="codigo-inline">openapi.yaml</span> con los nuevos endpoints.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #2 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">2</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Validador de Respuestas JSON</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔍 Experto en Validación de Datos</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un experto en validación de datos que me enseñará a validar respuestas JSON de forma robusta.
+
+<em>Contexto:</em> Mi cliente de EcoMarket espera respuestas JSON con esta estructura:
+```json
+{
+  "id": 42,
+  "nombre": "Miel orgánica",
+  "precio": 150.00,
+  "categoria": "miel",
+  "productor": {
+    "id": 7,
+    "nombre": "Apiarios del Valle"
+  },
+  "disponible": true,
+  "creado_en": "2024-01-15T10:30:00Z"
+}
+```
+
+<em>Tu tarea:</em>
+1. Genera una función de validación en Python que verifique:
+   - Todos los campos requeridos están presentes
+   - Los tipos son correctos (id=int, precio=float, disponible=bool, etc.)
+   - El precio es positivo
+   - La categoría es una de las válidas: [frutas, verduras, lacteos, miel, conservas]
+   - La fecha está en formato ISO 8601 válido
+
+2. Muéstrame 5 ejemplos de JSON "malicioso" o malformado que tu función debería rechazar
+
+3. Explica las ventajas y desventajas de usar:
+   - Validación manual (if/else)
+   - Pydantic (modelos tipados)
+   - JSON Schema
+   Para mi caso de uso
+
+<em>Restricción:</em> El código debe manejar campos opcionales y objetos anidados (como "productor").</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Ejecuta la función de validación con los 5 ejemplos malformados</li>
+                        <li>Añade tu propio caso de JSON malformado que la función no maneje</li>
+                        <li>Pide a la IA que mejore la función para manejar tu caso</li>
+                        <li>Integra la función de validación en tu cliente HTTP de la Semana 1</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Módulo <span class="codigo-inline">validadores.py</span> con funciones de validación probadas, más documentación de los 6 casos de prueba (5 de la IA + 1 tuyo).</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Comprende</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo explicar la diferencia entre PUT y PATCH con un ejemplo concreto de EcoMarket?</li>
+                    <li>Si el servidor responde con código 200 pero Content-Type: text/html, ¿qué debería hacer mi cliente?</li>
+                    <li>¿Por qué es importante validar el esquema además del parseo JSON?</li>
+                    <li>¿La IA me ayudó a pensar o solo me dio respuestas que copié?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Si la IA sugiere algo que viola estos principios, cuestiona la sugerencia</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>PUT siempre envía el recurso COMPLETO</strong>
+                        Si la IA genera código que usa PUT para cambiar un solo campo, es incorrecto. Debería ser PATCH.
+                    </li>
+                    <li>
+                        <strong>Siempre verificar el código de estado ANTES de procesar el body</strong>
+                        Si el código ignora el status code y va directo al JSON, es frágil.
+                    </li>
+                    <li>
+                        <strong>Los path params identifican recursos; los query params filtran/modifican</strong>
+                        URLs como <code>/productos?id=42</code> para obtener un producto específico violan REST.
+                    </li>
+                    <li>
+                        <strong>DELETE sobre recurso inexistente devuelve 404, no error de servidor</strong>
+                        Si la IA sugiere devolver 500 cuando el recurso no existe, es un diseño incorrecto.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Usa estos invariantes como checklist cuando revises código generado por IA. Si detectas una violación, pregunta explícitamente: "¿Por qué esto no viola el principio de [X]?"</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 2: APLICA ========== -->
+        <section id="aplica" class="fase-section">
+            <div class="fase-header" data-fase="aplica">
+                <div class="fase-numero">2</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">APLICA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Aplicar / Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>90 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Implementar operaciones CRUD completas contra el mock server</li>
+                    <li>Construir URLs dinámicamente con path params y query params</li>
+                    <li>Integrar validación de respuestas en el flujo de comunicación</li>
+                    <li>Manejar errores HTTP de forma diferenciada (4xx vs 5xx)</li>
+                </ul>
+            </div>
+
+            <div class="caja-contextual caja-success">
+                <span class="caja-contextual-icon">🐍</span>
+                <div class="caja-contextual-content">
+                    <h4>Lenguaje de Implementación: Python con requests</h4>
+                    <p>Esta semana implementaremos en <strong>Python usando la biblioteca requests</strong>. La sintaxis clara de Python permite enfocarte en los conceptos de comunicación HTTP sin distracciones. Los patrones que aprendas son transferibles a cualquier lenguaje.</p>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Estructura del Cliente CRUD</h3>
+                <p>
+                    Un cliente CRUD bien estructurado separa las responsabilidades: construcción de URLs, 
+                    ejecución de peticiones, validación de respuestas, y manejo de errores.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                ARQUITECTURA DEL CLIENTE CRUD                     │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        cliente_ecomarket.py                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐                     │
+│  │  Configuración  │    │   Validadores   │                     │
+│  │  BASE_URL       │    │   validar_      │                     │
+│  │  TIMEOUT        │    │   producto()    │                     │
+│  │  HEADERS_BASE   │    │   validar_      │                     │
+│  └────────┬────────┘    │   respuesta()   │                     │
+│           │             └────────┬────────┘                     │
+│           │                      │                              │
+│           ▼                      ▼                              │
+│  ┌──────────────────────────────────────────────┐               │
+│  │            Funciones CRUD                     │               │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐      │               │
+│  │  │ listar   │ │ obtener  │ │ crear    │      │               │
+│  │  │productos │ │producto  │ │producto  │      │               │
+│  │  └──────────┘ └──────────┘ └──────────┘      │               │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐      │               │
+│  │  │actualizar│ │actualizar│ │ eliminar │      │               │
+│  │  │ _total   │ │ _parcial │ │producto  │      │               │
+│  │  │  (PUT)   │ │ (PATCH)  │ │          │      │               │
+│  │  └──────────┘ └──────────┘ └──────────┘      │               │
+│  └──────────────────────────────────────────────┘               │
+│           │                                                     │
+│           ▼                                                     │
+│  ┌──────────────────────────────────────────────┐               │
+│  │         Manejo de Errores                     │               │
+│  │  manejar_error_http(response) → Exception     │               │
+│  │  • 400: ValidationError                       │               │
+│  │  • 401: AuthenticationError                   │               │
+│  │  • 404: ResourceNotFoundError                 │               │
+│  │  • 5xx: ServerError (reintentable)            │               │
+│  └──────────────────────────────────────────────┘               │
+└─────────────────────────────────────────────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Organización modular:</strong> Cada función CRUD es independiente pero comparte 
+                        configuración y validadores. El manejo de errores está centralizado para consistencia. 
+                        Este patrón escala bien cuando agregues más recursos (Productores, Pedidos).
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Código Base: Cliente HTTP con Validación</h3>
+                <p>
+                    Este es el esqueleto del cliente que construirás. Observa cómo cada función 
+                    sigue el patrón: construir request → ejecutar → validar status → validar body → retornar.
+                </p>
+
+                <div class="codigo-bloque">
+                    <div class="codigo-header">
+                        <span class="codigo-lenguaje">Python</span>
+                        <span class="codigo-archivo">cliente_ecomarket.py (esqueleto)</span>
+                    </div>
+                    <pre><span class="keyword">import</span> requests
+<span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urljoin, urlencode
+
+<span class="comment"># Configuración centralizada</span>
+BASE_URL = <span class="string">"http://localhost:3000/api/"</span>
+TIMEOUT = <span class="number">10</span>  <span class="comment"># segundos</span>
+
+<span class="keyword">class</span> <span class="function">EcoMarketError</span>(Exception):
+    <span class="string">"""Error base para el cliente de EcoMarket"""</span>
+    <span class="keyword">pass</span>
+
+<span class="keyword">class</span> <span class="function">ValidationError</span>(EcoMarketError):
+    <span class="string">"""El servidor rechazó la petición (4xx)"""</span>
+    <span class="keyword">pass</span>
+
+<span class="keyword">class</span> <span class="function">ServerError</span>(EcoMarketError):
+    <span class="string">"""Error del servidor (5xx) - puede reintentarse"""</span>
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">_verificar_respuesta</span>(response):
+    <span class="string">"""Verifica código de estado y Content-Type antes de procesar."""</span>
+    <span class="comment"># Capa 1: Código de estado</span>
+    <span class="keyword">if</span> response.status_code >= <span class="number">500</span>:
+        <span class="keyword">raise</span> ServerError(f<span class="string">"Error del servidor: {response.status_code}"</span>)
+    <span class="keyword">if</span> response.status_code >= <span class="number">400</span>:
+        <span class="keyword">raise</span> ValidationError(f<span class="string">"Error de cliente: {response.status_code}"</span>)
+    
+    <span class="comment"># Capa 2: Content-Type (si esperamos JSON)</span>
+    content_type = response.headers.get(<span class="string">'Content-Type'</span>, <span class="string">''</span>)
+    <span class="keyword">if</span> <span class="string">'application/json'</span> <span class="keyword">not in</span> content_type:
+        <span class="keyword">if</span> response.status_code != <span class="number">204</span>:  <span class="comment"># 204 no tiene body</span>
+            <span class="keyword">raise</span> ValidationError(f<span class="string">"Respuesta no es JSON: {content_type}"</span>)
+    
+    <span class="keyword">return</span> response
+
+<span class="keyword">def</span> <span class="function">listar_productos</span>(categoria=<span class="keyword">None</span>, orden=<span class="keyword">None</span>):
+    <span class="string">"""GET /productos con filtros opcionales."""</span>
+    url = urljoin(BASE_URL, <span class="string">"productos"</span>)
+    
+    <span class="comment"># Construir query params dinámicamente</span>
+    params = {}
+    <span class="keyword">if</span> categoria:
+        params[<span class="string">'categoria'</span>] = categoria
+    <span class="keyword">if</span> orden:
+        params[<span class="string">'orden'</span>] = orden
+    
+    response = requests.get(url, params=params, timeout=TIMEOUT)
+    _verificar_respuesta(response)
+    
+    <span class="keyword">return</span> response.json()  <span class="comment"># TODO: Añadir validación de esquema</span>
+
+<span class="keyword">def</span> <span class="function">obtener_producto</span>(producto_id):
+    <span class="string">"""GET /productos/{id}"""</span>
+    url = urljoin(BASE_URL, f<span class="string">"productos/{producto_id}"</span>)
+    
+    response = requests.get(url, timeout=TIMEOUT)
+    _verificar_respuesta(response)
+    
+    <span class="keyword">return</span> response.json()
+
+<span class="comment"># TODO: Implementar crear_producto, actualizar_producto_total,</span>
+<span class="comment">#       actualizar_producto_parcial, eliminar_producto</span></pre>
+                </div>
+            </div>
+
+            <!-- RETO IA #3 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">3</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Completador de Cliente CRUD</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🛠️ Programador de APIs en Python</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un programador Python especializado en clientes HTTP. Necesito completar mi cliente CRUD para EcoMarket.
+
+<em>Contexto:</em> Ya tengo implementado listar_productos() y obtener_producto(). El código base usa la biblioteca requests y tiene clases de excepción personalizadas.
+
+<em>Tu tarea:</em>
+Completa las siguientes funciones siguiendo el mismo patrón del código existente:
+
+1. <em>crear_producto(datos: dict) -> dict</em>
+   - POST /productos
+   - Enviar datos como JSON en el body
+   - Verificar que la respuesta sea 201 Created
+   - Retornar el producto creado (incluye ID generado)
+
+2. <em>actualizar_producto_total(producto_id: int, datos: dict) -> dict</em>
+   - PUT /productos/{id}
+   - IMPORTANTE: datos debe ser el recurso COMPLETO
+   - Verificar respuesta 200 OK
+   - Retornar el producto actualizado
+
+3. <em>actualizar_producto_parcial(producto_id: int, campos: dict) -> dict</em>
+   - PATCH /productos/{id}
+   - campos contiene SOLO los campos a modificar
+   - Verificar respuesta 200 OK
+   - Retornar el producto actualizado
+
+4. <em>eliminar_producto(producto_id: int) -> bool</em>
+   - DELETE /productos/{id}
+   - Verificar respuesta 204 No Content
+   - Retornar True si se eliminó exitosamente
+   - Si el producto no existe (404), lanzar excepción específica
+
+<em>Requisitos adicionales:</em>
+- Agregar header Content-Type: application/json en POST, PUT, PATCH
+- Manejar el caso donde el servidor devuelve 409 Conflict (producto duplicado)
+- Incluir docstrings con ejemplos de uso
+- NO usar clases, solo funciones (mantenemos simplicidad)</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, escribe tú mismo la firma de cada función</li>
+                        <li>Genera el código con la IA y compara las firmas</li>
+                        <li>Ejecuta cada función contra tu mock server con datos de prueba</li>
+                        <li>Verifica en DevTools que los headers se envían correctamente</li>
+                        <li>Prueba el caso 409 Conflict configurando tu mock para responder así</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">cliente_ecomarket.py</span> completo con las 6 funciones CRUD funcionando. Incluye captura de DevTools mostrando una petición PATCH exitosa.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #4 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">4</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Integrador de Validación</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔧 Ingeniero de Robustez</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de software enfocado en robustez. Necesito integrar validación completa en mi cliente HTTP.
+
+<em>Contexto:</em> Tengo un cliente CRUD funcional para EcoMarket, pero actualmente confía ciegamente en las respuestas del servidor.
+
+<em>Tu tarea:</em>
+1. Crea un módulo <em>validadores.py</em> con:
+   - Función validar_producto(data: dict) -> dict que:
+     * Verifica campos requeridos: id, nombre, precio, categoria
+     * Verifica tipos: id=int, precio=float, nombre=str, disponible=bool
+     * Verifica que precio > 0
+     * Verifica que categoria está en ['frutas', 'verduras', 'lacteos', 'miel', 'conservas']
+     * Lanza ValidationError con mensaje descriptivo si falla
+     * Retorna el dict validado si pasa
+
+   - Función validar_lista_productos(data: list) -> list que:
+     * Verifica que sea una lista
+     * Valida cada producto individualmente
+     * Retorna la lista validada
+
+2. Modifica las funciones del cliente para usar los validadores:
+   - obtener_producto() debe validar antes de retornar
+   - listar_productos() debe validar la lista completa
+   - crear_producto() debe validar la respuesta del servidor
+
+3. Incluye manejo de campos opcionales:
+   - descripcion (str, puede faltar)
+   - productor (dict con id y nombre, puede faltar)
+   - creado_en (str ISO 8601, puede faltar)
+
+<em>Requisito:</em> Los errores de validación deben ser descriptivos, indicando QUÉ campo falló y POR QUÉ.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Crea el archivo validadores.py con las funciones generadas</li>
+                        <li>Escribe 5 tests que prueben casos de validación fallida</li>
+                        <li>Configura tu mock server para devolver un producto con precio negativo</li>
+                        <li>Verifica que tu cliente detecta y reporta el error correctamente</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivos <span class="codigo-inline">validadores.py</span> y <span class="codigo-inline">test_validadores.py</span> con al menos 5 tests de casos de fallo.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #5 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">5</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Constructor de URLs Seguro</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔒 Especialista en Seguridad de APIs</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un especialista en seguridad de APIs. Necesito construir URLs de forma segura en mi cliente.
+
+<em>Problema:</em> Actualmente construyo URLs así:
+```python
+url = f"productos/{producto_id}"
+```
+Esto es vulnerable si producto_id contiene caracteres especiales o es inyectado.
+
+<em>Tu tarea:</em>
+1. Crea una clase <em>URLBuilder</em> que:
+   - Tenga un método para construir URLs con path params seguros
+   - Escape correctamente caracteres especiales
+   - Valide que los IDs sean del tipo esperado (int o UUID)
+   - Construya query strings de forma segura usando urlencode
+
+2. Muéstrame 3 ejemplos de URLs "maliciosas" que podrían romper mi cliente actual:
+   - Path traversal (../../../etc/passwd)
+   - Inyección de query params
+   - Caracteres unicode peligrosos
+
+3. Demuestra cómo URLBuilder protege contra cada ataque
+
+4. Integra URLBuilder en el cliente existente
+
+<em>Requisito:</em> Usa solo la biblioteca estándar de Python (urllib.parse), sin dependencias externas.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa URLBuilder y pruébala con los casos maliciosos</li>
+                        <li>Intenta "romper" el builder con tu propio caso de prueba</li>
+                        <li>Documenta qué ataques previene y cuáles no (limitaciones)</li>
+                        <li>Refactoriza tu cliente para usar URLBuilder en todas las funciones</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">url_builder.py</span> con la clase y sus tests. Documento de 1 página explicando qué ataques previene y cuáles requieren otras defensas.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Aplica</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo agregar un nuevo recurso (ej: Pedidos) a mi cliente sin pedir ayuda a la IA?</li>
+                    <li>¿Entiendo por qué usamos urljoin() en lugar de concatenar strings?</li>
+                    <li>Si mi validador rechaza un producto, ¿el mensaje de error es suficiente para diagnosticar el problema?</li>
+                    <li>¿Copié el código de la IA o lo adapté a mi contexto específico?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Verifica que tu código respeta estos principios</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Toda petición tiene timeout configurado</strong>
+                        Si la IA genera código sin timeout, agrégalo. Peticiones sin timeout pueden bloquear tu aplicación indefinidamente.
+                    </li>
+                    <li>
+                        <strong>Nunca concatenar strings para construir URLs con datos de usuario</strong>
+                        Siempre usar urljoin() y urlencode() para prevenir inyecciones.
+                    </li>
+                    <li>
+                        <strong>Validar ANTES de usar, no después</strong>
+                        Si el código usa response.json()["precio"] antes de validar que "precio" existe, hay un bug latente.
+                    </li>
+                    <li>
+                        <strong>Los errores del servidor (5xx) son diferentes a los del cliente (4xx)</strong>
+                        El código debe tratarlos diferente: 5xx puede reintentarse, 4xx generalmente no.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Antes de dar por terminada una función, pregúntate: "¿Qué pasa si el servidor devuelve basura?" Si tu código crashea, no está listo.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 3: REFLEXIONA ========== -->
+        <section id="reflexiona" class="fase-section">
+            <div class="fase-header" data-fase="reflexiona">
+                <div class="fase-numero">3</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">REFLEXIONA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Analizar las decisiones de diseño tomadas en la implementación del cliente</li>
+                    <li>Comparar enfoques de validación (manual vs Pydantic vs JSON Schema)</li>
+                    <li>Justificar el balance entre robustez y simplicidad en el código</li>
+                    <li>Documentar trade-offs para decisiones futuras</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Decisiones que Importan</h3>
+                <p>
+                    Cada línea de código implica una decisión. Las decisiones más importantes no son sobre 
+                    sintaxis, sino sobre <strong>qué compromisos aceptamos</strong> y <strong>qué riesgos toleramos</strong>.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│             MATRIZ DE DECISIONES DE VALIDACIÓN                   │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                           COMPLEJIDAD DEL CÓDIGO
+                    Baja ◄─────────────────────► Alta
+                    
+           ┌────────────────────────────────────────────┐
+    Alta   │                        │                   │
+           │   Validación           │   Pydantic /      │
+SEGURIDAD  │   Manual +             │   JSON Schema     │
+           │   Tests exhaustivos    │                   │
+           │   [Tu cliente actual]  │   [Producción]    │
+           ├────────────────────────┼───────────────────┤
+           │                        │                   │
+    Baja   │   Confiar en el        │   Over-          │
+           │   servidor             │   engineering     │
+           │   (¡PELIGROSO!)        │                   │
+           │   [Anti-patrón]        │   [Desperdicio]   │
+           └────────────────────────┴───────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Decisión clave:</strong> Tu cliente actual está en el cuadrante superior izquierdo: 
+                        validación manual que ofrece seguridad razonable con complejidad manejable. 
+                        Para producción con muchos tipos de respuesta, considera migrar a Pydantic.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #6 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">6</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Crítico de Decisiones de Diseño</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🎯 Revisor de Arquitectura</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un revisor de arquitectura de software. Voy a presentarte mi cliente HTTP y quiero que lo critiques constructivamente.
+
+<em>Mi cliente tiene estas características:</em>
+1. Funciones independientes (no clases)
+2. Validación manual con if/else
+3. Excepciones personalizadas para cada tipo de error
+4. Timeout fijo de 10 segundos
+5. Sin reintentos automáticos
+
+<em>Tu tarea:</em>
+Para CADA decisión:
+1. Pregúntame "¿Por qué elegiste [X] en lugar de [alternativa]?"
+2. Después de mi respuesta, evalúa si mi justificación es sólida
+3. Si tiene debilidades, señálalas con una pregunta de seguimiento
+
+<em>Decisiones a revisar:</em>
+- Funciones vs clases: ¿Por qué no una clase ProductosClient?
+- Validación manual vs Pydantic: ¿Por qué no usar modelos tipados?
+- Timeout fijo: ¿Por qué no configurable por petición?
+- Sin reintentos: ¿Qué pasa cuando hay un error transitorio?
+- Excepciones personalizadas: ¿Por qué no usar las de requests directamente?
+
+<em>Formato:</em> Una pregunta a la vez. Espera mi respuesta antes de continuar. Al final, resume las fortalezas y debilidades de mi diseño.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Responde cada pregunta con tu razonamiento real, no busques "la respuesta correcta"</li>
+                        <li>Si descubres que no tienes buena justificación, sé honesto: "No lo pensé bien"</li>
+                        <li>Documenta cada intercambio en un ADR (Architecture Decision Record)</li>
+                        <li>Identifica al menos una decisión que cambiarías después de la reflexión</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>ADR completo con: Contexto → Decisión → Alternativas → Consecuencias para al menos 3 de las decisiones revisadas. Incluir una decisión que cambiarías y por qué.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #7 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">7</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Comparador de Estrategias de Validación</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">⚖️ Analista de Trade-offs Técnicos</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un analista técnico que compara estrategias de validación de datos en Python.
+
+<em>Contexto:</em> Mi cliente valida respuestas JSON manualmente. Quiero entender cuándo debería migrar a otras estrategias.
+
+<em>Compara estas 3 estrategias para validar la respuesta de GET /productos:</em>
+1. Validación manual (if/else, como mi código actual)
+2. Pydantic v2 (modelos con tipos)
+3. JSON Schema (con jsonschema library)
+
+<em>Para cada estrategia, analiza:</em>
+- Líneas de código necesarias para validar el modelo Producto
+- Rendimiento (¿cuánto overhead añade?)
+- Calidad de mensajes de error
+- Facilidad para manejar campos opcionales y anidados
+- Curva de aprendizaje
+- Integración con editores (autocompletado, errores en tiempo de desarrollo)
+
+<em>Genera:</em>
+1. Tabla comparativa con puntuación 1-5 en cada criterio
+2. Código equivalente en las 3 estrategias para validar Producto
+3. Recomendación específica para mi caso:
+   - Proyecto pequeño (1 desarrollador, 5 endpoints)
+   - Proyecto mediano (equipo, 20+ endpoints)
+   - Proyecto enterprise (múltiples equipos, 100+ endpoints)
+
+<em>Formato:</em> Tabla comparativa + código + recomendaciones justificadas.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa la validación con Pydantic para tu modelo Producto</li>
+                        <li>Mide el tiempo de validación de 1000 productos con cada estrategia</li>
+                        <li>Compara la legibilidad de los mensajes de error</li>
+                        <li>Documenta cuál usarías para EcoMarket y por qué</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">comparacion_validacion.py</span> con las 3 implementaciones y benchmark. Documento con recomendación justificada para EcoMarket.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Reflexiona</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Cambié alguna decisión de diseño después de que la IA cuestionara mi razonamiento?</li>
+                    <li>¿Puedo explicar los trade-offs de mi cliente sin consultar notas?</li>
+                    <li>¿La IA me hizo pensar en escenarios que no había considerado?</li>
+                    <li>¿Mi ADR sería útil para un nuevo miembro del equipo?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Principios que guían las decisiones de diseño</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Toda decisión arquitectónica debe tener justificación documentada</strong>
+                        "Porque la IA lo sugirió" no es justificación válida. Debes poder explicar el por qué.
+                    </li>
+                    <li>
+                        <strong>La simplicidad vence a la elegancia cuando no hay necesidad clara</strong>
+                        No uses Pydantic "porque es mejor" si if/else resuelve tu problema actual.
+                    </li>
+                    <li>
+                        <strong>El código debe ser legible por humanos, no solo ejecutable</strong>
+                        Si la IA genera código "clever" que no entiendes, simplifícalo.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Las decisiones de hoy son la deuda técnica de mañana. Documenta el "por qué" para que tu yo futuro (o tu reemplazo) entienda el contexto.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 4: VALIDA ========== -->
+        <section id="valida" class="fase-section">
+            <div class="fase-header" data-fase="valida">
+                <div class="fase-numero">4</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">VALIDA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Evaluar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>60 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Verificar que el cliente maneja correctamente todos los códigos de error HTTP</li>
+                    <li>Probar el cliente con respuestas malformadas y edge cases</li>
+                    <li>Auditar el código generado por IA contra los invariantes establecidos</li>
+                    <li>Documentar bugs encontrados y correcciones aplicadas</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Testing de Clientes HTTP: Más Allá del Happy Path</h3>
+                <p>
+                    Probar que el cliente funciona cuando todo va bien es fácil. Lo difícil es probar 
+                    qué pasa cuando el servidor se comporta de forma inesperada.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                MATRIZ DE CASOS DE PRUEBA                         │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                    RESPUESTA DEL SERVIDOR
+            Válida ◄─────────────────────► Inválida
+            
+    ┌───────────────────────────────────────────────────┐
+    │  ✅ HAPPY PATH          │  ⚠️ EDGE CASES         │
+2xx │  Producto creado        │  Body vacío con 200    │
+    │  Lista retornada        │  JSON válido pero      │
+    │  [TODOS prueban esto]   │  campos faltantes      │
+    ├─────────────────────────┼───────────────────────┤
+    │  ⚠️ ERRORES ESPERADOS   │  🔴 CAOS              │
+4xx │  404 producto no existe │  HTML en lugar de JSON │
+5xx │  401 no autorizado      │  Conexión cortada      │
+    │  [POCOS prueban esto]   │  Timeout infinito      │
+    │                         │  [CASI NADIE prueba]   │
+    └─────────────────────────┴───────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Meta de esta fase:</strong> Tu cliente debe sobrevivir a todos los cuadrantes. 
+                        El cuadrante inferior derecho (caos) es donde los bugs de producción viven. 
+                        Si solo pruebas el happy path, tendrás sorpresas desagradables.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #8 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">8</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Diseñador de Suite de Pruebas</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🧪 Ingeniero de QA Senior</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de QA que diseña suites de pruebas exhaustivas para clientes HTTP.
+
+<em>Contexto:</em> Tengo un cliente CRUD para EcoMarket con estas funciones:
+- listar_productos(categoria, orden)
+- obtener_producto(id)
+- crear_producto(datos)
+- actualizar_producto_total(id, datos)
+- actualizar_producto_parcial(id, campos)
+- eliminar_producto(id)
+
+<em>Tu tarea:</em>
+Diseña una suite de pruebas usando pytest y responses (para mockear HTTP) que cubra:
+
+1. <em>Happy Path</em> (6 tests):
+   - Un test por cada función con datos válidos
+
+2. <em>Errores HTTP</em> (8 tests):
+   - 400 Bad Request al crear con datos inválidos
+   - 401 Unauthorized sin token
+   - 404 Not Found al obtener/actualizar/eliminar producto inexistente
+   - 409 Conflict al crear producto duplicado
+   - 500 Internal Server Error
+   - 503 Service Unavailable
+
+3. <em>Edge Cases</em> (6 tests):
+   - Respuesta vacía con 200
+   - Content-Type incorrecto (text/html)
+   - JSON válido pero estructura incorrecta
+   - Timeout del servidor
+   - Campo "precio" como string en lugar de número
+   - Lista de productos vacía
+
+<em>Para cada test incluye:</em>
+- Nombre descriptivo (test_crear_producto_con_precio_negativo_retorna_400)
+- Setup del mock
+- Aserción clara
+- Comentario explicando qué escenario prueba
+
+<em>Formato:</em> Código Python completo con pytest y responses, listo para ejecutar.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Instala pytest y responses: <span class="codigo-inline">pip install pytest responses</span></li>
+                        <li>Crea el archivo <span class="codigo-inline">test_cliente.py</span> con los tests generados</li>
+                        <li>Ejecuta: <span class="codigo-inline">pytest test_cliente.py -v</span></li>
+                        <li>Para cada test que falle, corrige tu cliente (no el test)</li>
+                        <li>Agrega al menos 2 tests propios para casos que la IA no cubrió</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">test_cliente.py</span> con 20+ tests pasando. Reporte de bugs encontrados y correcciones aplicadas al cliente.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #9 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">9</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Auditor de Conformidad con OpenAPI</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📋 Verificador de Contratos</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un verificador de contratos de API. Necesito asegurar que mi cliente cumple con el contrato OpenAPI.
+
+<em>Contexto:</em> Tengo un archivo openapi.yaml que define el contrato de EcoMarket, y un cliente Python que debería cumplirlo.
+
+<em>Tu tarea:</em>
+1. Genera un script Python que:
+   - Lea el contrato OpenAPI (usa pyyaml o openapi-core)
+   - Para cada endpoint definido, verifique que:
+     * El cliente tiene una función correspondiente
+     * La función envía los headers requeridos
+     * La función maneja todos los códigos de respuesta documentados
+     * La función valida la estructura de respuesta según el schema
+
+2. El script debe generar un reporte con:
+   - ✅ Conformidad: función X cumple con endpoint Y
+   - ⚠️ Parcial: función X no maneja código 409
+   - ❌ Faltante: no hay función para endpoint Z
+
+3. Incluye tests automatizados que:
+   - Usen schemathesis para generar casos de prueba desde el OpenAPI
+   - Ejecuten fuzzing básico contra el mock server
+   - Reporten violaciones del contrato
+
+<em>Requisito:</em> El reporte debe ser útil para identificar rápidamente qué falta por implementar o corregir.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Instala dependencias: <span class="codigo-inline">pip install pyyaml schemathesis</span></li>
+                        <li>Ejecuta el script de auditoría contra tu cliente</li>
+                        <li>Corrige todas las no-conformidades encontradas</li>
+                        <li>Ejecuta schemathesis contra tu mock server</li>
+                        <li>Documenta qué tan bien tu cliente cumple el contrato</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Script <span class="codigo-inline">auditar_contrato.py</span> + reporte de conformidad + cliente corregido con 100% de conformidad.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Valida</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Cuántos bugs encontré en mi código que no había detectado antes de escribir tests?</li>
+                    <li>¿Mis tests prueban comportamiento o implementación? (¿Se romperían si refactorizo?)</li>
+                    <li>¿La suite de tests me da confianza para modificar el código?</li>
+                    <li>¿Qué escenarios de producción aún no están cubiertos?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Criterios de calidad para tus pruebas</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Los tests deben ser independientes entre sí</strong>
+                        Si un test depende de que otro se ejecute primero, tienes un problema de diseño.
+                    </li>
+                    <li>
+                        <strong>Los tests no deben hacer peticiones reales a servidores externos</strong>
+                        Usa mocks. Los tests deben funcionar sin conexión a internet.
+                    </li>
+                    <li>
+                        <strong>Cada test debe tener una sola razón para fallar</strong>
+                        Si un test puede fallar por 5 razones diferentes, divídelo en 5 tests.
+                    </li>
+                    <li>
+                        <strong>Los tests de error son tan importantes como los de éxito</strong>
+                        Si solo tienes tests de happy path, no tienes una suite de pruebas completa.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Una suite de pruebas que pasa al 100% pero no encuentra bugs es inútil. El valor está en los bugs que atrapa, no en la cantidad de tests.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 5: PROFUNDIZA ========== -->
+        <section id="profundiza" class="fase-section">
+            <div class="fase-header" data-fase="profundiza">
+                <div class="fase-numero">5</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">PROFUNDIZA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Crear</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explorar extensiones al cliente que no fueron requeridas explícitamente</li>
+                    <li>Conectar lo aprendido con temas de semanas futuras</li>
+                    <li>Identificar preguntas abiertas que guiarán el aprendizaje posterior</li>
+                    <li>Crear artefactos originales que demuestren síntesis creativa</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Mirando Hacia Adelante: Qué Viene en las Próximas Semanas</h3>
+                <p>
+                    Esta semana completaste un cliente CRUD robusto. Pero en producción, 
+                    los problemas son más complejos. Aquí hay un vistazo de lo que aprenderás:
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│              ROADMAP: DE SEMANA 2 AL PROYECTO FINAL              │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+SEMANA 2 (AHORA)               PRÓXIMAS SEMANAS
+─────────────────               ────────────────
+                                
+┌─────────────────┐            ┌─────────────────┐
+│ Cliente CRUD    │            │ SEMANA 3        │
+│ • Operaciones   │───────────►│ Asincronía      │
+│   completas     │            │ • async/await   │
+│ • Validación    │            │ • Concurrencia  │
+│ • Manejo errores│            │ • Peticiones    │
+└─────────────────┘            │   paralelas     │
+        │                      └────────┬────────┘
+        │                               │
+        │                      ┌────────▼────────┐
+        │                      │ SEMANAS 6-7     │
+        │                      │ Arquitectura    │
+        └─────────────────────►│ • Repository    │
+                               │   pattern       │
+                               │ • Caché local   │
+                               │ • Estado        │
+                               └────────┬────────┘
+                                        │
+                               ┌────────▼────────┐
+                               │ SEMANAS 8-9     │
+                               │ Seguridad       │
+                               │ • JWT tokens    │
+                               │ • OAuth 2.0     │
+                               │ • HTTPS/TLS     │
+                               └────────┬────────┘
+                                        │
+                               ┌────────▼────────┐
+                               │ SEMANA 11       │
+                               │ Tiempo Real     │
+                               │ • WebSocket     │
+                               │ • SSE           │
+                               │ • Notificaciones│
+                               └─────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Conexión con el futuro:</strong> El cliente que construiste esta semana es síncrono 
+                        y secuencial. La Semana 3 lo convertirás en asíncrono para manejar múltiples peticiones 
+                        simultáneas. Los validadores que creaste serán la base del patrón Repository.
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Preguntas Abiertas para Explorar</h3>
+                <p>
+                    El aprendizaje profundo genera más preguntas que respuestas. Estas preguntas 
+                    te acompañarán durante el resto del curso:
+                </p>
+                <ul class="lista-conceptos">
+                    <li>¿Cómo evitar que 100 usuarios hagan la misma petición simultáneamente? (→ Caché, Semana 7)</li>
+                    <li>¿Qué pasa si el token de autenticación expira a mitad de una operación? (→ JWT, Semana 8)</li>
+                    <li>¿Cómo saber que un producto cambió sin hacer polling constante? (→ WebSocket, Semana 11)</li>
+                    <li>¿Cómo funciona la app si el usuario está sin internet? (→ Offline-first, Semana 12)</li>
+                    <li>¿Cómo pruebo que mi cliente funciona con el servidor real, no solo con mocks? (→ Contract Testing, Semana 13)</li>
+                </ul>
+            </div>
+
+            <!-- RETO IA #10 - AVANZADO (EXTENSIÓN) -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">10</span>
+                        <span>RETO IA · EXTENSIÓN</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Diseñador de Sistema de Reintentos</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔄 Ingeniero de Resiliencia</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de resiliencia que diseña sistemas de reintento para clientes HTTP.
+
+<em>Contexto:</em> Mi cliente actual falla inmediatamente cuando hay un error 5xx. En producción, estos errores suelen ser transitorios (servidor sobrecargado, deploy en progreso, etc.).
+
+<em>Tu tarea:</em>
+1. Diseña un decorador @with_retry que:
+   - Reintente automáticamente en errores 5xx y timeouts
+   - Use exponential backoff (1s, 2s, 4s, 8s...)
+   - Tenga un máximo de reintentos configurable
+   - Agregue jitter (variación aleatoria) para evitar thundering herd
+   - NO reintente en errores 4xx (son errores del cliente, reintentar no ayuda)
+   - Log cada reintento con el tiempo de espera
+
+2. Incluye:
+   - El código del decorador en Python
+   - Ejemplo de cómo aplicarlo a mis funciones existentes
+   - Tests que demuestren el comportamiento de retry
+
+3. Explica:
+   - ¿Por qué exponential backoff en lugar de reintentos inmediatos?
+   - ¿Por qué jitter? ¿Qué es thundering herd?
+   - ¿Cuándo NO debería reintentar aunque sea un 5xx?
+
+<em>Restricción:</em> No uses bibliotecas externas de retry (tenacity, backoff). Quiero entender la implementación.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa el decorador y aplícalo a tu función obtener_producto()</li>
+                        <li>Configura tu mock server para fallar las primeras 2 peticiones con 503</li>
+                        <li>Verifica que tu cliente reintenta y eventualmente tiene éxito</li>
+                        <li>Mide y documenta los tiempos de espera entre reintentos</li>
+                        <li>Reflexiona: ¿Es este retry apropiado para crear_producto()? ¿Por qué?</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Módulo <span class="codigo-inline">retry.py</span> con el decorador y tests. Documento explicando cuándo es seguro reintentar y cuándo no (con referencia a idempotencia de Semana 1).</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Profundiza</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Qué pregunta tengo ahora que no tenía al comenzar la semana?</li>
+                    <li>¿Puedo ver cómo el cliente de esta semana conecta con la arquitectura de la Semana 6?</li>
+                    <li>¿Propuse alguna extensión que la IA no había sugerido?</li>
+                    <li>¿Si tuviera que explicar "validación de respuestas" a un novato, qué analogía usaría?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Principios para extensiones y mejoras</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Solo reintentar operaciones idempotentes automáticamente</strong>
+                        GET, PUT, DELETE pueden reintentarse. POST no (podrías crear duplicados).
+                    </li>
+                    <li>
+                        <strong>Las extensiones no deben romper la API existente</strong>
+                        Agregar retry no debe cambiar cómo se llama a las funciones existentes.
+                    </li>
+                    <li>
+                        <strong>Exponential backoff con límite máximo</strong>
+                        Sin límite, podrías esperar horas entre reintentos. Define un tope (ej: 60 segundos).
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Las mejores extensiones son las que resuelven problemas que has experimentado, no las que suenan impresionantes en teoría.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== SISTEMA DE EVALUACIÓN ========== -->
+        <section id="evaluacion" class="evaluacion-section">
+            <div class="section-header">
+                <div class="section-icon">📊</div>
+                <h2 class="section-title">Sistema de Evaluación - Semana 2</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                La evaluación mide tanto productos (código funcional) como proceso (calidad del pensamiento crítico).
+                Los retos avanzados bonifican pero no son obligatorios.
+            </p>
+            <div class="evaluacion-grid">
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-comprende);">1</div>
+                        <span class="evaluacion-item-nombre">Retos 1-2: Mapeo CRUD + Validación conceptual</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">15%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-aplica);">2</div>
+                        <span class="evaluacion-item-nombre">Retos 3-4: Cliente CRUD + Validadores integrados</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">35%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-reflexiona);">3</div>
+                        <span class="evaluacion-item-nombre">Reto 6: ADR con decisiones documentadas</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">15%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-valida);">4</div>
+                        <span class="evaluacion-item-nombre">Reto 8: Suite de pruebas (20+ tests pasando)</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">25%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-profundiza);">5</div>
+                        <span class="evaluacion-item-nombre">Checkpoints metacognitivos completados</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">10%</span>
+                </div>
+            </div>
+
+            <div class="caja-contextual caja-success" style="margin-top: 2rem;">
+                <span class="caja-contextual-icon">🌟</span>
+                <div class="caja-contextual-content">
+                    <h4>Bonificación por Retos Avanzados</h4>
+                    <p>Los retos 5, 7, 9 y 10 (marcados como 🚀 AVANZADO) otorgan hasta <strong>+15% extra</strong> sobre la calificación base. No son obligatorios pero demuestran dominio profundo del tema.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== GLOSARIO ========== -->
+        <section id="glosario" class="glosario-section">
+            <div class="section-header">
+                <div class="section-icon">📖</div>
+                <h2 class="section-title">Glosario - Semana 2</h2>
+            </div>
+            <div class="glosario-grid">
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        CRUD
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Create, Read, Update, Delete. Las cuatro operaciones básicas de persistencia de datos, mapeadas a POST, GET, PUT/PATCH, DELETE en REST.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Path Parameter
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Variable en la ruta de la URL que identifica un recurso específico. Ej: /productos/{id} donde {id} es el path param.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Query Parameter
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Parámetro después del ? en la URL que modifica la petición (filtros, ordenamiento, paginación). No identifica recursos.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Validación de Esquema
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Proceso de verificar que un JSON tiene la estructura esperada: campos correctos, tipos correctos, restricciones cumplidas.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Exponential Backoff
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Estrategia de reintentos donde el tiempo de espera se duplica en cada intento (1s, 2s, 4s...). Evita sobrecargar servidores con problemas.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Thundering Herd
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Problema donde muchos clientes reintentan simultáneamente después de una falla, potencialmente causando otra falla. Se mitiga con jitter.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Jitter
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Variación aleatoria añadida a tiempos de espera para desincronizar reintentos de múltiples clientes.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Pydantic
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Biblioteca Python para validación de datos usando modelos con tipos. Genera errores descriptivos y documentación automática.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        responses (biblioteca)
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Biblioteca Python para mockear peticiones HTTP en tests. Permite simular respuestas del servidor sin conexión real.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Invariante
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Principio que debe mantenerse verdadero independientemente de los cambios en el código. Sirve como guardrail para evaluar sugerencias de IA.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        ADR
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Architecture Decision Record. Documento que captura una decisión de arquitectura: contexto, decisión, alternativas, consecuencias.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Happy Path
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Escenario de prueba donde todo funciona correctamente. Necesario pero insuficiente para validar robustez del código.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== REFERENCIAS ========== -->
+        <section class="referencias-section">
+            <div class="section-header">
+                <div class="section-icon">📚</div>
+                <h2 class="section-title">Referencias</h2>
+            </div>
+            <div class="referencias-lista">
+                <div class="referencia-item">
+                    <strong>Fielding, R. T. & Reschke, J. (2014).</strong> RFC 7231: Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content. <em>Internet Engineering Task Force.</em> Secciones 4.3 (métodos) y 6 (códigos de estado).
+                </div>
+                <div class="referencia-item">
+                    <strong>OpenAPI Initiative. (2021).</strong> OpenAPI Specification 3.1.0. <em>Linux Foundation.</em> Referencia para diseño de contratos de API.
+                </div>
+                <div class="referencia-item">
+                    <strong>Nygard, M. (2018).</strong> <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. Capítulo 5: Stability Patterns (Circuit Breaker, Retry).
+                </div>
+                <div class="referencia-item">
+                    <strong>Kleppmann, M. (2017).</strong> <em>Designing Data-Intensive Applications.</em> O'Reilly Media. Capítulo 8: Distributed Systems Trouble (idempotencia, reintentos).
+                </div>
+                <div class="referencia-item">
+                    <strong>Python Software Foundation. (2024).</strong> requests: HTTP for Humans. Documentación oficial de la biblioteca requests para Python.
+                </div>
+                <div class="referencia-item">
+                    <strong>Pydantic. (2024).</strong> Pydantic v2 Documentation. Referencia para validación de datos con modelos tipados en Python.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-logo">Universidad Autónoma de Nayarit</p>
+            <div class="footer-modelo">
+                <span>🧠</span>
+                <span>Modelo AETL v1.0</span>
+            </div>
+            <p class="footer-text">
+                Programación Distribuida del Lado del Cliente<br>
+                Licenciatura en Sistemas Computacionales<br>
+                Documento de trabajo · Semana 2 de 15
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer para actualizar progreso y navegación
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.fase-section');
+            const progressSegments = document.querySelectorAll('.progress-segment');
+            const progressStats = document.querySelector('.progress-stats');
+            const navLinks = document.querySelectorAll('.nav-fase');
+            
+            const faseNames = {
+                'comprende': 'Comprende',
+                'aplica': 'Aplica',
+                'reflexiona': 'Reflexiona',
+                'valida': 'Valida',
+                'profundiza': 'Profundiza'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const fase = entry.target.id;
+                        updateProgress(fase);
+                        updateNav(fase);
+                    }
+                });
+            }, {
+                rootMargin: '-20% 0px -70% 0px'
+            });
+
+            sections.forEach(section => observer.observe(section));
+
+            function updateProgress(currentFase) {
+                const fases = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+                const currentIndex = fases.indexOf(currentFase);
+                
+                progressSegments.forEach((segment, index) => {
+                    const fase = segment.dataset.fase;
+                    const faseIndex = fases.indexOf(fase);
+                    
+                    if (faseIndex <= currentIndex) {
+                        segment.style.width = '20%';
+                    } else {
+                        segment.style.width = '0%';
+                    }
+                });
+
+                if (progressStats && faseNames[currentFase]) {
+                    progressStats.textContent = `Fase actual: ${faseNames[currentFase]}`;
+                }
+            }
+
+            function updateNav(currentFase) {
+                navLinks.forEach(link => {
+                    link.style.background = '';
+                    link.style.color = '';
+                    
+                    if (link.getAttribute('href') === `#${currentFase}`) {
+                        const faseColor = getComputedStyle(document.documentElement)
+                            .getPropertyValue(`--fase-${currentFase}`);
+                        link.style.background = `${faseColor}15`;
+                        link.style.color = faseColor;
+                    }
+                });
+            }
+
+            // Smooth scroll para navegación
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
