@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 3: Programación Asíncrona y Concurrencia en el Cliente | AETL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="aetl-styles.css">
+</head>
+<body>
+    <!-- ========== HEADER INSTITUCIONAL ========== -->
+    <header class="header-institucional">
+        <div class="header-top">
+            <div class="uan-logo">
+                <div class="uan-logo-icon">UAN</div>
+                <div class="uan-logo-text">
+                    <span>Universidad Autónoma de Nayarit</span>
+                    <span>Licenciatura en Sistemas Computacionales</span>
+                </div>
+            </div>
+            <div class="header-badge">MODELO AETL</div>
+        </div>
+        <div class="header-main">
+            <p class="header-curso">Programación Distribuida del Lado del Cliente</p>
+            <h1 class="header-titulo">
+                Programación <span class="accent">Asíncrona</span><br>
+                y Concurrencia en el Cliente
+            </h1>
+            <div class="header-semana">
+                <div class="header-semana-numero">3</div>
+                <span>Semana 3 de 15 · Fase 1: Fundamentos de Comunicación</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== NAVEGACIÓN ========== -->
+    <nav class="nav-container">
+        <div class="nav-fases">
+            <a href="#comprende" class="nav-fase" data-fase="comprende">
+                <span class="nav-fase-numero">1</span>
+                <span>Comprende</span>
+            </a>
+            <a href="#aplica" class="nav-fase" data-fase="aplica">
+                <span class="nav-fase-numero">2</span>
+                <span>Aplica</span>
+            </a>
+            <a href="#reflexiona" class="nav-fase" data-fase="reflexiona">
+                <span class="nav-fase-numero">3</span>
+                <span>Reflexiona</span>
+            </a>
+            <a href="#valida" class="nav-fase" data-fase="valida">
+                <span class="nav-fase-numero">4</span>
+                <span>Valida</span>
+            </a>
+            <a href="#profundiza" class="nav-fase" data-fase="profundiza">
+                <span class="nav-fase-numero">5</span>
+                <span>Profundiza</span>
+            </a>
+            <a href="#evaluacion" class="nav-fase">
+                <span>📊</span>
+                <span>Evaluación</span>
+            </a>
+            <a href="#glosario" class="nav-fase">
+                <span>📖</span>
+                <span>Glosario</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ========== BARRA DE PROGRESO ========== -->
+    <div class="progress-container">
+        <div class="progress-inner">
+            <div class="progress-header">
+                <span class="progress-title">🎯 Progreso del Aprendizaje Profundo</span>
+                <span class="progress-stats">Fase actual: Comprende</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-segment" data-fase="comprende"></div>
+                <div class="progress-segment" data-fase="aplica"></div>
+                <div class="progress-segment" data-fase="reflexiona"></div>
+                <div class="progress-segment" data-fase="valida"></div>
+                <div class="progress-segment" data-fase="profundiza"></div>
+            </div>
+            <div class="progress-legend">
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-comprende);"></div>
+                    <span>Comprende</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-aplica);"></div>
+                    <span>Aplica</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-reflexiona);"></div>
+                    <span>Reflexiona</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-valida);"></div>
+                    <span>Valida</span>
+                </div>
+                <div class="progress-legend-item">
+                    <div class="progress-legend-dot" style="background: var(--fase-profundiza);"></div>
+                    <span>Profundiza</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CONTENIDO PRINCIPAL ========== -->
+    <main class="main-content">
+        
+        <!-- ========== ESCENARIO INMERSIVO ========== -->
+        <section class="escenario-inmersivo">
+            <div class="escenario-badge">
+                <span>🎬</span>
+                <span>ESCENARIO INMERSIVO</span>
+            </div>
+            <h2 class="escenario-titulo">TechNova Día 3: La Demo que se Congela</h2>
+            <div class="escenario-contexto">
+                <p>Miércoles en <strong>TechNova</strong>. Tu cliente CRUD funciona perfectamente… cuando sólo haces una petición a la vez. Pero hoy, la Product Manager necesita la pantalla de dashboard: <em>"Cuando el usuario abre la app, necesitamos cargar simultáneamente el catálogo de productos, las categorías, el perfil del usuario y las notificaciones pendientes. Todo al mismo tiempo."</em></p>
+                <p style="margin-top: 1rem;">Haces la prueba con tu cliente síncrono. Cuatro peticiones secuenciales. Cada una tarda ~500ms. Resultado: <strong>2 segundos de pantalla en blanco</strong> mientras el usuario espera. La Product Manager frunce el ceño: <em>"Google dice que si la carga tarda más de 1 segundo, perdemos el 30% de los usuarios. ¿No puedes lanzar todas las peticiones al mismo tiempo?"</em></p>
+                <p style="margin-top: 1rem;">Peor aún: cuando una de las cuatro peticiones falla por timeout, las otras tres — que ya completaron — se pierden porque tu código síncrono aborta todo el bloque. El equipo de backend pregunta: <em>"¿Por qué tu cliente espera a que termine una petición para lanzar la siguiente? Nuestro servidor puede manejar todas en paralelo."</em></p>
+            </div>
+            <div class="escenario-rol">
+                <div class="escenario-rol-icon">⚡</div>
+                <div class="escenario-rol-text">
+                    <h4>Tu Rol: Arquitecto de Flujos Concurrentes</h4>
+                    <p>Ya sabes consumir APIs y validar respuestas. Esta semana aprenderás a lanzar <strong>múltiples peticiones simultáneas</strong>, coordinar sus resultados, cancelar las que ya no necesitas, y manejar timeouts individuales sin perder trabajo útil.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== PREREQUISITOS ========== -->
+        <section class="prerequisitos-box">
+            <h3>🔑 Para tener éxito esta semana, asegúrate de recordar...</h3>
+            <ul class="prerequisitos-lista">
+                <li>Cómo funciona tu cliente CRUD síncrono de la Semana 2 (funciones, validadores, manejo de errores)</li>
+                <li>La diferencia entre errores 4xx (no reintentar) y 5xx (posiblemente reintentar)</li>
+                <li>Qué significa que una operación sea <strong>idempotente</strong> y por qué importa para reintentos</li>
+                <li>Cómo funciona el event loop de Python (o del lenguaje elegido) a nivel conceptual</li>
+                <li>El concepto de <strong>timeout</strong> y por qué toda petición debe tener uno configurado</li>
+            </ul>
+        </section>
+
+        <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+        <section class="conexion-semana-anterior">
+            <h3>🔗 Conexión directa con Semana 2</h3>
+            <ul class="conexion-lista">
+                <li><strong>Cliente CRUD completo:</strong> Las funciones que escribiste (listar, obtener, crear, actualizar, eliminar) serán la base. Esta semana las convertirás de síncronas a asíncronas sin perder la validación.</li>
+                <li><strong>Manejo de errores diferenciado:</strong> Tu lógica de errores 4xx vs 5xx ahora debe funcionar por petición individual, no globalmente. Si una petición falla, las demás deben continuar.</li>
+                <li><strong>Validadores:</strong> El módulo <code>validadores.py</code> seguirá funcionando igual — la validación no cambia porque la petición sea asíncrona.</li>
+                <li><strong>Timeout configurado:</strong> Tu TIMEOUT de 10 segundos ahora se aplica a cada petición independiente, permitiendo que unas terminen mientras otras esperan.</li>
+            </ul>
+        </section>
+
+        <!-- ========== ERRORES COMUNES ========== -->
+        <section class="errores-comunes-box">
+            <h3>⚠️ Errores comunes esta semana (que la IA podría no detectar)</h3>
+            <ul class="errores-lista">
+                <li>
+                    <strong>No cerrar la sesión HTTP asíncrona (<code>aiohttp.ClientSession</code>):</strong>
+                    La IA genera código que crea sesiones pero olvida cerrarlas. Cada sesión abierta consume recursos del sistema operativo. Después de 100 peticiones, tu programa se queda sin file descriptors.
+                </li>
+                <li>
+                    <strong>Usar <code>asyncio.gather()</code> sin <code>return_exceptions=True</code>:</strong>
+                    Por defecto, si UNA tarea de <code>gather</code> lanza una excepción, TODAS se cancelan y se pierde el trabajo completado. La IA suele generar el caso optimista.
+                </li>
+                <li>
+                    <strong>Mezclar código síncrono con asíncrono:</strong>
+                    Llamar a <code>requests.get()</code> (síncrono) dentro de una función <code>async</code> bloquea todo el event loop. La IA puede generar código que "funciona" pero anula los beneficios de la asincronía.
+                </li>
+                <li>
+                    <strong>No manejar <code>asyncio.TimeoutError</code> separado de otros errores:</strong>
+                    Un timeout no es lo mismo que un error de conexión o un 500. Requiere estrategia diferente (¿reintentar? ¿abortar? ¿usar caché?). La IA tiende a agrupar todos los errores en un solo <code>except</code>.
+                </li>
+            </ul>
+        </section>
+
+        <!-- ========== FASE 1: COMPRENDE ========== -->
+        <section id="comprende" class="fase-section">
+            <div class="fase-header" data-fase="comprende">
+                <div class="fase-numero">1</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">COMPRENDE</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Recordar / Comprender</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explicar la diferencia entre ejecución síncrona, concurrente y paralela</li>
+                    <li>Describir los tres modelos de asincronía: callbacks, Promises/Futures, async/await</li>
+                    <li>Identificar cuándo la ejecución concurrente mejora el rendimiento de un cliente HTTP</li>
+                    <li>Reconocer el papel del event loop como orquestador de tareas no bloqueantes</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Síncrono vs. Concurrente vs. Paralelo</h3>
+                <p>
+                    Estos tres términos se confunden constantemente. Entender su diferencia es crucial 
+                    para tomar decisiones correctas sobre cómo estructurar tu cliente HTTP.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│            SÍNCRONO vs. CONCURRENTE vs. PARALELO              │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    SÍNCRONO (tu cliente actual)
+    ═══════════════════════════
+    Hilo único, una tarea a la vez:
+
+    Tiempo ──────────────────────────────────────────────►
+
+    Hilo 1: ▓▓▓▓ GET /productos ▓▓▓▓ │ espera │ ▓▓▓▓ GET /categorias ▓▓▓▓ │ esp │
+                                                 ▲
+                                                 │
+                                          El hilo está BLOQUEADO
+                                          esperando la respuesta
+    Total: 500ms + 500ms = 1000ms
+
+
+    CONCURRENTE (lo que aprenderás hoy)
+    ════════════════════════════════════
+    Hilo único, múltiples tareas intercaladas:
+
+    Tiempo ──────────────────────────────────────────────►
+
+    Hilo 1: ▓▓ GET /productos ▓▓ → espera red → ▓▓ procesa ▓▓
+                ▓▓ GET /categorias ▓▓ → espera red → ▓▓ procesa ▓▓
+                    ▓▓ GET /perfil ▓▓ → espera red → ▓▓ procesa ▓▓
+            ▲
+            │
+            Event loop intercala tareas mientras esperan I/O
+
+    Total: ~550ms (se solapan las esperas de red)
+
+
+    PARALELO (múltiples CPUs)
+    ═════════════════════════
+    Múltiples hilos, ejecución simultánea real:
+
+    Tiempo ──────────────────────────────────────────────►
+
+    Hilo 1: ▓▓▓▓ cálculo pesado ▓▓▓▓
+    Hilo 2: ▓▓▓▓ cálculo pesado ▓▓▓▓
+    Hilo 3: ▓▓▓▓ cálculo pesado ▓▓▓▓
+
+    Total: tiempo del cálculo más lento (no se suman)
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Idea clave:</strong> Para clientes HTTP, la concurrencia es más útil que el paralelismo.
+                        El cuello de botella es la <em>espera de red</em> (I/O), no el cálculo (CPU).
+                        El event loop aprovecha esas esperas para lanzar más peticiones.
+                    </div>
+                </div>
+
+                <div class="caja-contextual caja-warning">
+                    <span class="caja-contextual-icon">⚠️</span>
+                    <div class="caja-contextual-content">
+                        <h4>Concurrencia ≠ Paralelismo</h4>
+                        <p>La concurrencia es sobre <strong>estructura</strong>: organizar tareas para que progresen intercaladamente. El paralelismo es sobre <strong>ejecución</strong>: hacer cálculos simultáneos en múltiples CPUs. Un cliente HTTP se beneficia de concurrencia (muchas esperas de red), no de paralelismo (poco cálculo por petición).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>El Event Loop: Director de Orquesta del Cliente</h3>
+                <p>
+                    El event loop es el mecanismo que permite la concurrencia con un solo hilo.
+                    Funciona como un director de orquesta: mientras un músico descansa (espera de red),
+                    dirige a otro que está listo para tocar (procesar respuesta).
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│                  CICLO DEL EVENT LOOP                          │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                    ┌─────────────┐
+                    │  INICIO     │
+                    │  del loop   │
+                    └──────┬──────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+           ┌───►│ ¿Hay tareas listas?  │
+           │    └──────────┬───────────┘
+           │               │
+           │          Sí   │   No
+           │        ┌──────┴──────┐
+           │        ▼             ▼
+           │  ┌───────────┐  ┌──────────────┐
+           │  │ Ejecutar   │  │ ¿Hay tareas  │
+           │  │ siguiente  │  │  pendientes? │
+           │  │ tarea lista│  └──────┬───────┘
+           │  └─────┬──────┘     Sí  │  No
+           │        │          ┌─────┴─────┐
+           │        │          ▼           ▼
+           │        │    ┌──────────┐  ┌────────┐
+           │        │    │ Esperar  │  │  FIN   │
+           │        │    │ evento   │  │ (todas │
+           │        │    │ de I/O   │  │ comple-│
+           │        │    └────┬─────┘  │ tadas) │
+           │        │         │        └────────┘
+           │        ▼         ▼
+           │    ┌─────────────────┐
+           └────┤ Volver al inicio │
+                └─────────────────┘
+
+    EJEMPLO CON 3 PETICIONES HTTP:
+
+    Paso 1: Lanza GET /productos      → va a la red (pendiente)
+    Paso 2: Lanza GET /categorias     → va a la red (pendiente)
+    Paso 3: Lanza GET /perfil         → va a la red (pendiente)
+    Paso 4: Espera... llega respuesta de /categorias (la más rápida)
+    Paso 5: Procesa /categorias       → validar, transformar
+    Paso 6: Espera... llega respuesta de /productos
+    Paso 7: Procesa /productos        → validar, transformar
+    Paso 8: Espera... llega respuesta de /perfil
+    Paso 9: Procesa /perfil           → validar, transformar
+    Paso 10: Todas completas → FIN
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Observación clave:</strong> El event loop nunca está ocioso mientras haya 
+                        trabajo por hacer. Cuando una petición espera respuesta de red, el loop atiende 
+                        otra tarea lista. Esto maximiza el uso del hilo único sin necesidad de hilos adicionales.
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Tres Modelos de Asincronía: Evolución Histórica</h3>
+                <p>
+                    La programación asíncrona ha evolucionado para ser cada vez más legible.
+                    Entender los tres modelos te permite trabajar con cualquier lenguaje y API.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│         EVOLUCIÓN DE MODELOS DE ASINCRONÍA                     │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    ┌─────────────────────────────────────────────────────────┐
+    │  MODELO 1: CALLBACKS (más antiguo)                      │
+    │                                                         │
+    │  fetch_productos(callback=procesar_resultado)           │
+    │                                                         │
+    │  ✓ Simple para 1 operación                              │
+    │  ✗ "Callback hell" con operaciones encadenadas          │
+    │  ✗ Difícil manejar errores de múltiples callbacks       │
+    │                                                         │
+    │  Lenguajes: JavaScript antiguo, C con libevent          │
+    └─────────────────────────────────────────────────────────┘
+                        │
+                        ▼ Evoluciona a...
+    ┌─────────────────────────────────────────────────────────┐
+    │  MODELO 2: PROMISES / FUTURES (intermedio)              │
+    │                                                         │
+    │  futuro = fetch_productos()                             │
+    │  futuro.then(procesar).catch(manejar_error)             │
+    │                                                         │
+    │  ✓ Encadenamiento legible (.then().then())              │
+    │  ✓ Manejo de errores centralizado (.catch())            │
+    │  ✓ Composición: Promise.all([f1, f2, f3])               │
+    │  ✗ Sigue siendo diferente al código síncrono            │
+    │                                                         │
+    │  Lenguajes: JavaScript ES6+, Java (CompletableFuture)   │
+    └─────────────────────────────────────────────────────────┘
+                        │
+                        ▼ Evoluciona a...
+    ┌─────────────────────────────────────────────────────────┐
+    │  MODELO 3: ASYNC/AWAIT (moderno)                        │
+    │                                                         │
+    │  resultado = await fetch_productos()                    │
+    │                                                         │
+    │  ✓ Parece código síncrono                               │
+    │  ✓ try/except funciona normalmente                      │
+    │  ✓ Fácil de razonar y depurar                           │
+    │  ✓ Composición: await gather(f1(), f2(), f3())          │
+    │  ✗ Requiere entender el event loop subyacente           │
+    │                                                         │
+    │  Lenguajes: Python 3.5+, JavaScript ES2017, C#, Rust    │
+    └─────────────────────────────────────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Nota histórica:</strong> Los tres modelos resuelven el mismo problema 
+                        (no bloquear mientras se espera I/O), pero con diferente ergonomía. 
+                        <code>async/await</code> es la sintaxis dominante en lenguajes modernos porque 
+                        permite escribir código asíncrono que <em>se lee</em> como síncrono.
+                    </div>
+                </div>
+
+                <div class="caja-contextual caja-tip">
+                    <span class="caja-contextual-icon">💡</span>
+                    <div class="caja-contextual-content">
+                        <h4>Principio de Transferibilidad</h4>
+                        <p>Si entiendes <code>async/await</code> en Python, puedes aplicarlo en JavaScript, C#, Rust o Kotlin. Los nombres cambian, pero el patrón es idéntico: marcar funciones como <code>async</code>, usar <code>await</code> para esperar resultados, y componer con equivalentes de <code>gather</code>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #1 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">1</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Cartógrafo de Modelos de Concurrencia</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🧠 Instructor de Sistemas Concurrentes</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un instructor especializado en sistemas concurrentes que me ayudará a entender los modelos de asincronía aplicados a clientes HTTP.
+
+<em>Contexto:</em> Tengo un cliente HTTP síncrono para EcoMarket (Python con requests) que hace peticiones secuenciales. Necesito entender cómo convertirlo en concurrente.
+
+<em>Tu tarea:</em>
+Muéstrame el MISMO escenario — cargar simultáneamente productos, categorías y perfil de usuario — implementado con los 3 modelos:
+
+1. <em>Callbacks</em> (usando concurrent.futures con callbacks):
+   - Cómo se lanza cada petición
+   - Cómo se recibe el resultado vía callback
+   - Qué pasa si una petición falla: ¿se enteran las demás?
+
+2. <em>Futures</em> (usando concurrent.futures.ThreadPoolExecutor):
+   - Cómo se obtienen los Future objects
+   - Cómo se espera a que todos terminen
+   - Cómo se maneja el error de UN future sin perder los demás
+
+3. <em>Async/Await</em> (usando asyncio + aiohttp):
+   - Cómo se define una función async
+   - Cómo se usa gather() para lanzar todo en paralelo
+   - Cómo se maneja el error individual con return_exceptions
+
+<em>Para cada modelo incluye:</em>
+- Código Python completo y ejecutable
+- Diagrama temporal mostrando qué pasa en cada milisegundo
+- Ventajas y desventajas específicas para clientes HTTP
+- Qué pasa cuando la petición de /categorias falla con timeout
+
+<em>Restricción:</em> Usa las mismas URLs y datos de EcoMarket en los 3 ejemplos para que la comparación sea directa.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, dibuja en papel cómo <em>crees</em> que funciona el event loop</li>
+                        <li>Ejecuta los 3 ejemplos y mide el tiempo de cada uno con <code>time.time()</code></li>
+                        <li>Simula un timeout en la petición de /categorias y observa qué modelo lo maneja mejor</li>
+                        <li>Escribe en 3 oraciones cuál modelo elegirías y por qué</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Tabla comparativa de los 3 modelos con tiempos medidos. Justificación de 1 párrafo explicando cuál modelo usarás para EcoMarket y por qué.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #2 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">2</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Anatomista del Event Loop</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔬 Experto en Internals de asyncio</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un experto en los internals de asyncio que me explicará paso a paso qué sucede cuando ejecuto código asíncrono.
+
+<em>Contexto:</em> Entiendo qué hace async/await a nivel superficial, pero no entiendo qué pasa "por debajo". Necesito un modelo mental sólido.
+
+<em>Tu tarea:</em>
+Dado este código:
+```python
+import asyncio
+import aiohttp
+
+async def obtener_datos():
+    async with aiohttp.ClientSession() as session:
+        tarea1 = session.get("http://localhost:3000/api/productos")
+        tarea2 = session.get("http://localhost:3000/api/categorias")
+        resp1, resp2 = await asyncio.gather(tarea1, tarea2)
+        productos = await resp1.json()
+        categorias = await resp2.json()
+        return productos, categorias
+
+asyncio.run(obtener_datos())
+```
+
+Explícame paso a paso:
+1. ¿Qué pasa cuando se llama a <em>asyncio.run()</em>? ¿Qué se crea?
+2. ¿Qué pasa en la línea <em>session.get()</em>? ¿Se envía la petición inmediatamente?
+3. ¿Qué hace <em>asyncio.gather()</em> internamente? ¿Cómo registra las tareas?
+4. Cuando el event loop llega a <em>await gather()</em>, ¿qué tareas están en qué estado?
+5. Si la respuesta de /categorias llega primero, ¿qué hace el event loop?
+6. ¿En qué momento exacto se ejecuta <em>resp1.json()</em>?
+7. ¿Qué pasa si /productos responde con error 500 durante el gather?
+
+<em>Formato:</em> Usa una línea temporal numerada (paso 1, paso 2...) mostrando el estado del event loop en cada momento. Para cada paso indica: qué tarea está EJECUTANDO, cuáles están ESPERANDO, y cuáles están COMPLETAS.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Lee la explicación y redibuja la línea temporal con tus propias palabras</li>
+                        <li>Agrega <code>print()</code> antes y después de cada <code>await</code> en el código</li>
+                        <li>Ejecuta el código y compara el orden de los prints con tu predicción</li>
+                        <li>Identifica al menos una cosa que entendías mal antes de este ejercicio</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Diagrama temporal redibujado a mano (foto o digital) con anotaciones propias. Párrafo explicando qué concepto corregiste después de la experimentación.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Comprende</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo explicar por qué concurrencia es diferente de paralelismo con un ejemplo de EcoMarket?</li>
+                    <li>Si alguien me pregunta "¿por qué no usar hilos directamente?", ¿tengo una respuesta convincente?</li>
+                    <li>¿Entiendo qué pasa cuando pongo <code>await</code> — o solo lo uso porque "así funciona"?</li>
+                    <li>¿Podría dibujar el flujo del event loop para 4 peticiones simultáneas sin consultar notas?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Si la IA sugiere algo que viola estos principios, cuestiona la sugerencia</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Nunca mezclar <code>requests</code> (síncrono) dentro de funciones <code>async</code></strong>
+                        Una llamada síncrona bloquea TODO el event loop. Usa <code>aiohttp</code> o <code>httpx</code> en modo asíncrono.
+                    </li>
+                    <li>
+                        <strong>Toda sesión HTTP asíncrona debe cerrarse explícitamente</strong>
+                        Usa <code>async with</code> para garantizar el cierre. Si la IA genera código sin context manager, es un resource leak.
+                    </li>
+                    <li>
+                        <strong>El event loop ejecuta una sola tarea a la vez</strong>
+                        No hay ejecución paralela real con asyncio (a diferencia de threads). Si la IA sugiere que asyncio ejecuta "en paralelo", es impreciso.
+                    </li>
+                    <li>
+                        <strong><code>await</code> es un punto de cesión, no una "espera pasiva"</strong>
+                        Cuando haces <code>await</code>, le dices al event loop: "puedes ejecutar otra tarea mientras yo espero". No es simplemente "esperar".
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Usa estos invariantes como filtro cuando la IA genere código asíncrono. El error más común es generar código que "parece asíncrono" pero se ejecuta secuencialmente.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 2: APLICA ========== -->
+        <section id="aplica" class="fase-section">
+            <div class="fase-header" data-fase="aplica">
+                <div class="fase-numero">2</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">APLICA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Aplicar / Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>90 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Implementar un cliente HTTP asíncrono usando <code>aiohttp</code> con operaciones concurrentes</li>
+                    <li>Coordinar múltiples peticiones simultáneas con <code>asyncio.gather()</code></li>
+                    <li>Manejar timeouts individuales por petición sin afectar a las demás</li>
+                    <li>Implementar cancelación de peticiones en curso cuando ya no son necesarias</li>
+                </ul>
+            </div>
+
+            <div class="caja-contextual caja-success">
+                <span class="caja-contextual-icon">🐍</span>
+                <div class="caja-contextual-content">
+                    <h4>Lenguaje de Implementación: Python con aiohttp</h4>
+                    <p>Esta semana usaremos <strong>Python con asyncio y aiohttp</strong>. La elección es deliberada: <code>asyncio</code> expone el event loop de forma explícita, lo que te obliga a entender <em>cuándo</em> se cede el control y <em>por qué</em>. En JavaScript (con Node.js), el event loop es implícito y oculta estos mecanismos. En Python, cada <code>await</code> es una decisión consciente.</p>
+                    <p style="margin-top: 0.5rem;">Además, la transición de <code>requests</code> (Semana 2) a <code>aiohttp</code> (Semana 3) te enseña un patrón transferible: cómo migrar código síncrono a asíncrono conservando la lógica de negocio.</p>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Arquitectura del Cliente Asíncrono</h3>
+                <p>
+                    El cliente asíncrono mantiene la misma estructura modular de la Semana 2, 
+                    pero reemplaza el motor de ejecución: en lugar de <code>requests</code> (bloqueante), 
+                    usa <code>aiohttp</code> (no bloqueante) dentro de un event loop.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│          ARQUITECTURA: SÍNCRONO → ASÍNCRONO                    │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    SEMANA 2 (Síncrono)              SEMANA 3 (Asíncrono)
+    ═══════════════════              ════════════════════
+
+    ┌─────────────────┐              ┌─────────────────┐
+    │   requests      │  ──────►     │   aiohttp       │
+    │   (bloqueante)  │              │   (no-bloquea)  │
+    └────────┬────────┘              └────────┬────────┘
+             │                                │
+    ┌────────▼────────┐              ┌────────▼────────┐
+    │ listar_productos│  ──────►     │async listar_    │
+    │ obtener_producto│              │      productos  │
+    │ crear_producto  │              │async obtener_   │
+    │ ...             │              │      producto   │
+    └────────┬────────┘              └────────┬────────┘
+             │                                │
+    ┌────────▼────────┐              ┌────────▼────────┐
+    │ validadores.py  │  (SIN CAMBIO)│ validadores.py  │
+    │ (mismo módulo)  │ ◄══════════► │ (mismo módulo)  │
+    └────────┬────────┘              └────────┬────────┘
+             │                                │
+    ┌────────▼────────┐              ┌────────▼────────────────┐
+    │ Manejo errores  │  ──────►     │ Manejo errores          │
+    │ (excepciones)   │              │ + TimeoutError          │
+    │                 │              │ + CancelledError        │
+    └─────────────────┘              │ + errores por petición  │
+                                     └─────────────────────────┘
+
+    NUEVO: Capa de coordinación
+    ┌──────────────────────────────────────────┐
+    │  Coordinador de Peticiones               │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+    │  │ gather() │ │ wait()   │ │as_compl- │ │
+    │  │ todas    │ │ primeras │ │eted()    │ │
+    │  │ juntas   │ │ N de M   │ │ orden de │ │
+    │  │          │ │          │ │ llegada  │ │
+    │  └──────────┘ └──────────┘ └──────────┘ │
+    └──────────────────────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Cambio clave:</strong> Los validadores NO cambian. La lógica de negocio NO cambia.
+                        Solo cambia el <em>motor de transporte</em> (requests → aiohttp) y se agrega una capa
+                        de coordinación para manejar múltiples peticiones simultáneas.
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Código Base: Cliente Asíncrono con aiohttp</h3>
+                <p>
+                    Observa cómo la estructura es casi idéntica al cliente síncrono de la Semana 2.
+                    Las diferencias están marcadas con comentarios.
+                </p>
+
+                <div class="codigo-bloque">
+                    <div class="codigo-header">
+                        <span class="codigo-lenguaje">Python</span>
+                        <span class="codigo-archivo">cliente_async_ecomarket.py (esqueleto)</span>
+                    </div>
+                    <pre><span class="keyword">import</span> asyncio
+<span class="keyword">import</span> aiohttp
+<span class="keyword">from</span> validadores <span class="keyword">import</span> validar_producto, validar_lista_productos  <span class="comment"># ¡Reutilizamos!</span>
+
+<span class="comment"># Configuración (misma que Semana 2)</span>
+BASE_URL = <span class="string">"http://localhost:3000/api/"</span>
+TIMEOUT_POR_PETICION = aiohttp.ClientTimeout(total=<span class="number">10</span>)
+
+<span class="comment"># CAMBIO: Las excepciones se mantienen igual</span>
+<span class="keyword">class</span> <span class="function">EcoMarketError</span>(Exception): <span class="keyword">pass</span>
+<span class="keyword">class</span> <span class="function">ValidationError</span>(EcoMarketError): <span class="keyword">pass</span>
+<span class="keyword">class</span> <span class="function">ServerError</span>(EcoMarketError): <span class="keyword">pass</span>
+
+<span class="comment"># CAMBIO: La sesión se pasa como parámetro (no se crea por petición)</span>
+<span class="keyword">async def</span> <span class="function">_verificar_respuesta</span>(response):
+    <span class="string">"""Misma lógica de Semana 2, ahora asíncrona."""</span>
+    <span class="keyword">if</span> response.status >= <span class="number">500</span>:
+        <span class="keyword">raise</span> ServerError(f<span class="string">"Error del servidor: {response.status}"</span>)
+    <span class="keyword">if</span> response.status >= <span class="number">400</span>:
+        <span class="keyword">raise</span> ValidationError(f<span class="string">"Error de cliente: {response.status}"</span>)
+    
+    content_type = response.headers.get(<span class="string">'Content-Type'</span>, <span class="string">''</span>)
+    <span class="keyword">if</span> <span class="string">'application/json'</span> <span class="keyword">not in</span> content_type:
+        <span class="keyword">if</span> response.status != <span class="number">204</span>:
+            <span class="keyword">raise</span> ValidationError(f<span class="string">"No es JSON: {content_type}"</span>)
+    <span class="keyword">return</span> response
+
+<span class="comment"># CAMBIO: async def en lugar de def, session como parámetro</span>
+<span class="keyword">async def</span> <span class="function">listar_productos</span>(session, categoria=<span class="keyword">None</span>):
+    <span class="string">"""GET /productos - ahora no-bloqueante."""</span>
+    params = {}
+    <span class="keyword">if</span> categoria:
+        params[<span class="string">'categoria'</span>] = categoria
+    
+    <span class="comment"># CAMBIO: await en lugar de llamada directa</span>
+    <span class="keyword">async with</span> session.get(
+        f<span class="string">"{BASE_URL}productos"</span>, params=params
+    ) <span class="keyword">as</span> response:
+        <span class="keyword">await</span> _verificar_respuesta(response)
+        datos = <span class="keyword">await</span> response.json()  <span class="comment"># await: leer body es I/O</span>
+        <span class="keyword">return</span> validar_lista_productos(datos)
+
+<span class="comment"># NUEVO: Función de coordinación para cargar dashboard</span>
+<span class="keyword">async def</span> <span class="function">cargar_dashboard</span>():
+    <span class="string">"""Carga productos, categorías y perfil en paralelo."""</span>
+    <span class="keyword">async with</span> aiohttp.ClientSession(
+        timeout=TIMEOUT_POR_PETICION
+    ) <span class="keyword">as</span> session:
+        resultados = <span class="keyword">await</span> asyncio.gather(
+            listar_productos(session),
+            obtener_categorias(session),  <span class="comment"># TODO: implementar</span>
+            obtener_perfil(session),      <span class="comment"># TODO: implementar</span>
+            return_exceptions=<span class="keyword">True</span>       <span class="comment"># ← CRÍTICO: no perder todo si una falla</span>
+        )
+        <span class="keyword">return</span> _procesar_resultados(resultados)
+
+<span class="comment"># TODO: Implementar obtener_categorias, obtener_perfil,</span>
+<span class="comment">#       crear_producto_async, _procesar_resultados</span></pre>
+                </div>
+            </div>
+
+            <!-- RETO IA #3 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">3</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Migrador Síncrono → Asíncrono</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🔄 Especialista en Migración de Código Asíncrono</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un especialista en migración de código síncrono a asíncrono en Python. Necesito convertir mi cliente HTTP de EcoMarket.
+
+<em>Contexto:</em> Tengo un cliente síncrono (Semana 2) con estas funciones usando requests:
+- listar_productos(categoria, orden) → GET
+- obtener_producto(producto_id) → GET
+- crear_producto(datos) → POST
+- actualizar_producto_total(producto_id, datos) → PUT
+- actualizar_producto_parcial(producto_id, campos) → PATCH
+- eliminar_producto(producto_id) → DELETE
+
+Todas usan la misma estructura: construir URL → ejecutar petición → verificar respuesta → validar datos → retornar.
+
+<em>Tu tarea:</em>
+1. Convierte CADA función a su versión asíncrona usando aiohttp:
+   - Marca como async def
+   - Recibe session como primer parámetro
+   - Usa async with session.METHOD() as response
+   - Usa await para response.json()
+   - Mantiene los mismos validadores (no cambian)
+   - Mantiene las mismas excepciones personalizadas
+
+2. Crea la función <em>cargar_dashboard()</em> que:
+   - Crea UNA sola ClientSession (no una por petición)
+   - Ejecuta en paralelo: listar_productos + obtener_categorias + obtener_perfil
+   - Usa return_exceptions=True en gather
+   - Procesa los resultados separando éxitos de errores
+   - Retorna un dict con los datos cargados y los errores encontrados
+
+3. Crea la función <em>crear_multiples_productos(lista_productos)</em> que:
+   - Recibe una lista de dicts con datos de productos
+   - Crea todos los productos en paralelo
+   - Retorna: (productos_creados, productos_fallidos)
+   - Limita a máximo 5 peticiones simultáneas (semáforo)
+
+4. Incluye manejo específico de:
+   - aiohttp.ClientTimeout → petición lenta
+   - asyncio.CancelledError → tarea cancelada
+   - aiohttp.ClientConnectorError → servidor inalcanzable
+
+<em>Requisito:</em> Conservar toda la validación de la Semana 2 sin modificarla.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Antes de enviar el prompt, intenta convertir <code>listar_productos</code> tú mismo</li>
+                        <li>Compara tu versión con la de la IA — ¿olvidaste algún <code>await</code>?</li>
+                        <li>Ejecuta <code>cargar_dashboard()</code> contra tu mock server y mide el tiempo total</li>
+                        <li>Compara con la versión síncrona: ¿cuánto más rápido es?</li>
+                        <li>Prueba <code>crear_multiples_productos()</code> con 20 productos y verifica que el semáforo funciona</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">cliente_async_ecomarket.py</span> completo con todas las funciones migradas. Medición de tiempos: síncrono vs. asíncrono para cargar_dashboard().</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #4 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">4</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Ingeniero de Timeouts y Cancelación</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">⏱️ Especialista en Control de Flujo Asíncrono</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un especialista en control de flujo asíncrono. Necesito implementar timeout y cancelación granular en mi cliente.
+
+<em>Contexto:</em> Mi cliente asíncrono de EcoMarket puede lanzar múltiples peticiones con gather(). Pero necesito controlar qué pasa cuando:
+- Una petición tarda demasiado
+- El usuario cancela la operación
+- Necesito solo las primeras N respuestas que lleguen
+
+<em>Tu tarea:</em>
+1. Implementa <em>timeout individual por petición</em>:
+   - Crea un wrapper async que envuelva cualquier petición con asyncio.wait_for()
+   - Si una petición excede SU timeout, las demás continúan normalmente
+   - El timeout debe ser configurable por función (no global)
+   - Ejemplo: productos=5s, categorías=3s, perfil=2s
+
+2. Implementa <em>cancelación de tareas en grupo</em>:
+   - Función cancel_remaining(tareas) que cancela tareas pendientes
+   - Escenario: si la petición de perfil falla con 401 (no autorizado), cancela las demás (no tiene sentido continuar sin autenticación)
+   - Maneja CancelledError en cada tarea cancelada
+
+3. Implementa <em>cargar_con_prioridad()</em> usando asyncio.wait():
+   - Lanza 4 peticiones simultáneas
+   - Procesa resultados conforme llegan (no espera a todas)
+   - Si las 2 peticiones críticas (productos y perfil) llegan, muestra el dashboard parcial
+   - Las peticiones secundarias (categorías, notificaciones) se procesan cuando lleguen
+
+4. Para cada implementación incluye:
+   - Código Python con aiohttp
+   - Test que demuestre el comportamiento
+   - Diagrama temporal de qué pasa cuando una petición se cancela/timeout
+
+<em>Restricción:</em> No uses bibliotecas externas de retry/timeout. Solo asyncio y aiohttp.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Configura tu mock server para que /categorias tenga un delay de 8 segundos</li>
+                        <li>Ejecuta con timeout individual de 3s para categorías y verifica que las demás peticiones completan</li>
+                        <li>Simula un 401 en /perfil y verifica que las tareas restantes se cancelan</li>
+                        <li>Implementa <code>cargar_con_prioridad()</code> y verifica que muestra datos parciales</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Módulo <span class="codigo-inline">coordinador_async.py</span> con las 3 estrategias implementadas. Log mostrando el comportamiento de cada estrategia ante fallas simuladas.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #5 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">5</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Constructor de Semáforo con Rate Limiting</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🚦 Ingeniero de Control de Tráfico</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de control de tráfico que diseña limitadores de concurrencia para clientes HTTP.
+
+<em>Problema:</em> Mi función crear_multiples_productos() puede lanzar 100 peticiones POST simultáneas. Esto puede:
+- Sobrecargar el servidor (que tiene límite de 20 conexiones)
+- Agotar los file descriptors del cliente
+- Violar rate limits del API (máximo 30 peticiones por segundo)
+
+<em>Tu tarea:</em>
+1. Implementa un <em>ConcurrencyLimiter</em> usando asyncio.Semaphore:
+   - Máximo N peticiones simultáneas (configurable)
+   - Usa context manager: async with limiter.acquire()
+   - Logging de cuántas peticiones están en vuelo
+
+2. Implementa un <em>RateLimiter</em> basado en token bucket:
+   - Máximo M peticiones por segundo
+   - Si se excede, las peticiones esperan (no se rechazan)
+   - Muestra cuánto tiempo cada petición esperó en cola
+
+3. Combina ambos en un <em>ThrottledClient</em>:
+   - Respeta AMBOS límites simultáneamente
+   - Permite configurar: max_concurrent=10, max_per_second=20
+   - Integra con las funciones CRUD existentes
+
+4. Demuestra con un test:
+   - Lanza 50 peticiones de creación de productos
+   - Verifica que nunca hay más de 10 en vuelo
+   - Verifica que no se exceden 20 por segundo
+   - Mide el tiempo total y compara con "sin límites"
+
+<em>Requisito:</em> El limitador debe ser un decorador o context manager reutilizable, no lógica incrustada en las funciones CRUD.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa primero solo el Semaphore y pruébalo con 50 peticiones</li>
+                        <li>Agrega el RateLimiter y verifica con logs los tiempos de espera</li>
+                        <li>Mide el throughput real (peticiones/segundo) y compara con el límite configurado</li>
+                        <li>Documenta qué pasa si el servidor es más lento que tu rate limit</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Módulo <span class="codigo-inline">throttle.py</span> con ConcurrencyLimiter, RateLimiter y ThrottledClient. Gráfica (o tabla) mostrando peticiones en vuelo vs. tiempo.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Aplica</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Puedo migrar una nueva función síncrona a asíncrona sin consultar a la IA?</li>
+                    <li>¿Entiendo por qué la sesión se pasa como parámetro en lugar de crearla en cada función?</li>
+                    <li>¿Puedo explicar qué hace <code>return_exceptions=True</code> y por qué es crítico?</li>
+                    <li>Si la IA generó un <code>await</code> que no entiendo, ¿lo investigo o lo dejo?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Verifica que tu código asíncrono respeta estos principios</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Una sola ClientSession por grupo de peticiones relacionadas</strong>
+                        Crear una sesión por petición desperdicia conexiones TCP. Si la IA genera <code>aiohttp.ClientSession()</code> dentro de cada función, refactoriza.
+                    </li>
+                    <li>
+                        <strong>Siempre usar <code>return_exceptions=True</code> en gather() cuando las tareas son independientes</strong>
+                        Sin esto, el fallo de UNA petición cancela TODAS las demás y pierdes trabajo completado.
+                    </li>
+                    <li>
+                        <strong>Manejar <code>asyncio.CancelledError</code> para cleanup, nunca suprimirlo</strong>
+                        Si una tarea se cancela, debe liberar recursos. Suprimir CancelledError causa resource leaks.
+                    </li>
+                    <li>
+                        <strong>El semáforo limita concurrencia, no reemplaza el manejo de errores</strong>
+                        Con o sin semáforo, cada petición debe manejar sus propios errores individualmente.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Regla rápida: si tu código asíncrono se ve igual que el síncrono pero con "async" y "await" pegados, probablemente NO estás aprovechando la concurrencia. Debe haber un punto donde lanzas múltiples tareas y las coordinas.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 3: REFLEXIONA ========== -->
+        <section id="reflexiona" class="fase-section">
+            <div class="fase-header" data-fase="reflexiona">
+                <div class="fase-numero">3</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">REFLEXIONA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Analizar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Analizar cuándo la asincronía aporta beneficios reales y cuándo añade complejidad innecesaria</li>
+                    <li>Comparar las estrategias de coordinación (gather, wait, as_completed) y sus trade-offs</li>
+                    <li>Justificar la elección del modelo de concurrencia para diferentes escenarios</li>
+                    <li>Documentar decisiones de diseño en un ADR</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>¿Cuándo la Asincronía es un Error?</h3>
+                <p>
+                    No todo código debe ser asíncrono. La asincronía tiene costos: complejidad, 
+                    dificultad para depurar, y un modelo mental más exigente. La pregunta correcta 
+                    no es "¿puedo hacerlo asíncrono?" sino "¿necesito hacerlo asíncrono?"
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│           MATRIZ: ¿CUÁNDO USAR ASINCRONÍA?                     │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+                        CANTIDAD DE PETICIONES
+                    Pocas (1-2) ◄──────────────────► Muchas (10+)
+
+           ┌──────────────────────────┬──────────────────────────┐
+    Alta   │                          │                          │
+           │  SÍNCRONO ESTÁ BIEN      │  ASÍNCRONO NECESARIO     │
+LATENCIA   │                          │                          │
+TOLERADA   │  • Script de una vez     │  • Pero... ¿por qué     │
+           │  • CLI simple            │    haces 10+ peticiones  │
+           │  • Proceso batch nocturno│    con alta tolerancia?  │
+           │                          │  • Revisa tu diseño      │
+           ├──────────────────────────┼──────────────────────────┤
+           │                          │                          │
+    Baja   │  SÍNCRONO SI ES RÁPIDO   │  ASÍNCRONO OBLIGATORIO   │
+           │                          │                          │
+           │  • 1 petición a API      │  • Dashboard con 4+ APIs │
+LATENCIA   │    rápida (<100ms)       │  • Carga de catálogo     │
+TOLERADA   │  • Pero prepárate para   │  • Notificaciones +      │
+           │    migrar si crece       │    datos + perfil        │
+           │                          │  • [TU CASO: EcoMarket]  │
+           └──────────────────────────┴──────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Regla práctica:</strong> Si tu cliente hace 1-2 peticiones y el usuario tolera 
+                        la espera, el código síncrono es más simple y correcto. Si necesitas cargar datos de 
+                        3+ fuentes con latencia baja, la asincronía es la herramienta correcta.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #6 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">6</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Crítico de Decisiones de Concurrencia</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🎯 Revisor de Arquitectura Concurrente</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un revisor de arquitectura especializado en sistemas concurrentes. Voy a presentarte mi cliente asíncrono y quiero que cuestiones mis decisiones.
+
+<em>Mi cliente tiene estas características:</em>
+1. Usa aiohttp con async/await
+2. Una sola ClientSession compartida para todo el dashboard
+3. asyncio.gather() con return_exceptions=True para peticiones paralelas
+4. Timeout individual por petición (configurable)
+5. Semáforo para limitar peticiones simultáneas a 10
+6. Sin reintentos automáticos (aún)
+
+<em>Tu tarea:</em>
+Para CADA decisión, hazme una pregunta socrática:
+
+1. <em>gather() vs. wait() vs. as_completed()</em>
+   - ¿Por qué elegí gather? ¿Cuándo sería mejor wait()?
+   - ¿Qué pasa si necesito mostrar datos progresivamente (conforme llegan)?
+
+2. <em>Sesión compartida vs. sesión por petición</em>
+   - ¿Qué beneficio da compartir sesión? ¿Hay riesgos?
+   - ¿Qué pasa si necesito headers diferentes por petición?
+
+3. <em>Timeout individual vs. timeout global</em>
+   - ¿Qué pasa si el timeout de una petición es 10s pero el usuario espera máximo 3s?
+   - ¿Debería haber un timeout "de dashboard" que cancele todo?
+
+4. <em>Semáforo de 10</em>
+   - ¿Por qué 10? ¿Cómo elegiste ese número?
+   - ¿Qué pasa si el servidor puede manejar 100 pero tú limitas a 10?
+
+5. <em>Sin reintentos</em>
+   - En Semana 2 discutimos reintentos. ¿Por qué no los implementaste aquí?
+   - ¿El retry y la concurrencia interactúan? ¿Podría un retry con backoff complicar el gather?
+
+<em>Formato:</em> Una pregunta a la vez. Espera mi respuesta. Al final, genera un resumen de fortalezas y debilidades.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Responde con honestidad — si no tienes justificación sólida, admítelo</li>
+                        <li>Para cada decisión, anota: ¿qué alternativa existe? ¿qué sacrifico?</li>
+                        <li>Documenta en formato ADR las 3 decisiones más importantes</li>
+                        <li>Identifica al menos una decisión que cambiarías después de la reflexión</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>ADR con al menos 3 decisiones de concurrencia documentadas. Cada ADR incluye: Contexto → Decisión → Alternativas → Consecuencias.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #7 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">7</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Comparador de Estrategias de Coordinación</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">⚖️ Analista de Trade-offs de Concurrencia</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un analista de trade-offs que compara estrategias de coordinación de tareas asíncronas.
+
+<em>Contexto:</em> Mi cliente de EcoMarket necesita cargar datos desde 4 endpoints para el dashboard. Quiero entender cuál estrategia de coordinación es mejor para cada escenario.
+
+<em>Compara estas 4 estrategias para el caso "cargar dashboard":</em>
+1. <em>asyncio.gather()</em> — esperar a que TODAS terminen
+2. <em>asyncio.wait(return_when=FIRST_COMPLETED)</em> — procesar conforme llegan
+3. <em>asyncio.as_completed()</em> — iterar por orden de completación
+4. <em>asyncio.wait(return_when=FIRST_EXCEPTION)</em> — abortar ante primer error
+
+<em>Para cada estrategia, analiza:</em>
+- ¿Cuándo se muestra el primer dato al usuario?
+- ¿Qué pasa cuando 1 de 4 peticiones falla?
+- ¿Qué pasa cuando 1 de 4 peticiones es muy lenta (10s)?
+- ¿Cuánto código extra necesita comparado con secuencial?
+- ¿Es fácil agregar una 5ta petición después?
+
+<em>Genera:</em>
+1. Tabla comparativa con puntuación 1-5 en: latencia percibida, robustez, complejidad, mantenibilidad
+2. Código Python equivalente para las 4 estrategias
+3. Diagrama temporal comparativo para el escenario: productos=200ms, categorías=100ms, perfil=500ms, notificaciones=TIMEOUT
+4. Recomendación específica para EcoMarket con justificación
+
+<em>Formato:</em> Tabla + código + diagramas + recomendación.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa las 4 estrategias con el mismo escenario</li>
+                        <li>Mide la latencia percibida (tiempo hasta el primer dato visible)</li>
+                        <li>Simula un timeout en una petición y compara comportamientos</li>
+                        <li>Elige una estrategia para EcoMarket y documenta por qué</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">comparacion_coordinacion.py</span> con las 4 estrategias y mediciones. Documento con recomendación justificada para EcoMarket.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Reflexiona</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Cambié alguna decisión de coordinación después de que la IA cuestionara mi razonamiento?</li>
+                    <li>¿Puedo explicar cuándo gather() NO es la mejor opción sin consultar notas?</li>
+                    <li>¿Hay algún escenario donde mi código síncrono de Semana 2 sería mejor que el asíncrono?</li>
+                    <li>¿La reflexión me hizo consciente de un trade-off que no había considerado?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Principios para decisiones de concurrencia</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>La complejidad asíncrona debe justificarse con mejora medible</strong>
+                        Si el código asíncrono no es significativamente más rápido, el código síncrono es preferible por simplicidad.
+                    </li>
+                    <li>
+                        <strong>Toda decisión de coordinación tiene un escenario donde es incorrecta</strong>
+                        No existe "la mejor" estrategia universal. El contexto determina la elección.
+                    </li>
+                    <li>
+                        <strong>"Porque la IA lo sugirió" no es justificación de diseño</strong>
+                        Si no puedes explicar POR QUÉ usas gather() en vez de wait(), no entiendes tu propio código.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>La mejor señal de que entiendes la concurrencia es poder explicar cuándo NO usarla.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 4: VALIDA ========== -->
+        <section id="valida" class="fase-section">
+            <div class="fase-header" data-fase="valida">
+                <div class="fase-numero">4</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">VALIDA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Evaluar</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>60 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Verificar que el cliente asíncrono mantiene la corrección del síncrono (no se perdió funcionalidad)</li>
+                    <li>Probar escenarios de fallo concurrente: timeouts simultáneos, cancelaciones en cadena</li>
+                    <li>Detectar errores comunes de código asíncrono: resource leaks, race conditions, deadlocks</li>
+                    <li>Medir y comparar rendimiento síncrono vs. asíncrono con datos reales</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Testing de Código Asíncrono: Nuevos Desafíos</h3>
+                <p>
+                    Probar código asíncrono introduce desafíos que no existen en código síncrono: 
+                    el orden de ejecución no es determinista, los errores pueden propagarse de formas 
+                    inesperadas, y los resource leaks son más difíciles de detectar.
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│           NUEVOS TIPOS DE BUGS EN CÓDIGO ASÍNCRONO             │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+    BUG SÍNCRONO                     BUG ASÍNCRONO (NUEVO)
+    ══════════════                   ═══════════════════════
+
+    ┌─────────────────┐              ┌─────────────────────────┐
+    │ Error en respuesta              │ Sesión no cerrada       │
+    │ (ya lo manejas)  │              │ (resource leak)          │
+    └─────────────────┘              │ La sesión queda abierta  │
+                                     │ consumiendo memoria y    │
+    ┌─────────────────┐              │ file descriptors          │
+    │ Timeout global   │              └─────────────────────────┘
+    │ (ya lo manejas)  │              
+    └─────────────────┘              ┌─────────────────────────┐
+                                     │ Fire-and-forget          │
+    ┌─────────────────┐              │ (tarea no esperada)      │
+    │ JSON malformado  │              │ Se lanza una coroutine   │
+    │ (ya lo manejas)  │              │ sin await → se pierde    │
+    └─────────────────┘              │ silenciosamente           │
+                                     └─────────────────────────┘
+                                     
+                                     ┌─────────────────────────┐
+                                     │ Gather sin protección    │
+                                     │ 1 error cancela todas    │
+                                     │ Se pierde trabajo útil   │
+                                     │ ya completado             │
+                                     └─────────────────────────┘
+
+                                     ┌─────────────────────────┐
+                                     │ Race condition           │
+                                     │ Dos tareas modifican     │
+                                     │ el mismo estado sin      │
+                                     │ sincronización            │
+                                     └─────────────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Cambio de mentalidad:</strong> En código síncrono, los bugs son reproducibles. 
+                        En código asíncrono, algunos bugs aparecen solo bajo carga o con timing específico.
+                        Tus tests deben cubrir escenarios de timing, no solo de datos.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO IA #8 - ESENCIAL -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge">
+                        <span class="reto-ia-numero">8</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag esencial">⭐ ESENCIAL</span>
+                </div>
+                <h3 class="reto-ia-titulo">Diseñador de Suite de Pruebas Asíncronas</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🧪 Ingeniero de QA para Sistemas Concurrentes</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de QA especializado en testing de código asíncrono con Python.
+
+<em>Contexto:</em> Tengo un cliente asíncrono para EcoMarket con:
+- Funciones CRUD asíncronas (listar, obtener, crear, actualizar, eliminar)
+- cargar_dashboard() que ejecuta 3-4 peticiones en paralelo con gather()
+- Timeout individual por petición
+- Semáforo para limitar concurrencia
+
+<em>Tu tarea:</em>
+Diseña una suite de pruebas usando pytest + pytest-asyncio + aioresponses que cubra:
+
+1. <em>Equivalencia funcional</em> (5 tests):
+   - Las funciones async retornan exactamente lo mismo que las síncronas
+   - La validación de datos funciona igual
+   - Los errores HTTP se manejan igual
+
+2. <em>Concurrencia correcta</em> (5 tests):
+   - gather() con 3 peticiones exitosas retorna 3 resultados
+   - gather() con 1 fallo y return_exceptions=True retorna 2 éxitos + 1 excepción
+   - gather() SIN return_exceptions propaga el primer error (test negativo)
+   - cargar_dashboard() completa aunque 1 de 4 fuentes falle
+   - El semáforo limita efectivamente la concurrencia
+
+3. <em>Timeouts y cancelación</em> (5 tests):
+   - Timeout individual: petición lenta se cancela, las demás completan
+   - Cancelación en cadena: si perfil falla con 401, las demás se cancelan
+   - Timeout global del dashboard respeta el límite del usuario
+   - CancelledError no deja sesiones abiertas (resource leak)
+   - Petición cancelada no genera errores en el log
+
+4. <em>Edge cases de concurrencia</em> (5 tests):
+   - Todas las peticiones fallan simultáneamente
+   - El servidor cierra la conexión a mitad de respuesta
+   - Respuesta llega después de que el timeout se activó
+   - Dos peticiones al mismo endpoint con parámetros diferentes
+   - Sesión se cierra correctamente después de gather() con errores
+
+<em>Para cada test incluye:</em>
+- Nombre descriptivo
+- Setup del mock con aioresponses
+- Aserciones claras
+- Comentario de qué escenario específico prueba
+
+<em>Formato:</em> Código Python completo con pytest-asyncio, listo para ejecutar.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Instala dependencias: <span class="codigo-inline">pip install pytest pytest-asyncio aioresponses</span></li>
+                        <li>Crea el archivo <span class="codigo-inline">test_cliente_async.py</span> con los tests generados</li>
+                        <li>Ejecuta: <span class="codigo-inline">pytest test_cliente_async.py -v</span></li>
+                        <li>Para cada test que falle, corrige tu cliente asíncrono (no el test)</li>
+                        <li>Agrega al menos 2 tests propios que prueben un escenario que la IA no cubrió</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Archivo <span class="codigo-inline">test_cliente_async.py</span> con 20+ tests pasando. Reporte de bugs encontrados durante testing y correcciones aplicadas.</p>
+                </div>
+            </div>
+
+            <!-- RETO IA #9 - AVANZADO -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">9</span>
+                        <span>RETO IA</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Benchmark Síncrono vs. Asíncrono</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">📊 Ingeniero de Rendimiento</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un ingeniero de rendimiento que diseña benchmarks rigurosos para clientes HTTP.
+
+<em>Contexto:</em> Tengo dos versiones de mi cliente de EcoMarket: síncrona (requests) y asíncrona (aiohttp). Necesito medir objetivamente cuánto mejora la versión asíncrona.
+
+<em>Tu tarea:</em>
+Diseña un script de benchmark que:
+
+1. <em>Escenarios a medir:</em>
+   - Dashboard: 4 peticiones GET simultáneas
+   - Creación masiva: 20 productos POST
+   - Mixto: 10 GET + 5 POST + 3 PATCH
+   - Con latencia simulada: servidor con 200ms de delay por petición
+
+2. <em>Para cada escenario, mide:</em>
+   - Tiempo total de ejecución
+   - Tiempo promedio por petición
+   - Peticiones por segundo (throughput)
+   - Memoria usada (con tracemalloc)
+   - Número de conexiones TCP abiertas
+
+3. <em>Condiciones de prueba:</em>
+   - Ejecutar cada escenario 10 veces y promediar
+   - Usar mock server con latencia configurable (0ms, 100ms, 500ms)
+   - Medir con el servidor local (eliminar variabilidad de red)
+
+4. <em>Genera:</em>
+   - Tabla comparativa: síncrono vs asíncrono para cada escenario y latencia
+   - Cálculo de speedup (cuántas veces más rápido)
+   - Identificar el punto de cruce: ¿con cuántas peticiones la asincronía empieza a ganar?
+   - Recomendación: ¿vale la pena la complejidad del código asíncrono para EcoMarket?
+
+<em>Formato:</em> Script Python ejecutable que genera un reporte en consola con tablas formateadas.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Ejecuta el benchmark con tu mock server en las 3 latencias</li>
+                        <li>Grafica los resultados (speedup vs. número de peticiones)</li>
+                        <li>Identifica el punto donde asíncrono supera a síncrono</li>
+                        <li>Documenta tus conclusiones: ¿el esfuerzo de migración vale la pena?</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Script <span class="codigo-inline">benchmark_sync_vs_async.py</span> + tabla de resultados + conclusión de 1 párrafo sobre cuándo migrar a asíncrono.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Valida</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Encontré bugs en mi código asíncrono que no existían en la versión síncrona?</li>
+                    <li>¿Mis tests prueban el <em>timing</em> del código, no solo los datos?</li>
+                    <li>¿Puedo detectar un resource leak (sesión no cerrada) mirando un log?</li>
+                    <li>¿El benchmark confirmó o desmintió mi intuición sobre el speedup?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Criterios de calidad para tests asíncronos</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Los tests asíncronos deben ser deterministas</strong>
+                        Si un test pasa 9 de 10 veces, no es un test válido. Usa mocks para eliminar variabilidad de red.
+                    </li>
+                    <li>
+                        <strong>Verificar cleanup después de errores, no solo después de éxito</strong>
+                        El test más importante es: ¿se cierra la sesión cuando gather() lanza una excepción?
+                    </li>
+                    <li>
+                        <strong>No mockear el event loop</strong>
+                        Los tests deben usar el event loop real. Mockear asyncio.gather() no prueba tu código, prueba tu mock.
+                    </li>
+                    <li>
+                        <strong>Benchmarks sin mocks, tests con mocks</strong>
+                        Para medir rendimiento, usa un servidor real (mock server con delay). Para tests funcionales, usa mocks para determinismo.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>Un código asíncrono sin tests de concurrencia es más peligroso que un código síncrono sin tests: los bugs se manifiestan solo bajo condiciones específicas de timing.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== FASE 5: PROFUNDIZA ========== -->
+        <section id="profundiza" class="fase-section">
+            <div class="fase-header" data-fase="profundiza">
+                <div class="fase-numero">5</div>
+                <div class="fase-info">
+                    <h2 class="fase-nombre">PROFUNDIZA</h2>
+                    <p class="fase-bloom">Nivel Bloom: <strong>Crear</strong></p>
+                </div>
+                <div class="fase-tiempo">
+                    <span>⏱️</span>
+                    <span>45 minutos</span>
+                </div>
+            </div>
+
+            <div class="objetivos-box">
+                <h3 class="objetivos-titulo">
+                    <span>🎯</span>
+                    Objetivos de Aprendizaje
+                </h3>
+                <ul class="objetivos-lista">
+                    <li>Explorar patrones avanzados de concurrencia aplicados a clientes HTTP</li>
+                    <li>Conectar la asincronía con temas futuros: polling, WebSocket, offline-first</li>
+                    <li>Identificar problemas abiertos que se resolverán en semanas posteriores</li>
+                    <li>Crear extensiones originales al cliente asíncrono</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Hacia la Semana 4: Polling y Suscripción a Eventos</h3>
+                <p>
+                    Tu cliente asíncrono ya puede lanzar múltiples peticiones y coordinar resultados.
+                    Pero hay un problema que aún no resuelves: ¿cómo sabe el cliente que los datos 
+                    cambiaron en el servidor?
+                </p>
+
+                <div class="diagrama-container">
+                    <div class="diagrama-ascii">
+<span class="diagrama-titulo">┌─────────────────────────────────────────────────────────────────┐
+│              ROADMAP: DE SEMANA 3 AL PROYECTO FINAL             │
+└─────────────────────────────────────────────────────────────────┘</span>
+
+SEMANA 3 (AHORA)               PRÓXIMAS SEMANAS
+═════════════════               ════════════════
+
+┌─────────────────┐            ┌─────────────────┐
+│ Cliente Asíncrono│            │ SEMANA 4         │
+│ • gather/wait   │───────────►│ Polling y        │
+│ • Timeouts      │            │ Eventos          │
+│ • Cancelación   │            │ • Short polling  │
+│ • Semáforo      │            │ • Long polling   │
+└─────────────────┘            │ • Patrón Observer│
+        │                      └────────┬─────────┘
+        │                               │
+        │                      ┌────────▼─────────┐
+        │                      │ SEMANAS 6-7       │
+        └─────────────────────►│ Arquitectura      │
+                               │ • async Repository│
+                               │ • Caché + async   │
+                               │ • Estado reactivo │
+                               └────────┬─────────┘
+                                        │
+                               ┌────────▼─────────┐
+                               │ SEMANA 9          │
+                               │ Resiliencia       │
+                               │ • Retry + async   │
+                               │ • Circuit breaker │
+                               │ • Fallbacks       │
+                               └────────┬─────────┘
+                                        │
+                               ┌────────▼─────────┐
+                               │ SEMANA 11         │
+                               │ WebSocket         │
+                               │ • Conexión persist│
+                               │ • Bidireccional   │
+                               │ • Event loop como │
+                               │   listener        │
+                               └───────────────────┘
+                    </div>
+                    <div class="diagrama-descripcion">
+                        <strong>Conexión con el futuro:</strong> La asincronía de esta semana es la base de todo 
+                        lo que viene. El polling (Semana 4) necesita ejecutar peticiones periódicas sin bloquear. 
+                        Los WebSocket (Semana 11) son inherentemente asíncronos. El circuit breaker (Semana 9) 
+                        necesita coordinar el estado de múltiples peticiones concurrentes.
+                    </div>
+                </div>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Preguntas Abiertas para Explorar</h3>
+                <p>
+                    Ahora que manejas concurrencia, surgen preguntas más profundas:
+                </p>
+                <ul class="lista-conceptos">
+                    <li>¿Cómo hago polling eficiente sin saturar el servidor? (→ Semana 4: short polling, long polling)</li>
+                    <li>Si dos peticiones concurrentes modifican el mismo recurso, ¿quién gana? (→ Semana 7: resolución de conflictos)</li>
+                    <li>¿Cómo combino el retry de la Semana 2 con la concurrencia de la Semana 3? (→ Semana 9: resiliencia avanzada)</li>
+                    <li>¿Puedo mantener una conexión abierta permanente en lugar de abrir/cerrar por petición? (→ Semana 11: WebSocket)</li>
+                    <li>¿Cómo pruebo que mi código asíncrono no tiene race conditions sutiles? (→ Semana 13: testing avanzado)</li>
+                </ul>
+            </div>
+
+            <!-- RETO IA #10 - AVANZADO (EXTENSIÓN) -->
+            <div class="reto-ia reto-avanzado">
+                <div class="reto-ia-header">
+                    <div class="reto-ia-badge badge-avanzado">
+                        <span class="reto-ia-numero">10</span>
+                        <span>RETO IA · EXTENSIÓN</span>
+                    </div>
+                    <span class="reto-tipo-tag avanzado">🚀 AVANZADO</span>
+                </div>
+                <h3 class="reto-ia-titulo">Diseñador de Pool de Conexiones Inteligente</h3>
+                <div class="reto-ia-rol">
+                    <p class="reto-ia-rol-label">Rol asignado a la IA</p>
+                    <p class="reto-ia-rol-text">🏊 Arquitecto de Conexiones</p>
+                </div>
+                <div class="prompt-container">
+                    <p class="prompt-label">
+                        <span>📋</span>
+                        <span>PROMPT COMPLETO</span>
+                    </p>
+                    <p class="prompt-text">Actúa como un arquitecto de infraestructura de conexiones. Necesito entender y configurar correctamente el pool de conexiones de mi cliente HTTP.
+
+<em>Contexto:</em> Mi cliente de EcoMarket usa una sola ClientSession de aiohttp. Sé que internamente maneja un pool de conexiones TCP, pero no entiendo cómo configurarlo ni cómo afecta al rendimiento.
+
+<em>Tu tarea:</em>
+1. Explica cómo funciona el <em>connection pool</em> de aiohttp:
+   - ¿Cuántas conexiones TCP mantiene abiertas?
+   - ¿Qué pasa cuando se excede el límite?
+   - ¿Cómo se reutilizan las conexiones (keep-alive)?
+   - ¿Qué es el TCPConnector y cómo se configura?
+
+2. Implementa un <em>SmartSession</em> que:
+   - Configure el TCPConnector con límites apropiados para EcoMarket
+   - Monitoree el estado del pool (conexiones activas, en espera, disponibles)
+   - Registre métricas: conexiones creadas, reutilizadas, cerradas
+   - Implemente un health check periódico del pool
+
+3. Demuestra el impacto de la configuración con benchmark:
+   - Compara pool de 5 conexiones vs. 20 conexiones vs. ilimitado
+   - Escenario: 50 peticiones concurrentes con server de 100ms delay
+   - Mide: throughput, latencia, conexiones TCP en uso
+
+4. Genera un diagrama mostrando:
+   - Cómo 10 peticiones comparten 5 conexiones del pool
+   - Qué pasa cuando la conexión 6 llega (cola de espera)
+   - Cómo keep-alive evita el overhead de TCP handshake
+
+<em>Requisito:</em> El SmartSession debe ser drop-in replacement para ClientSession en mi código existente.</p>
+                </div>
+                <div class="reto-ia-instrucciones">
+                    <h4><span>📝</span> Instrucciones</h4>
+                    <ol>
+                        <li>Implementa SmartSession y úsala en cargar_dashboard()</li>
+                        <li>Ejecuta el benchmark con las 3 configuraciones de pool</li>
+                        <li>Observa en las métricas cuántas conexiones se reutilizan</li>
+                        <li>Documenta la configuración óptima para EcoMarket y por qué</li>
+                    </ol>
+                </div>
+                <div class="reto-ia-entregable">
+                    <h4><span>📦</span> Entregable</h4>
+                    <p>Módulo <span class="codigo-inline">smart_session.py</span> con la implementación y benchmark. Documento explicando la configuración óptima del pool y las métricas observadas.</p>
+                </div>
+            </div>
+
+            <!-- CHECKPOINT METACOGNITIVO -->
+            <div class="checkpoint-metacognitivo">
+                <div class="checkpoint-header">
+                    <div class="checkpoint-icon">🪞</div>
+                    <h3 class="checkpoint-title">Checkpoint Metacognitivo - Fase Profundiza</h3>
+                </div>
+                <ul class="checkpoint-preguntas">
+                    <li>¿Qué pregunta técnica tengo ahora que no tenía al comenzar la semana?</li>
+                    <li>¿Puedo ver cómo la concurrencia de esta semana conecta con el polling de la Semana 4?</li>
+                    <li>¿Propuse alguna extensión que la IA no había sugerido?</li>
+                    <li>Si tuviera que explicar "event loop" a alguien que no programa, ¿qué analogía usaría?</li>
+                </ul>
+            </div>
+
+            <!-- INVARIANTES -->
+            <div class="invariantes-box">
+                <div class="invariantes-header">
+                    <div class="invariantes-icon">🛡️</div>
+                    <div>
+                        <h3 class="invariantes-title">Invariantes que No Deben Romperse</h3>
+                        <p class="invariantes-subtitle">Principios para extensiones de concurrencia</p>
+                    </div>
+                </div>
+                <ul class="invariantes-lista">
+                    <li>
+                        <strong>Más conexiones no siempre significa más rendimiento</strong>
+                        Un pool demasiado grande puede saturar el servidor o agotar recursos del sistema operativo. Mide antes de aumentar.
+                    </li>
+                    <li>
+                        <strong>Las extensiones no deben cambiar la interfaz de las funciones CRUD</strong>
+                        El SmartSession debe ser transparente: el código que lo usa no debe saber que existe.
+                    </li>
+                    <li>
+                        <strong>Siempre cerrar el pool al terminar la aplicación</strong>
+                        Conexiones TCP no cerradas quedan en estado TIME_WAIT y consumen recursos del SO por minutos.
+                    </li>
+                </ul>
+                <div class="invariantes-nota">
+                    <span>💡</span>
+                    <span>La configuración del pool de conexiones es una de las primeras cosas que se ajusta en producción. Aprende a medirla ahora para no adivinar después.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== SISTEMA DE EVALUACIÓN ========== -->
+        <section id="evaluacion" class="evaluacion-section">
+            <div class="section-header">
+                <div class="section-icon">📊</div>
+                <h2 class="section-title">Sistema de Evaluación - Semana 3</h2>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                La evaluación mide tanto la correcta implementación de la concurrencia como la comprensión 
+                de cuándo y por qué usarla. Los retos avanzados bonifican pero no son obligatorios.
+            </p>
+            <div class="evaluacion-grid">
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-comprende);">1</div>
+                        <span class="evaluacion-item-nombre">Retos 1-2: Modelos de concurrencia + Event loop</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">15%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-aplica);">2</div>
+                        <span class="evaluacion-item-nombre">Retos 3-4: Cliente async + Timeouts y cancelación</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">35%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-reflexiona);">3</div>
+                        <span class="evaluacion-item-nombre">Reto 6: ADR de decisiones de concurrencia</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">15%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-valida);">4</div>
+                        <span class="evaluacion-item-nombre">Reto 8: Suite de pruebas asíncronas (20+ tests)</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">25%</span>
+                </div>
+                <div class="evaluacion-item">
+                    <div class="evaluacion-item-info">
+                        <div class="evaluacion-item-fase" style="background: var(--fase-profundiza);">5</div>
+                        <span class="evaluacion-item-nombre">Checkpoints metacognitivos completados</span>
+                    </div>
+                    <span class="evaluacion-item-porcentaje">10%</span>
+                </div>
+            </div>
+
+            <div class="caja-contextual caja-success" style="margin-top: 2rem;">
+                <span class="caja-contextual-icon">🌟</span>
+                <div class="caja-contextual-content">
+                    <h4>Bonificación por Retos Avanzados</h4>
+                    <p>Los retos 5, 7, 9 y 10 (marcados como 🚀 AVANZADO) otorgan hasta <strong>+15% extra</strong> sobre la calificación base. No son obligatorios pero demuestran dominio profundo del tema.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== GLOSARIO ========== -->
+        <section id="glosario" class="glosario-section">
+            <div class="section-header">
+                <div class="section-icon">📖</div>
+                <h2 class="section-title">Glosario - Semana 3</h2>
+            </div>
+            <div class="glosario-grid">
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Concurrencia
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Capacidad de un programa de gestionar múltiples tareas intercaladas en un solo hilo. Las tareas progresan alternándose, no simultáneamente. Ideal para I/O-bound (esperas de red).</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Paralelismo
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Ejecución simultánea real de tareas en múltiples núcleos de CPU. Ideal para CPU-bound (cálculos pesados). Diferente de concurrencia.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Event Loop
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Mecanismo central que coordina la ejecución de tareas asíncronas. Verifica continuamente si hay tareas listas para ejecutar o eventos de I/O que atender.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Coroutine
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Función definida con <code>async def</code> que puede pausar su ejecución en puntos <code>await</code> y reanudarla después, permitiendo que otras coroutines ejecuten.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        asyncio.gather()
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Función de asyncio que ejecuta múltiples coroutines concurrentemente y retorna todos los resultados cuando todas terminan. Con <code>return_exceptions=True</code>, los errores se retornan como valores en vez de propagarse.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Semáforo (Semaphore)
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Mecanismo de sincronización que limita el número de tareas que pueden acceder simultáneamente a un recurso. En clientes HTTP, limita las peticiones concurrentes.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Token Bucket
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Algoritmo de rate limiting que genera "tokens" a tasa constante. Cada petición consume un token. Si no hay tokens, la petición espera. Permite ráfagas cortas.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Resource Leak
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Error donde un recurso del sistema (conexión, archivo, memoria) no se libera correctamente. En código asíncrono, ocurre cuando una sesión HTTP no se cierra después de un error.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Connection Pool
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Conjunto de conexiones TCP pre-establecidas y reutilizables. Evita el overhead de crear una nueva conexión TCP (three-way handshake) por cada petición HTTP.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        CancelledError
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Excepción de asyncio que se lanza cuando una tarea es cancelada externamente. Debe manejarse para liberar recursos (cleanup), nunca suprimirse silenciosamente.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Race Condition
+                        <span class="glosario-tipo disciplinar">Disciplinar</span>
+                    </p>
+                    <p class="glosario-definicion">Bug que ocurre cuando el comportamiento del programa depende del orden temporal de eventos no controlados. En clientes async, puede ocurrir cuando dos tareas modifican el mismo estado.</p>
+                </div>
+                <div class="glosario-item">
+                    <p class="glosario-termino">
+                        Agencia Compartida
+                        <span class="glosario-tipo aetl">AETL</span>
+                    </p>
+                    <p class="glosario-definicion">Balance entre la autonomía del estudiante y la asistencia de la IA. El estudiante mantiene el rol de Arquitecto: usa la IA como herramienta, no como sustituto de su pensamiento.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== REFERENCIAS ========== -->
+        <section class="referencias-section">
+            <div class="section-header">
+                <div class="section-icon">📚</div>
+                <h2 class="section-title">Referencias</h2>
+            </div>
+            <div class="referencias-lista">
+                <div class="referencia-item">
+                    <strong>Python Software Foundation. (2024).</strong> asyncio — Asynchronous I/O. <em>Python 3.12 Documentation.</em> Referencia oficial del módulo asyncio, incluyendo event loop, gather, wait, y semáforos.
+                </div>
+                <div class="referencia-item">
+                    <strong>aiohttp Contributors. (2024).</strong> aiohttp: Async HTTP Client/Server for asyncio and Python. <em>Documentación oficial.</em> Referencia para ClientSession, TCPConnector, y configuración de timeouts.
+                </div>
+                <div class="referencia-item">
+                    <strong>Hattingh, C. (2020).</strong> <em>Using Asyncio in Python: Understanding Python's Asynchronous Programming Features.</em> O'Reilly Media. Capítulos 2-4: fundamentos de asyncio, patrones de uso, y mejores prácticas.
+                </div>
+                <div class="referencia-item">
+                    <strong>Nygard, M. (2018).</strong> <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. Capítulo 4: Timeouts. Capítulo 5: Circuit Breaker y Bulkhead (semáforo).
+                </div>
+                <div class="referencia-item">
+                    <strong>Kleppmann, M. (2017).</strong> <em>Designing Data-Intensive Applications.</em> O'Reilly Media. Capítulo 8: The Trouble with Distributed Systems (timeouts, concurrencia, race conditions).
+                </div>
+                <div class="referencia-item">
+                    <strong>Fowler, M. (2002).</strong> <em>Patterns of Enterprise Application Architecture.</em> Addison-Wesley. Connection Pool pattern y Unit of Work para gestión de sesiones.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-logo">Universidad Autónoma de Nayarit</p>
+            <div class="footer-modelo">
+                <span>🧠</span>
+                <span>Modelo AETL v1.0</span>
+            </div>
+            <p class="footer-text">
+                Programación Distribuida del Lado del Cliente<br>
+                Licenciatura en Sistemas Computacionales<br>
+                Documento de trabajo · Semana 3 de 15
+            </p>
+			<p>Dr. Eligardo Cruz Sánchez</p>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer para actualizar progreso y navegación
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.fase-section');
+            const progressSegments = document.querySelectorAll('.progress-segment');
+            const progressStats = document.querySelector('.progress-stats');
+            const navLinks = document.querySelectorAll('.nav-fase');
+            
+            const faseNames = {
+                'comprende': 'Comprende',
+                'aplica': 'Aplica',
+                'reflexiona': 'Reflexiona',
+                'valida': 'Valida',
+                'profundiza': 'Profundiza'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const fase = entry.target.id;
+                        updateProgress(fase);
+                        updateNav(fase);
+                    }
+                });
+            }, {
+                rootMargin: '-20% 0px -70% 0px'
+            });
+
+            sections.forEach(section => observer.observe(section));
+
+            function updateProgress(currentFase) {
+                const fases = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+                const currentIndex = fases.indexOf(currentFase);
+                
+                progressSegments.forEach((segment, index) => {
+                    const fase = segment.dataset.fase;
+                    const faseIndex = fases.indexOf(fase);
+                    
+                    if (faseIndex <= currentIndex) {
+                        segment.style.width = '20%';
+                    } else {
+                        segment.style.width = '0%';
+                    }
+                });
+
+                if (progressStats && faseNames[currentFase]) {
+                    progressStats.textContent = `Fase actual: ${faseNames[currentFase]}`;
+                }
+            }
+
+            function updateNav(currentFase) {
+                navLinks.forEach(link => {
+                    link.style.background = '';
+                    link.style.color = '';
+                    
+                    if (link.getAttribute('href') === `#${currentFase}`) {
+                        const faseColor = getComputedStyle(document.documentElement)
+                            .getPropertyValue(`--fase-${currentFase}`);
+                        link.style.background = `${faseColor}15`;
+                        link.style.color = faseColor;
+                    }
+                });
+            }
+
+            // Smooth scroll para navegación
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
