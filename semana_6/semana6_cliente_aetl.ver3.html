@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 6: Server-Sent Events — El Servidor Toma la Iniciativa | AETL</title>
+    <style>
+:root {
+    --primary: #003a63;
+    --secondary: #005b96;
+    --accent: #f2a900;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --gray: #6c757d;
+    --border-radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7; color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+}
+/* ── HEADER ───────────────────────────────────────── */
+.header-institucional {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 2rem; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,58,99,0.3);
+}
+.header-institucional .logo-container {
+    display: flex; justify-content: center; align-items: center;
+    gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.header-institucional .escudo {
+    width: 80px; height: 80px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--primary); font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.header-institucional h1 { font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.header-institucional .subtitulo { font-size: 1.1rem; opacity: 0.9; }
+.header-institucional .badge-semana {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold;
+    margin-top: 1rem; font-size: 1rem;
+}
+/* ── BANNER POST-EXAMEN ───────────────────────────── */
+.banner-post-examen {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+    color: white; padding: 1.5rem 2rem;
+    border-bottom: 4px solid var(--accent);
+}
+.banner-post-examen .banner-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.banner-post-examen .banner-icon {
+    font-size: 2.5rem; flex-shrink: 0;
+}
+.banner-post-examen h3 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.5rem; }
+.banner-post-examen p { font-size: 0.95rem; opacity: 0.92; line-height: 1.6; }
+.banner-post-examen .gap-pill {
+    display: inline-block; background: rgba(242,169,0,0.25); border: 1px solid var(--accent);
+    color: var(--accent); padding: 0.2rem 0.8rem; border-radius: 20px;
+    font-size: 0.82rem; font-weight: bold; margin: 0.2rem 0.2rem 0 0;
+}
+/* ── PROGRESS BAR ─────────────────────────────────── */
+.progress-container {
+    background: white; padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+.progress-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin: 0 auto; position: relative;
+}
+.progress-bar::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: #e0e0e0; transform: translateY(-50%); z-index: 1;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2; cursor: pointer;
+    transition: transform 0.3s; text-decoration: none;
+}
+.progress-step:hover { transform: scale(1.1); }
+.progress-step .step-icon {
+    width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; background: white; border: 3px solid #e0e0e0;
+    transition: all 0.3s;
+}
+.progress-step.active .step-icon {
+    background: var(--secondary); border-color: var(--secondary);
+    color: white; box-shadow: 0 4px 15px rgba(0,91,150,0.4);
+}
+.progress-step.completed .step-icon {
+    background: var(--success); border-color: var(--success); color: white;
+}
+.progress-step .step-label {
+    font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray);
+    font-weight: 600; text-transform: uppercase;
+}
+.progress-step.active .step-label { color: var(--secondary); }
+/* ── NAV ──────────────────────────────────────────── */
+.nav-container {
+    background: var(--primary); padding: 0.8rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-links {
+    display: flex; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; max-width: 1200px; margin: 0 auto;
+}
+.nav-links a {
+    color: white; text-decoration: none; padding: 0.5rem 1rem;
+    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s;
+    border: 1px solid transparent;
+}
+.nav-links a:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
+/* ── LAYOUT ───────────────────────────────────────── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+/* ── FASE SECTIONS ────────────────────────────────── */
+.fase-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden; animation: fadeIn 0.5s ease-out;
+}
+.fase-header { padding: 1.5rem 2rem; color: white; display: flex; align-items: center; gap: 1rem; }
+.fase-header.comprende { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.fase-header.aplica    { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.fase-header.reflexiona{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.fase-header.valida    { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.fase-header.profundiza{ background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.fase-header .fase-icon {
+    font-size: 2rem; width: 60px; height: 60px;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.fase-header .fase-info h2 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.fase-header .fase-info .bloom-tag { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+.fase-content { padding: 2rem; }
+/* ── SHARED COMPONENTS ────────────────────────────── */
+.objetivos-box {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1e8fa 100%);
+    border-left: 4px solid var(--secondary); padding: 1.5rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem;
+}
+.objetivos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.objetivos-box ul { list-style: none; padding-left: 0; }
+.objetivos-box li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+.objetivos-box li::before { content: '🎯'; position: absolute; left: 0; }
+.context-box { padding: 1.2rem 1.5rem; border-radius: var(--border-radius); margin: 1.5rem 0; border-left: 4px solid; }
+.context-box.tip     { background: linear-gradient(135deg, #e3f9e5 0%, #c8f7dc 100%); border-color: var(--success); }
+.context-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-color: var(--warning); }
+.context-box.danger  { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-color: var(--danger); }
+.context-box.info    { background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-color: var(--info); }
+.context-box.purple  { background: linear-gradient(135deg, #f3e8ff 0%, #e8d5f5 100%); border-color: #6f42c1; }
+.context-box .box-title { font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.reto-ia {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; border-radius: var(--border-radius); margin: 1.5rem 0;
+    overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.reto-ia-header {
+    background: linear-gradient(90deg, var(--accent) 0%, #e89900 100%);
+    color: var(--primary); padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+}
+.reto-ia-header .reto-numero {
+    background: var(--primary); color: var(--accent);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem;
+}
+.reto-ia-header h4 { flex: 1; font-size: 1.1rem; }
+.reto-ia-body { padding: 1.5rem; }
+.reto-ia .rol-ia {
+    background: rgba(242,169,0,0.15); border: 1px solid var(--accent);
+    padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    margin-bottom: 1rem; font-size: 0.9rem;
+}
+.reto-ia .rol-ia strong { color: var(--accent); }
+.prompt-box {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: var(--border-radius); padding: 1.2rem; margin: 1rem 0;
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem;
+    line-height: 1.6; white-space: pre-wrap; color: #c9d1d9;
+}
+.prompt-box::before {
+    content: '📝 PROMPT'; display: block; color: var(--accent);
+    font-weight: bold; margin-bottom: 0.8rem; font-family: 'Segoe UI', sans-serif;
+}
+.entregable-box {
+    background: rgba(40,167,69,0.15); border: 1px dashed var(--success);
+    padding: 1rem; border-radius: var(--border-radius); margin-top: 1rem;
+}
+.entregable-box::before {
+    content: '📦 ENTREGABLE ESPERADO'; display: block; color: var(--success);
+    font-weight: bold; margin-bottom: 0.5rem;
+}
+.checkpoint {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0;
+}
+.checkpoint h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checkpoint .pregunta {
+    background: white; padding: 1rem; border-radius: var(--border-radius);
+    margin: 0.8rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative; padding-left: 3rem;
+}
+.checkpoint .pregunta::before { content: '❓'; position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.ascii-diagram {
+    background: #1e1e1e; color: #00ff00;
+    font-family: 'Consolas', 'Monaco', monospace; padding: 1.5rem;
+    border-radius: var(--border-radius); overflow-x: auto;
+    margin: 1.5rem 0; font-size: 0.85rem; line-height: 1.4; white-space: pre;
+}
+.diagrama-descripcion {
+    background: #f8f9fa; border-left: 4px solid var(--info);
+    padding: 1rem; margin-top: -1rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem; color: var(--dark);
+}
+.escenario-inmersivo {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; padding: 2rem; border-radius: var(--border-radius);
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+}
+.escenario-inmersivo::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: 0.1;
+}
+.escenario-inmersivo h3 { color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.escenario-inmersivo .personaje {
+    background: rgba(255,255,255,0.1); padding: 1rem;
+    border-radius: var(--border-radius); margin: 1rem 0;
+    border-left: 3px solid var(--accent);
+}
+.escenario-inmersivo .dialogo {
+    font-style: italic; margin: 1rem 0; padding-left: 1rem;
+    border-left: 2px solid rgba(255,255,255,0.3);
+}
+.fundamentos-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
+}
+.fundamentos-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.constructo-card {
+    border: 1px solid #e0e0e0; border-radius: var(--border-radius);
+    margin: 1rem; overflow: hidden; transition: all 0.3s;
+}
+.constructo-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.constructo-card .card-header { padding: 1rem 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.8rem; }
+.constructo-card:nth-child(1) .card-header { background: #e8f4fd; color: var(--primary); }
+.constructo-card:nth-child(2) .card-header { background: #fff3e0; color: #e65100; }
+.constructo-card:nth-child(3) .card-header { background: #e8f5e9; color: #2e7d32; }
+.constructo-card:nth-child(4) .card-header { background: #f3e5f5; color: #7b1fa2; }
+.constructo-card:nth-child(5) .card-header { background: #fce4ec; color: #c2185b; }
+.constructo-card .card-body { padding: 1.5rem; font-size: 0.95rem; }
+.constructo-card .referencia { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.8rem; }
+.constructo-card .operacional {
+    background: #f8f9fa; padding: 0.8rem; border-radius: var(--border-radius);
+    margin-top: 1rem; font-size: 0.9rem; border-left: 3px solid var(--accent);
+}
+.invariantes-box {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border: 2px dashed #c2185b; border-radius: var(--border-radius);
+    padding: 1.5rem; margin-top: 2rem;
+}
+.invariantes-box h4 { color: #880e4f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.errores-comunes {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 2px solid var(--warning); border-radius: var(--border-radius);
+    padding: 1.5rem; margin: 1.5rem 0;
+}
+.errores-comunes h4 { color: #e65100; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.error-item { background: white; padding: 1rem; border-radius: var(--border-radius); margin: 0.8rem 0; border-left: 4px solid var(--warning); }
+.error-item strong { color: #e65100; }
+.reto-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: 0.5rem; }
+.reto-badge.esencial { background: var(--success); color: white; }
+.reto-badge.avanzado { background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white; }
+.prerrequisitos-box { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid var(--accent); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; }
+.prerrequisitos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.prerrequisitos-box ul { margin-left: 1.5rem; }
+.prerrequisitos-box li { margin-bottom: 0.5rem; }
+.conexion-semana-anterior { background: linear-gradient(135deg, #e8f4fd 0%, #bbdefb 100%); border-left: 4px solid var(--secondary); padding: 1.2rem 1.5rem; border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem; }
+.conexion-semana-anterior h4 { color: var(--primary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+.tabla-comparativa { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.tabla-comparativa th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+.tabla-comparativa td { padding: 0.8rem 1rem; border-bottom: 1px solid #e0e0e0; }
+.tabla-comparativa tr:last-child td { border-bottom: none; }
+.tabla-comparativa tr:hover { background: #f8f9fa; }
+.glosario-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.glosario-header { background: var(--dark); color: white; padding: 1.5rem 2rem; }
+.glosario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1.5rem; }
+.termino-card { background: #f8f9fa; padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--secondary); }
+.termino-card.aetl { border-left-color: var(--accent); }
+.termino-card dt { font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+.termino-card dd { font-size: 0.9rem; color: var(--gray); }
+.evaluacion-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.evaluacion-header { background: linear-gradient(135deg, var(--success) 0%, #20c997 100%); color: white; padding: 1.5rem 2rem; }
+.criterio-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+.criterio-item:last-child { border-bottom: none; }
+.criterio-item .fase-badge { background: var(--secondary); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; margin-right: 1rem; min-width: 100px; text-align: center; }
+.criterio-item .puntos { background: var(--accent); color: var(--primary); padding: 0.5rem 1rem; border-radius: var(--border-radius); font-weight: bold; margin-left: auto; }
+.referencias-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 2rem; }
+.referencias-section h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); }
+.referencia-item { padding: 0.8rem 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+.referencia-item:last-child { border-bottom: none; }
+code { background: #f1f3f4; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d63384; }
+pre code { display: block; padding: 1rem; background: #1e1e1e; color: #d4d4d4; overflow-x: auto; }
+.footer { background: var(--primary); color: white; text-align: center; padding: 2rem; margin-top: 2rem; }
+.footer .modelo-badge { display: inline-block; background: var(--accent); color: var(--primary); padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold; margin-bottom: 1rem; }
+.checklist-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid var(--success); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.checklist-box h4 { color: #1b5e20; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-item { background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius); margin: 0.6rem 0; display: flex; align-items: flex-start; gap: 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.checklist-item .check-icon { font-size: 1.1rem; min-width: 24px; }
+.checklist-item .diagnostico { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; font-style: italic; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+    .header-institucional h1 { font-size: 1.4rem; }
+    .container { padding: 1rem; }
+    .fase-header { flex-direction: column; text-align: center; }
+    .progress-step .step-label { display: none; }
+    .nav-links { flex-direction: column; align-items: center; }
+    .criterio-item { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .criterio-item .puntos { margin-left: 0; margin-top: 0.5rem; }
+    .banner-post-examen .banner-inner { flex-direction: column; }
+}
+@media print { .progress-container, .nav-container { display: none; } body { background: white; } .reto-ia { break-inside: avoid; } }
+.text-center { text-align: center; } .text-primary { color: var(--primary); } .text-accent { color: var(--accent); } .text-muted { color: var(--gray); }
+.mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; } .mt-4 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 0.5rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mb-4 { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+<!-- ========== HEADER INSTITUCIONAL ========== -->
+<header class="header-institucional">
+    <div class="logo-container">
+        <div class="escudo">UAN</div>
+        <div>
+            <h1>Programación Distribuida del Lado del Cliente</h1>
+            <p class="subtitulo">Licenciatura en Sistemas Computacionales</p>
+        </div>
+        <div class="escudo">LSC</div>
+    </div>
+    <span class="badge-semana">📅 Semana 6 de 15 · Unidad II: Patrones de Comunicación · Server-Sent Events</span>
+</header>
+
+<!-- ========== BANNER POST-EXAMEN ========== -->
+<div class="banner-post-examen">
+    <div class="banner-inner">
+        <div class="banner-icon">🎓</div>
+        <div>
+            <h3>Post-Examen Práctico 1 — Retomamos con evidencia</h3>
+            <p>
+                El examen ya fue calificado y la retroalimentación fue entregada. Antes de avanzar, dedica 10 minutos a revisar tus comentarios personales: identifica <strong>qué invariante no cumpliste</strong>, <strong>qué concepto confundiste</strong> y <strong>qué sí funcionó</strong>. Esta semana introduce un patrón nuevo que exige que el cliente asíncrono y el manejo de errores estén sólidos — exactamente lo que el examen midió.
+            </p>
+            <p style="margin-top: 0.7rem;">
+                <strong>Brechas más frecuentes observadas en el grupo:</strong><br>
+                <span class="gap-pill">⚠ Timeout no configurado</span>
+                <span class="gap-pill">⚠ Detención sucia del ciclo async</span>
+                <span class="gap-pill">⚠ 5xx reintentado sin backoff</span>
+                <span class="gap-pill">⚠ Observador que crashea el polling</span>
+            </p>
+            <p style="margin-top: 0.7rem; font-size: 0.9rem; opacity: 0.85;">
+                💡 Si tu examen tuvo alguna de estas brechas, encontrarás en esta semana la segunda oportunidad de cerrarlas — ahora con SSE como contexto.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ========== BARRA DE PROGRESO ========== -->
+<div class="progress-container">
+    <div class="progress-bar">
+        <a href="#comprende" class="progress-step active">
+            <div class="step-icon">📖</div>
+            <span class="step-label">Comprende</span>
+        </a>
+        <a href="#aplica" class="progress-step">
+            <div class="step-icon">⚡</div>
+            <span class="step-label">Aplica</span>
+        </a>
+        <a href="#reflexiona" class="progress-step">
+            <div class="step-icon">🔍</div>
+            <span class="step-label">Reflexiona</span>
+        </a>
+        <a href="#valida" class="progress-step">
+            <div class="step-icon">✔</div>
+            <span class="step-label">Valida</span>
+        </a>
+        <a href="#profundiza" class="progress-step">
+            <div class="step-icon">🚀</div>
+            <span class="step-label">Profundiza</span>
+        </a>
+    </div>
+</div>
+
+<!-- ========== NAVEGACIÓN ========== -->
+<nav class="nav-container">
+    <div class="nav-links">
+        <a href="#escenario">🎬 Escenario</a>
+        <a href="#fundamentos">📚 Fundamentos</a>
+        <a href="#comprende">📖 Comprende</a>
+        <a href="#aplica">⚡ Aplica</a>
+        <a href="#reflexiona">🔍 Reflexiona</a>
+        <a href="#valida">✔ Valida</a>
+        <a href="#profundiza">🚀 Profundiza</a>
+        <a href="#evaluacion">📊 Evaluación</a>
+        <a href="#glosario">📖 Glosario</a>
+        <a href="#referencias">📚 Referencias</a>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- ========== PRERREQUISITOS ========== -->
+    <div class="prerrequisitos-box">
+        <h4>⚠️ Para tener éxito esta semana, asegúrate de dominar...</h4>
+        <ul>
+            <li><strong>Cliente asíncrono con timeout:</strong> Configurar un timeout por petición y capturar la excepción sin crashear el programa (brecha frecuente del examen).</li>
+            <li><strong>Ciclo async detenible:</strong> Un bucle <code>while activo:</code> que termina limpiamente cuando se levanta una bandera, sin tareas huérfanas.</li>
+            <li><strong>Headers HTTP básicos:</strong> Saber leer <code>Content-Type</code>, <code>Cache-Control</code> y <code>Last-Event-ID</code> de una respuesta HTTP.</li>
+            <li><strong>Diferencia push vs pull:</strong> Polling = el cliente pregunta. SSE = el servidor empuja. Esta semana vives el segundo modelo desde el lado del cliente.</li>
+            <li><strong>try/except alrededor de I/O:</strong> Todo código que lee de la red puede lanzar una excepción en cualquier momento — especialmente en conexiones largas.</li>
+        </ul>
+    </div>
+
+    <!-- ========== ESCENARIO INMERSIVO ========== -->
+    <section id="escenario">
+        <div class="escenario-inmersivo">
+            <h3>🎬 Escenario: TechNova — Panel de Alertas de EcoMarket en Tiempo Real</h3>
+            <p>EcoMarket acaba de lanzar un panel de operaciones que muestra en vivo: cambios de precio de productos, alertas de stock crítico y notificaciones de nuevos pedidos. El equipo de TechNova implementó esta funcionalidad con polling cada 3 segundos.</p>
+            <div class="personaje">
+                <strong>📊 Semana de lanzamiento — logs de producción:</strong><br>
+                Usuarios concurrentes: 800 · Peticiones HTTP/min al servidor de inventario: <strong>144,000</strong> · CPU del servidor: 87% · Latencia promedio de alerta: 1.8 segundos
+            </div>
+            <div class="dialogo">
+                "El servidor está al límite y las alertas llegan tarde. Con polling, nosotros preguntamos 144 mil veces por minuto — la mayoría de esas respuestas dicen 'nada cambió'. Es como llamar al restaurante cada tres segundos para preguntar si tu mesa está lista."
+                <br>— Daniela Torres, TechNova Backend Lead
+            </div>
+            <p style="margin-top: 1rem;">La propuesta: reemplazar el polling por <strong>Server-Sent Events</strong>. El servidor enviará un mensaje <em>solo cuando algo cambie</em>. Los 800 clientes mantendrán una conexión abierta y recibirán alertas al instante — sin preguntar.</p>
+            <div class="personaje">
+                <strong>🎯 Tu misión esta semana:</strong> Entender el protocolo SSE desde el lado del cliente, construir el receptor de eventos de EcoMarket y aprender a manejar reconexiones, errores de red y múltiples tipos de eventos.
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FUNDAMENTOS TEÓRICOS ========== -->
+    <section id="fundamentos" class="fundamentos-section">
+        <div class="fundamentos-header">
+            <h2>📚 Fundamentos Teóricos del Modelo AETL</h2>
+            <p>Constructos que guían el aprendizaje esta semana</p>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div class="constructo-card">
+                <div class="card-header">📖 Constructivismo y Zona de Desarrollo Próximo</div>
+                <div class="card-body">
+                    <p class="referencia">Vygotsky (1978); Bognár (2024)</p>
+                    <p>Esta semana introduces SSE desde lo que ya conoces: el cliente asíncrono con timeout y el ciclo detenible del examen. La IA actúa como andamiaje en la ZDP — te lleva justo un paso más allá de lo que puedes hacer solo, sin darte el código completo.</p>
+                    <p class="operacional">Constructo operacional: construir comprensión de SSE a partir del modelo mental de polling, identificando qué cambia (la dirección del flujo) y qué permanece (el cliente sigue necesitando timeouts y manejo de errores).</p>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🎯 Aprendizaje Autorregulado (SRL)</div>
+                <div class="card-body">
+                    <p class="referencia">Zimmerman (2000); Sari et al. (2025)</p>
+                    <p>El ciclo planificación → ejecución → autorreflexión se vuelve crítico cuando trabajas con conexiones persistentes: debes planificar cómo manejar la reconexión, ejecutar el cliente, y reflexionar sobre por qué el servidor cerró la conexión.</p>
+                    <p class="operacional">Constructo operacional: formular preguntas cada vez más precisas a la IA — pasar de "¿cómo hago SSE?" a "¿qué pasa si el servidor cierra la conexión mientras espero datos a mitad de un evento?"</p>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🧠 Teoría de la Carga Cognitiva</div>
+                <div class="card-body">
+                    <p class="referencia">Sweller (1988/2020); Mahdi et al. (2025)</p>
+                    <p>SSE introduce tres conceptos simultáneamente: el protocolo de texto, la reconexión automática y los tipos de eventos. Este documento los separa intencionalmente: primero el protocolo (COMPRENDE), luego la implementación (APLICA), luego los casos borde (VALIDA).</p>
+                    <p class="operacional">Constructo operacional: abordar el protocolo SSE sin sobrecarga, usando el cliente asíncrono ya conocido como base y añadiendo solo los elementos nuevos.</p>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🤝 Agencia Compartida</div>
+                <div class="card-body">
+                    <p class="referencia">Bandura (2001); Brod et al. (2023)</p>
+                    <p>La IA puede generar un cliente SSE completo en segundos. Tu rol esta semana es ser el <em>Arquitecto</em>: entender cada decisión (¿por qué se usa <code>Last-Event-ID</code>? ¿cuándo reconectar?), no solo recibir código.</p>
+                    <p class="operacional">Constructo operacional: el estudiante mantiene control sobre las decisiones de diseño — la IA implementa lo que el estudiante ya puede predecir y justificar.</p>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🏗️ Taxonomía de Bloom para la Era Digital</div>
+                <div class="card-body">
+                    <p class="referencia">Anderson et al. (2001)</p>
+                    <p>Esta semana recorre toda la taxonomía: Recordar el protocolo SSE → Comprender el flujo de conexión → Aplicar la API EventSource → Analizar trade-offs vs polling → Evaluar errores de la IA → Crear un cliente con múltiples tipos de eventos.</p>
+                    <p class="operacional">Constructo operacional: Evaluar = auditar que la IA no confunda SSE con WebSocket ni omita la lógica de reconexión. Crear = co-autoría de un cliente SSE que maneje <code>Last-Event-ID</code> correctamente.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 1: COMPRENDE                                          -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="comprende" class="fase-section">
+        <div class="fase-header comprende">
+            <div class="fase-icon">📖</div>
+            <div class="fase-info">
+                <h2>FASE 1: COMPRENDE</h2>
+                <span class="bloom-tag">Nivel Bloom: Recordar / Comprender</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Describir</strong> el protocolo SSE (<code>text/event-stream</code>): campos, delimitadores y flujo de conexión</li>
+                    <li><strong>Explicar</strong> la diferencia entre push y pull desde la perspectiva del cliente</li>
+                    <li><strong>Identificar</strong> el papel del header <code>Last-Event-ID</code> en la reconexión automática</li>
+                    <li><strong>Reconocer</strong> qué hace la API <code>EventSource</code> por el cliente y qué debe manejar el desarrollador manualmente</li>
+                </ul>
+            </div>
+
+            <div class="conexion-semana-anterior">
+                <h4>🔗 Conexión con semanas anteriores</h4>
+                <p>En la Semana 4 construiste un cliente que <em>pregunta</em> al servidor cada N segundos (polling). Esta semana el flujo se invierte: el servidor <em>empuja</em> datos al cliente a través de una conexión HTTP que permanece abierta. El cliente asíncrono que ya tienes (con timeouts y manejo de errores) sigue siendo necesario — ahora ese "ciclo de espera" sucede dentro de la conexión SSE, no entre peticiones repetidas.</p>
+            </div>
+
+            <h3 style="color: var(--primary); margin: 1.5rem 0 1rem;">¿Qué es Server-Sent Events?</h3>
+            <p>SSE es un estándar HTML5 que permite al servidor enviar datos al cliente a través de una <strong>conexión HTTP unidireccional persistente</strong>. El cliente abre una sola conexión y el servidor la mantiene viva, enviando mensajes cuando los datos cambian. No hay peticiones repetidas — solo una conexión que fluye.</p>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama de flujo: comparación entre polling y SSE. Polling: cliente envía GET repetidos (→) y servidor responde (←) a cada uno. SSE: cliente abre una conexión (→) y el servidor envía múltiples eventos (←←←) por esa única conexión.">
+╔══════════════════════════════════════════════════════════════════════════╗
+║  POLLING (Semana 4) vs SERVER-SENT EVENTS (Semana 6)                     ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║                                                                          ║
+║  POLLING — el cliente pregunta                                           ║
+║  ─────────────────────────────                                           ║
+║  Cliente            Servidor                                             ║
+║    │──GET /api/productos──▶│  t=0s: petición #1 (200 OK, datos)          ║
+║    │──GET /api/productos──▶│  t=3s: petición #2 (304 sin cambios)        ║
+║    │──GET /api/productos──▶│  t=6s: petición #3 (304 sin cambios)        ║
+║    │──GET /api/productos──▶│  t=9s: petición #4 (200 OK, cambio!)        ║
+║    │                       │  4 conexiones TCP, 75% de respuestas vacías ║
+║                                                                          ║
+║  SERVER-SENT EVENTS — el servidor empuja                                 ║
+║  ───────────────────────────────────────                                 ║
+║  Cliente            Servidor                                             ║
+║    │──GET /eventos──────▶  │  t=0s: abre conexión (200 + stream)         ║
+║    │◀── data: precio=45.00 │  t=2s: server envía evento (hay cambio)     ║
+║    │◀── data: stock=0      │  t=11s: server envía evento (agotado)       ║
+║    │◀── data: precio=43.00 │  t=14s: server envía evento (descuento)     ║
+║    │                       │  1 conexión TCP, 0 peticiones vacías        ║
+╚══════════════════════════════════════════════════════════════════════════╝
+            </div>
+            <div class="diagrama-descripcion">
+                El diagrama muestra la diferencia estructural entre polling y SSE. En polling, cada ciclo genera una conexión TCP nueva — la mayoría sin datos útiles. En SSE, una sola conexión permanece abierta y el servidor envía mensajes solo cuando hay cambios. El ahorro de red y CPU del servidor es proporcional al número de clientes concurrentes.
+            </div>
+
+            <h3 style="color: var(--primary); margin: 1.5rem 0 1rem;">El protocolo SSE: formato de mensajes</h3>
+            <p>Los mensajes SSE son texto plano con un formato muy simple. Cada mensaje tiene campos opcionales y termina con una línea en blanco adicional (<code>\n\n</code>):</p>
+
+            <div class="ascii-diagram" role="img" aria-label="Formato de un mensaje SSE: campos id, event, data y retry separados por saltos de línea, terminando con doble salto de línea.">
+╔══════════════════════════════════════════════════════════════════╗
+║  FORMATO DE UN MENSAJE SSE                                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  id: 42                    ← identificador del evento            ║
+║  event: precio-actualizado ← tipo de evento (opcional)           ║
+║  data: {"producto":"A01","precio":45.00,"moneda":"MXN"}          ║
+║  retry: 3000               ← ms antes de reconectar (opcional)   ║
+║  ← línea en blanco → fin del mensaje                             ║
+║                                                                  ║
+║  id: 43                    ← siguiente mensaje                   ║
+║  event: stock-critico                                            ║
+║  data: {"producto":"B07","stock":2,"umbral":5}                   ║
+║                                                                  ║
+║  REGLAS:                                                         ║
+║  • Cada campo: "nombre: valor\n"                                 ║
+║  • data multilínea: múltiples líneas data:                       ║
+║  • Mensaje vacío (solo \n\n): comentario de keep-alive           ║
+║  • Content-Type del servidor: text/event-stream                  ║
+╚══════════════════════════════════════════════════════════════════╝
+            </div>
+            <div class="diagrama-descripcion">
+                El formato SSE es deliberadamente simple: texto plano, sin XML ni JSON a nivel de protocolo (el JSON va dentro del campo <code>data</code>). Esta simplicidad facilita el diagnóstico desde consola y la lectura manual de logs. El campo <code>id</code> es clave para la reconexión: el cliente lo almacena y lo envía como <code>Last-Event-ID</code> al reconectarse, permitiendo al servidor reenviar eventos perdidos.
+            </div>
+
+            <h3 style="color: var(--primary); margin: 1.5rem 0 1rem;">La API EventSource (navegador) y el cliente manual (Python/Node)</h3>
+            <p>En navegadores, la API <code>EventSource</code> gestiona automáticamente la reconexión y los headers. En Python o Node.js sin framework, el cliente debe leer el stream línea a línea y construir los mensajes manualmente:</p>
+
+            <table class="tabla-comparativa">
+                <thead>
+                    <tr>
+                        <th>Aspecto</th>
+                        <th>EventSource (navegador)</th>
+                        <th>Cliente manual (Python/Node)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Conexión</td>
+                        <td>Automática al instanciar</td>
+                        <td>El desarrollador abre la petición HTTP</td>
+                    </tr>
+                    <tr>
+                        <td>Reconexión</td>
+                        <td>Automática con <code>Last-Event-ID</code></td>
+                        <td>El desarrollador debe implementarla</td>
+                    </tr>
+                    <tr>
+                        <td>Parseo del stream</td>
+                        <td>Automático</td>
+                        <td>Leer línea a línea, construir mensajes</td>
+                    </tr>
+                    <tr>
+                        <td>Eventos personalizados</td>
+                        <td><code>addEventListener('tipo', cb)</code></td>
+                        <td>El desarrollador detecta el campo <code>event:</code></td>
+                    </tr>
+                    <tr>
+                        <td>Headers de autenticación</td>
+                        <td>No soportados directamente</td>
+                        <td>Flexibles — incluir en la petición</td>
+                    </tr>
+                    <tr>
+                        <td>CORS</td>
+                        <td>Sujeto a política del navegador</td>
+                        <td>No aplica (servidor a servidor)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama de reconexión SSE: cliente pierde conexión, espera el tiempo retry, reenvía petición con Last-Event-ID, servidor reanuda desde ese ID.">
+╔══════════════════════════════════════════════════════════════════════╗
+║  FLUJO DE RECONEXIÓN — Cómo el cliente no pierde eventos             ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  Cliente                            Servidor                         ║
+║    │                                   │                             ║
+║    │──GET /eventos─────────────────▶   │ conexión inicial            ║
+║    │◀── id:10 data:precio=45           │ evento 10                   ║
+║    │◀── id:11 data:stock=3             │ evento 11 ← almacenado      ║
+║    │                                   │                             ║
+║    │  ✗ CORTE DE RED                   │                             ║
+║    │  ⏳ espera retry (3s por defecto) │                             ║
+║    │                                   │                             ║
+║    │──GET /eventos─────────────────▶   │                             ║
+║    │   Last-Event-ID: 11               │ ← el servidor sabe desde    ║
+║    │                                   │   dónde reanudar            ║
+║    │◀── id:12 data:stock=0             │ evento 12 (no se perdió 12) ║
+║    │◀── id:13 data:pedido=nuevo        │ evento 13                   ║
+║                                                                      ║
+║  SIN Last-Event-ID → el servidor no sabe qué perdiste                ║
+║  CON Last-Event-ID → el servidor puede reenviar desde id+1           ║
+╚══════════════════════════════════════════════════════════════════════╝
+            </div>
+            <div class="diagrama-descripcion">
+                El diagrama ilustra el mecanismo de recuperación ante fallos de red. El campo <code>id</code> en cada mensaje permite al cliente llevar la cuenta del último evento recibido. Al reconectarse, el header <code>Last-Event-ID</code> comunica este valor al servidor. El servidor decide cuánto tiempo conserva el historial — si no lo conserva, el cliente solo recibirá eventos futuros.
+            </div>
+
+            <!-- Reto 1: COMPRENDE -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">1</span>
+                    <h4>Traza mental del flujo SSE: desde la conexión hasta la reconexión <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Instructor de protocolos de red que explica SSE usando analogías cotidianas antes de entrar en detalles técnicos. Nivel: estudiante de segundo-tercer semestre que ya sabe polling.</div>
+                    <div class="prompt-box">Explica Server-Sent Events usando analogías cotidianas (como una transmisión de radio en vivo, o suscribirte a notificaciones push de una app) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como instructor de protocolos de red. Necesito entender el flujo completo de una sesión SSE para EcoMarket.
+
+Dado este escenario:
+- El cliente se conecta a GET /api/alertas con Accept: text/event-stream
+- El servidor responde con 200 OK y Content-Type: text/event-stream
+- El servidor envía 3 eventos en los siguientes 20 segundos:
+  · id:1, event:precio-actualizado, data:{"producto":"A01","precio":47}
+  · id:2, event:stock-critico, data:{"producto":"B07","stock":1}
+  · (servidor envía comentario keep-alive: ": ping" a los 15s)
+  · id:3, event:precio-actualizado, data:{"producto":"A01","precio":45}
+- A los 25 segundos la red se interrumpe
+- El cliente espera 3 segundos (retry por defecto) y reconecta
+
+Para cada momento del flujo, explícame:
+1. ¿Qué bytes se mueven por la red? ¿En qué dirección?
+2. ¿Qué hace el cliente con cada línea que recibe?
+3. ¿Qué almacena el cliente internamente?
+4. ¿Qué header envía al reconectarse y por qué es importante?
+5. ¿Cómo difiere este flujo del polling que implementamos en la Semana 4?
+
+Formato: usa una tabla o línea temporal clara. Al final dame 3 preguntas de autoverificación que yo pueda responder sin ayuda.</div>
+                    <div class="entregable-box">
+                        <p><strong>Elige el formato que más te salga natural:</strong></p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>Un bloque de comentarios al inicio de tu archivo cliente (<code># TRAZA SSE: t=0 → GET + Accept:text/event-stream → servidor responde 200...</code>), o</li>
+                            <li>Una foto de tu diagrama dibujado a mano en el README.</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem;">Debe mostrar: los 3 eventos, el comentario keep-alive, la interrupción, la reconexión con <code>Last-Event-ID</code>. Añade <strong>2 líneas de texto</strong> explicando por qué SSE reduce peticiones vacías comparado con polling.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — Fase COMPRENDE</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Un mensaje SSE termina <strong>siempre</strong> con una línea en blanco (<code>\n\n</code>). Sin ella, el cliente no sabe que el mensaje está completo.</li>
+                    <li>El <code>Content-Type</code> del servidor <strong>debe ser</strong> <code>text/event-stream</code>. Si el servidor responde con <code>application/json</code>, no es SSE.</li>
+                    <li>El campo <code>id</code> es opcional — pero sin él, el cliente no puede pedir al servidor reenviar eventos perdidos.</li>
+                    <li>SSE es <strong>unidireccional</strong>: servidor → cliente. Si necesitas enviar datos del cliente al servidor mientras la conexión SSE está abierta, necesitas una petición HTTP separada.</li>
+                    <li>Un comentario SSE (<code>: texto</code>) no es un evento — es un keep-alive. El cliente lo ignora, pero mantiene la conexión viva.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase COMPRENDE</h4>
+                <div class="pregunta">¿Puedo explicar la diferencia entre SSE y WebSocket usando una analogía sin mirar notas?</div>
+                <div class="pregunta">¿Entiendo por qué <code>Last-Event-ID</code> requiere que el servidor conserve historial? ¿Qué pasa si el servidor no lo hace?</div>
+                <div class="pregunta">Si alguien dice "SSE es solo polling con más pasos", ¿puedo demostrar con datos del diagrama que están equivocados?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 2: APLICA                                             -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="aplica" class="fase-section">
+        <div class="fase-header aplica">
+            <div class="fase-icon">⚡</div>
+            <div class="fase-info">
+                <h2>FASE 2: APLICA</h2>
+                <span class="bloom-tag">Nivel Bloom: Aplicar / Analizar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Implementar</strong> un cliente SSE que lea un stream línea a línea y ensamble mensajes correctamente</li>
+                    <li><strong>Aplicar</strong> el manejo de <code>Last-Event-ID</code> para reconexión sin pérdida de eventos</li>
+                    <li><strong>Adaptar</strong> el cliente para distinguir tipos de eventos (<code>precio-actualizado</code>, <code>stock-critico</code>)</li>
+                    <li><strong>Decidir</strong> qué lenguaje usar y justificar qué aprendizajes técnicos emergen de esa elección</li>
+                </ul>
+            </div>
+
+            <div class="context-box purple">
+                <div class="box-title" style="color: #6f42c1;">🧱 Punto de partida: tu cliente asíncrono del examen</div>
+                <p>Si tu cliente asíncrono del Examen 1 funciona correctamente, <strong>úsalo como base</strong> — solo necesitas modificar cómo lees la respuesta (stream en lugar de JSON). Si tuviste brechas en timeouts o detención del ciclo, este es tu momento de corregirlas en un contexto nuevo.</p>
+                <p style="margin-top: 0.5rem; font-style: italic; color: #6f42c1;"><strong>No es "rehacer el examen":</strong> es aplicar la misma infraestructura asíncrona a un patrón diferente, lo cual refuerza la comprensión más que un segundo intento idéntico.</p>
+            </div>
+
+            <h3 style="color: var(--primary); margin: 1.5rem 0 1rem;">¿Qué lenguaje usar esta semana?</h3>
+            <p>SSE introduce una lectura de stream que expone detalles de bajo nivel que Python y Node.js manejan de forma muy diferente:</p>
+
+            <table class="tabla-comparativa">
+                <thead>
+                    <tr>
+                        <th>Lenguaje</th>
+                        <th>Aprendizaje técnico emergente</th>
+                        <th>Recomendado si...</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Python (httpx / aiohttp)</strong></td>
+                        <td>Iteración asíncrona de líneas (<code>async for line in response.aiter_lines()</code>), gestión del event loop con <code>asyncio</code></td>
+                        <td>Usaste Python en el examen y quieres continuidad</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Node.js (fetch / http)</strong></td>
+                        <td>Streams de Node (<code>ReadableStream</code>, <code>TextDecoder</code>), backpressure, diferencia entre chunks y líneas</td>
+                        <td>Quieres entender la base de EventSource del navegador</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JavaScript en navegador (EventSource)</strong></td>
+                        <td>La API hace el parseo automáticamente — el aprendizaje está en los event listeners y en depurar con DevTools</td>
+                        <td>Quieres ver SSE "en acción" visualmente sin manejar el protocolo manualmente</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 0.5rem; color: var(--gray); font-size: 0.92rem;">💡 Si eliges JavaScript en navegador, deberás comparar tu implementación con el cliente manual de Python — eso es parte del Reto 3 (REFLEXIONA).</p>
+
+            <!-- Reto 2 — APLICA esencial -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">2</span>
+                    <h4>Proyecto: Receptor de Alertas EcoMarket — Cliente SSE con reconexión <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Ingeniero Senior de Integraciones que guía sin resolver. El objetivo es entender las decisiones de cada pieza — no recibir el código final.</div>
+                    <p style="margin-bottom: 1rem;">Construirás un <strong>ReceptorAlertas</strong> para EcoMarket que se conecta a un stream SSE, parsea eventos por tipo, rastrea el último ID recibido y reconecta si la conexión cae. <strong>Elige una ruta según el lenguaje que declaraste arriba</strong> — cada ruta tiene su propio prompt y su propia forma de evidenciar el checklist de validación.</p>
+
+                    <div style="background: rgba(255,193,7,0.12); border: 1px solid var(--accent); border-left: 4px solid var(--accent); border-radius: var(--border-radius); padding: 1rem 1.2rem; margin: 0.5rem 0 1.2rem;">
+                        <div style="font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; display:flex; align-items:center; gap:0.5rem;">⚠️ Elige tu ruta antes de continuar — los prompts son diferentes</div>
+                        <p style="color: #e0e0e0; font-size: 0.95rem;">
+                            <strong style="color: var(--accent);">Ruta A — Parseo manual (Python / Node.js):</strong> implementas el protocolo desde los bytes. Aprendes qué hace EventSource por debajo.<br>
+                            <strong style="color: #17a2b8;">Ruta B — EventSource en navegador (JavaScript):</strong> la API abstrae el parseo. El aprendizaje está en el ciclo de vida de listeners, las limitaciones de headers y el diagnóstico con DevTools.<br>
+                            <span style="opacity:0.8;">Ambas rutas convergen en el mismo checklist de 7 ítems — lo que cambia es cómo produces la evidencia.</span>
+                        </p>
+                    </div>
+
+                    <!-- RUTA A -->
+                    <details open style="margin-bottom: 1rem;">
+                        <summary style="cursor:pointer; font-weight:bold; color: var(--accent); background: rgba(242,169,0,0.1); padding: 0.6rem 1rem; border-radius: var(--border-radius); list-style:none;">
+                            🅰 RUTA A — Python / Node.js (parseo manual del stream)
+                        </summary>
+                        <div style="margin-top: 1rem;">
+                    <div class="prompt-box">Explica Server-Sent Events usando analogías cotidianas (como suscribirse a notificaciones de una app, o una radio que transmite en vivo sin que el oyente tenga que pedir cada canción) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Ingeniero Senior de Integraciones que me guía a construir un cliente SSE para EcoMarket. Vamos a trabajar en tres etapas dentro del MISMO proyecto.
+
+[ANTES DE CONTINUAR — completa esta línea con tus propias palabras]:
+"La diferencia entre polling y SSE que entendí en la Fase COMPRENDE es: ___________"
+
+═══ ETAPA 1: Conectar y leer el stream línea a línea ═══
+Guíame para implementar SOLO la conexión SSE básica:
+1. Abrir GET /api/alertas con header Accept: text/event-stream y timeout de 30s
+2. Iterar el cuerpo de la respuesta línea por línea (async)
+3. Imprimir cada línea cruda en consola con timestamp
+   → Verificar contra https://sse.dev/test antes de continuar
+
+Para este paso: pídeme que prediga cómo se verán las líneas antes de ejecutar. Luego revisa mi predicción.
+
+═══ ETAPA 2: Parsear mensajes y manejar eventos por tipo ═══
+Usando la conexión ya funcional:
+1. Acumular líneas hasta encontrar la línea en blanco (fin de mensaje)
+2. Extraer campos: id, event, data
+3. Según el tipo de evento:
+   - precio-actualizado → actualizar tabla de precios simulada
+   - stock-critico → imprimir alerta con emoji ⚠️
+   - (evento desconocido) → ignorar silenciosamente con log de advertencia
+4. Resetear el buffer después de cada mensaje completo
+
+Para este paso: pídeme que trace qué estructura de datos usaré para el buffer antes de codificar.
+
+═══ ETAPA 3: Reconexión con Last-Event-ID ═══
+1. Almacenar el último id recibido en una variable
+2. Al detectar cierre de conexión (fin de stream o excepción de red):
+   - Esperar retry_ms milisegundos (default 3000, actualizable por campo retry:)
+   - Reabrir conexión con header Last-Event-ID: {ultimo_id}
+3. El ciclo de reconexión debe poder detenerse con una bandera
+
+RESTRICCIONES:
+- Timeout de 30s por conexión (no por evento)
+- Reconexión máximo 5 intentos consecutivos con backoff exponencial
+- Si el servidor responde 204 No Content, detener reconexión (no hay más eventos)
+- Bandera de parada limpia (sin tareas huérfanas)
+
+NO me des el código completo. Guíame etapa por etapa. Pídeme predicciones antes de cada implementación.
+Mi nivel: ya tengo un cliente asíncrono del examen anterior.</div>
+                        <p style="margin-top: 1rem;"><strong>Instrucciones:</strong></p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li><strong>Etapa 1:</strong> Verifica contra <a href="https://sse.dev/test" target="_blank" style="color: var(--accent);">sse.dev/test</a>. Confirma que ves líneas crudas antes de parsear.</li>
+                            <li><strong>Etapa 2:</strong> Prueba con al menos 5 eventos de tipos diferentes. Verifica que el buffer se resetea correctamente.</li>
+                            <li><strong>Etapa 3:</strong> Simula una desconexión (timeout deliberado de 5s) y verifica reconexión con ID correcto.</li>
+                        </ul>
+                        <div class="entregable-box">
+                            <p><strong>Entregable Ruta A:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><code>receptor_alertas.py</code> (o <code>.js</code>) — con docstrings de trade-off por etapa</li>
+                                <li><code>README.md</code> — traza del Reto 1 + instrucciones de ejecución</li>
+                                <li><code>validacion.log</code> — salida de terminal mostrando: conexión inicial, ≥3 tipos de evento, una reconexión con <code>Last-Event-ID</code> visible en los headers impresos</li>
+                            </ul>
+                        </div>
+                        </div>
+                    </details>
+
+                    <!-- RUTA B -->
+                    <details style="margin-bottom: 1rem;">
+                        <summary style="cursor:pointer; font-weight:bold; color: #17a2b8; background: rgba(23,162,184,0.1); padding: 0.6rem 1rem; border-radius: var(--border-radius); list-style:none;">
+                            🅱 RUTA B — JavaScript en navegador (EventSource API)
+                        </summary>
+                        <div style="margin-top: 1rem;">
+                        <div style="background: rgba(23,162,184,0.12); border: 1px solid var(--info); border-left: 4px solid var(--info); border-radius: var(--border-radius); padding: 1rem 1.2rem; margin-top: 0; margin-bottom: 1rem;">
+                            <div style="font-weight: bold; color: var(--info); margin-bottom: 0.5rem;">ℹ️ Lo que EventSource hace por ti — y lo que debes manejar tú</div>
+                            <p style="color: #e0e0e0; font-size: 0.95rem;">La API <code>EventSource</code> abstrae completamente el parseo del stream: tú no escribes código para detectar <code>\n\n</code>, extraer campos <code>id:</code>/<code>data:</code> ni gestionar el buffer de líneas. Sin embargo, debes manejar explícitamente: el ciclo de vida de los listeners, los errores de conexión, y las importantes limitaciones de headers que descubrirás en el Reto 6.</p>
+                        </div>
+                    <div class="prompt-box">Explica Server-Sent Events usando analogías cotidianas (como notificaciones push de una app) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Ingeniero Senior de Frontend que me guía a construir un ReceptorAlertas con EventSource para EcoMarket.
+
+[ANTES DE CONTINUAR — completa estas líneas con tus propias palabras]:
+"EventSource abstrae el parseo del stream, lo que significa que yo NO tengo que: ___________"
+"A cambio, lo que SÍ debo manejar manualmente es: ___________"
+
+═══ ETAPA 1: Conexión básica y primer evento ═══
+1. Instanciar EventSource apuntando a /api/alertas
+2. Registrar listener para el evento por defecto (message)
+3. Abrir DevTools → pestaña Network → verificar que la conexión aparece como "EventStream" y no se cierra
+4. Identificar en DevTools: ¿dónde se ve el campo Last-Event-ID que el navegador envía automáticamente?
+
+Para este paso: antes de abrir DevTools, predice qué verás en la columna "Type" y "Status" para la conexión SSE.
+
+═══ ETAPA 2: Múltiples tipos de eventos ═══
+1. Registrar listeners diferenciados:
+   - addEventListener('precio-actualizado', handler)
+   - addEventListener('stock-critico', handler)
+2. Cada handler imprime en consola: tipo + datos + timestamp
+3. Registrar el evento 'error' de EventSource y mostrar el readyState
+
+Para este paso: ¿qué readyState values puede tener un EventSource? Descúbrelos antes de codificar.
+
+═══ ETAPA 3: Ciclo de vida y reconexión ═══
+1. Implementar cierre limpio del EventSource (evitar listeners huérfanos)
+2. Observar en DevTools cómo el navegador reconecta automáticamente con Last-Event-ID
+3. Responder: ¿qué diferencia hay entre cerrar EventSource desde el cliente vs que el servidor cierre la conexión?
+
+RESTRICCIÓN IMPORTANTE — responde esto antes de codificar:
+¿Puedes enviar un header Authorization: Bearer TOKEN en un EventSource nativo? ¿Por qué sí o por qué no?
+(Esto es preparación para el Reto 6 — documenta tu respuesta en el README)
+
+NO me des el código completo. Pídeme predicciones antes de cada etapa.</div>
+                        <p style="margin-top: 1rem;"><strong>Instrucciones:</strong></p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li><strong>Etapa 1:</strong> DevTools → Network → filtra por "EventStream". Observa los mensajes en tiempo real en la subpestaña "EventStream".</li>
+                            <li><strong>Etapa 2:</strong> Usa <a href="https://sse.dev/test" target="_blank" style="color: var(--info);">sse.dev/test</a> o levanta un servidor mínimo con Flask/FastAPI.</li>
+                            <li><strong>Etapa 3:</strong> Cierra el servidor y observa en DevTools cómo el navegador reinicia la conexión con <code>Last-Event-ID</code> en los request headers.</li>
+                        </ul>
+                        <div class="entregable-box">
+                            <p><strong>Entregable Ruta B:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><code>receptor_alertas.html</code> o <code>.js</code> — con comentarios explicando cada decisión de listener</li>
+                                <li><code>README.md</code> — traza del Reto 1 + respuesta a la pregunta sobre headers Authorization</li>
+                                <li><strong>Evidencia visual (capturas DevTools)</strong> en lugar de <code>validacion.log</code>:
+                                    <ul style="margin-left:1rem; margin-top:0.3rem;">
+                                        <li>Captura 1: pestaña Network mostrando la conexión SSE activa (Status pendiente)</li>
+                                        <li>Captura 2: subpestaña EventStream con ≥3 tipos de evento recibidos</li>
+                                        <li>Captura 3: headers de la segunda petición (reconexión) mostrando <code>Last-Event-ID</code></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">💡 ¿No tienes servidor SSE propio para pruebas?</div>
+                <p>Usa <strong><a href="https://sse.dev/test" target="_blank" style="color: var(--info);">sse.dev/test</a></strong> — genera un stream SSE público con eventos cada pocos segundos. También puedes levantar un servidor mínimo en 10 líneas de Python con <code>flask</code> o <code>fastapi</code> si quieres controlar los datos.</p>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — Fase APLICA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Nunca procesar un mensaje SSE <strong>incompleto</strong> — esperar siempre la línea en blanco que lo termina.</li>
+                    <li>El buffer de líneas debe <strong>resetearse completamente</strong> después de cada mensaje procesado — acumular líneas de mensajes anteriores causa parseo incorrecto.</li>
+                    <li>El campo <code>retry:</code> actualiza <code>retry_ms</code> — si el servidor lo envía, el cliente <strong>debe respetarlo</strong>, no usar el default inamovible.</li>
+                    <li>Una excepción al procesar un evento <strong>no debe cerrar la conexión</strong> — solo loguear el error y continuar leyendo el stream.</li>
+                    <li>Después de <code>detener()</code>, no debe quedar ninguna tarea o corutina activa.</li>
+                    <li>Si el servidor responde <code>204 No Content</code>, el cliente <strong>no reconecta</strong> — es la señal de que el stream terminó intencionalmente.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase APLICA</h4>
+                <div class="pregunta">¿Puedo explicar qué pasa byte a byte cuando el servidor envía un mensaje SSE y cómo mi código lo procesa, sin mirar el código?</div>
+                <div class="pregunta">Si el servidor envía un mensaje con <code>data:</code> en tres líneas separadas (multilínea), ¿mi parser lo maneja o lo rompe?</div>
+                <div class="pregunta">¿La IA me dio código con un bucle de reconexión infinito sin límite de intentos? ¿Detecté esa brecha?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 3: REFLEXIONA                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="reflexiona" class="fase-section">
+        <div class="fase-header reflexiona">
+            <div class="fase-icon">🔍</div>
+            <div class="fase-info">
+                <h2>FASE 3: REFLEXIONA</h2>
+                <span class="bloom-tag">Nivel Bloom: Analizar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Analizar</strong> los trade-offs entre SSE, polling y WebSockets desde la perspectiva del cliente</li>
+                    <li><strong>Justificar</strong> cuándo SSE es la herramienta correcta y cuándo no lo es</li>
+                    <li><strong>Comparar</strong> el costo de una conexión persistente vs múltiples peticiones cortas bajo diferentes condiciones de red</li>
+                    <li><strong>Evaluar</strong> el impacto de SSE en la experiencia de usuario del panel EcoMarket</li>
+                </ul>
+            </div>
+
+            <div class="context-box warning">
+                <div class="box-title">⚠️ El problema silencioso: ¿qué pasa si el historial del servidor se purga?</div>
+                <p>El mecanismo <code>Last-Event-ID</code> asume que el servidor conserva un buffer de eventos recientes. En sistemas distribuidos reales, ese buffer tiene un límite — si el cliente estuvo desconectado demasiado tiempo, el servidor ya no tiene los eventos intermedios.</p>
+                <p style="margin-top: 0.6rem;">Cuando el cliente reconecta con un <code>Last-Event-ID</code> antiguo, el servidor puede responder de dos formas: (a) enviar eventos desde el punto solicitado si aún los tiene, o (b) enviar un evento especial <code>event: reset</code> indicando que el historial se perdió. En ese caso, el cliente distribuido robusto debe saber que su <strong>estado local es inválido</strong> y ejecutar un <em>Full Fetch</em> — una petición GET tradicional completa para resincronizar el estado — antes de volver a escuchar el stream.</p>
+                <p style="margin-top: 0.6rem; font-size: 0.9rem; color: var(--gray);">No necesitas implementar esto esta semana — pero debes saber que existe. La Semana 7 abordará estrategias de recuperación de estado bajo SSE con historial limitado.</p>
+            </div>
+
+            <h3 style="color: var(--primary); margin-bottom: 1rem;">SSE vs Polling vs WebSocket — desde el cliente</h3>
+            <p style="margin-bottom: 1rem;">La tabla siguiente concentra los trade-offs desde la perspectiva del desarrollador del cliente — que es la perspectiva de este curso.</p>
+
+            <table class="tabla-comparativa">
+                <thead>
+                    <tr>
+                        <th>Dimensión</th>
+                        <th>Polling (Semana 4)</th>
+                        <th>SSE (Semana 6)</th>
+                        <th>WebSocket (Semana 11)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Dirección del flujo</strong></td>
+                        <td>Cliente → Servidor (pull)</td>
+                        <td>Servidor → Cliente (push)</td>
+                        <td>Bidireccional</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Conexiones TCP</strong></td>
+                        <td>Una por ciclo</td>
+                        <td>Una persistente</td>
+                        <td>Una persistente (upgrade)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Peticiones sin datos</strong></td>
+                        <td>Alta frecuencia (304 vacíos)</td>
+                        <td>Cero — el servidor solo envía cuando hay cambios</td>
+                        <td>Cero</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reconexión automática</strong></td>
+                        <td>Sí (el ciclo continúa)</td>
+                        <td>Sí (Last-Event-ID + retry)</td>
+                        <td>No — el cliente debe implementarla</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autenticación en el cliente</strong></td>
+                        <td>Header en cada petición</td>
+                        <td>Solo en la conexión inicial</td>
+                        <td>En el handshake</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Compatibilidad HTTP/2</strong></td>
+                        <td>Buena (multiplexación)</td>
+                        <td>Excelente — streams nativos</td>
+                        <td>Requiere negociación explícita</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cuándo usarlo desde el cliente</strong></td>
+                        <td>APIs que no soportan streaming; control total del intervalo</td>
+                        <td>Dashboards, feeds de notificaciones, actualizaciones unidireccionales</td>
+                        <td>Chats, juegos, colaboración en tiempo real</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Reto 3 — REFLEXIONA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">3</span>
+                    <h4>Trade-off docstring: ¿cuándo SSE y cuándo polling? <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de sistemas que evalúa decisiones técnicas con contraejemplos. No acepta respuestas genéricas — pide justificaciones específicas con datos.</div>
+                    <div class="prompt-box">Explica los trade-offs desde una perspectiva práctica de ingeniería, usando ejemplos concretos de latencia, número de conexiones y comportamiento bajo carga. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Arquitecto de Sistemas que evalúa decisiones técnicas.
+
+Contexto: acabo de implementar un cliente SSE para EcoMarket y un cliente polling de la Semana 4.
+
+Para cada uno de los 4 escenarios siguientes, quiero que me hagas TRES preguntas difíciles que me fuercen a justificar mi elección (no que me des la respuesta):
+
+ESCENARIO A:
+EcoMarket quiere agregar un módulo de precios en vivo para 10,000 usuarios concurrentes. Los precios cambian 2-3 veces por hora.
+→ ¿SSE o polling? ¿Por qué?
+
+ESCENARIO B:
+TechNova necesita que el panel de inventario actualice la cantidad de stock cada 1 segundo, pero el servidor de inventario es legacy y no soporta streaming (solo REST clásico).
+→ ¿SSE o polling? ¿Por qué?
+
+ESCENARIO C:
+Un cliente móvil con conectividad inestable (3G, interrupciones frecuentes cada 20-30s) necesita recibir alertas de pedidos.
+→ ¿SSE o polling? ¿Por qué?
+
+ESCENARIO D:
+El panel de EcoMarket necesita tanto recibir alertas del servidor COMO enviar filtros dinámicos al servidor (ej. "solo alertas de categoría Electrónica") mientras la sesión está activa.
+→ ¿SSE o WebSocket? ¿Por qué?
+
+Después de mis respuestas, dime dónde mis justificaciones son débiles o incorrectas desde la perspectiva del CLIENTE — no del servidor.</div>
+                    <div class="entregable-box">
+                        <p>Un <strong>docstring de trade-off</strong> en el encabezado de tu archivo cliente (3-5 líneas por escenario) documentando tu decisión y su justificación técnica. Formato sugerido:</p>
+                        <pre><code>"""
+RECEPTOR ALERTAS ECOMARKET — Decisiones de arquitectura (cliente)
+
+SSE elegido sobre polling porque:
+- Escenario de 10k usuarios: SSE usa 1 conexión TCP persistente por cliente
+  vs polling que genera ~600k peticiones/min con intervalo de 1s
+- Escenario legacy: polling obligatorio — el servidor no soporta streaming
+  [...]
+"""</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="errores-comunes">
+                <h4>⚠️ Errores comunes esta semana</h4>
+                <div class="error-item">
+                    <strong>Confundir SSE con WebSocket:</strong> SSE es unidireccional sobre HTTP estándar — no requiere upgrade de protocolo ni handshake especial. Si la IA te genera código con <code>ws://</code> o <code>websocket</code>, está resolviendo un problema diferente.
+                </div>
+                <div class="error-item">
+                    <strong>Procesar líneas en lugar de mensajes:</strong> Un mensaje SSE puede tener múltiples líneas <code>data:</code> (datos multilínea). Si procesas cada línea <code>data:</code> como un evento independiente, estás partiendo mensajes a la mitad.
+                </div>
+                <div class="error-item">
+                    <strong>Reconexión sin límite de intentos:</strong> La IA tiende a generar bucles <code>while True: reconectar()</code> sin backoff ni límite. Ante una caída del servidor, esto genera una tormenta de reconexiones que agrava el problema.
+                </div>
+                <div class="error-item">
+                    <strong>Ignorar el campo <code>retry:</code> del servidor:</strong> El servidor puede enviar <code>retry: 5000</code> para indicar que el cliente espere 5 segundos antes de reconectar. Si el cliente usa un valor hardcodeado, ignora esta señal de control del servidor.
+                </div>
+                <div class="error-item" style="border-left-color: var(--danger);">
+                    <strong>🚨 Trampa de HTTP/1.1 — el límite de 6 conexiones por dominio (solo Ruta B / navegador):</strong> Los navegadores bajo HTTP/1.1 permiten como máximo <strong>6 conexiones TCP simultáneas al mismo dominio</strong>. Si abres 6 pestañas del panel EcoMarket con <code>EventSource</code>, la séptima (o cualquier petición REST al mismo servidor) quedará en estado <em>pending</em> indefinidamente — bloqueada sin error visible. Síntoma: las peticiones normales de la app se congelan sin razón aparente. Causa raíz: las 6 conexiones SSE ocupan todos los slots disponibles. Solución: HTTP/2 (que multiplexa conexiones) o agrupar múltiples tipos de eventos en un solo stream SSE. Esto es exactamente lo que abordará la Semana 7.
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — Fase REFLEXIONA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>SSE no reemplaza polling en todos los casos — solo cuando el servidor puede generar el stream y el flujo es unidireccional.</li>
+                    <li>Una conexión SSE persistente bajo HTTP/1.1 ocupa un slot de conexión del navegador — con HTTP/2, este costo desaparece gracias a la multiplexación.</li>
+                    <li>La decisión SSE vs polling debe justificarse con datos del cliente (número de conexiones, peticiones vacías, latencia) — no solo con "SSE es más moderno".</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase REFLEXIONA</h4>
+                <div class="pregunta">¿Puedo describir un escenario real donde polling sería mejor que SSE — sin que la respuesta sea solo "el servidor no lo soporta"?</div>
+                <div class="pregunta">¿Entiendo por qué SSE funciona mejor con HTTP/2 que con HTTP/1.1 desde la perspectiva del cliente?</div>
+                <div class="pregunta">Si mi docstring de trade-off dice "SSE es mejor porque es más eficiente", ¿puedo reemplazarlo con datos concretos de conexiones y peticiones?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 4: VALIDA                                             -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="valida" class="fase-section">
+        <div class="fase-header valida">
+            <div class="fase-icon">✔</div>
+            <div class="fase-info">
+                <h2>FASE 4: VALIDA</h2>
+                <span class="bloom-tag">Nivel Bloom: Evaluar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Evaluar</strong> la robustez del cliente SSE ante escenarios de fallo reales</li>
+                    <li><strong>Detectar</strong> errores sutiles que la IA genera con frecuencia en clientes SSE</li>
+                    <li><strong>Verificar</strong> que el cliente cumple los seis invariantes de la fase APLICA</li>
+                    <li><strong>Auditar</strong> el código generado por la IA buscando las brechas del examen anterior</li>
+                </ul>
+            </div>
+
+            <!-- Checklist de validación -->
+            <div class="checklist-box">
+                <h4>✅ Checklist de Validación — ReceptorAlertas</h4>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Buffer se resetea después de cada mensaje</strong>
+                        <div class="diagnostico">Prueba: envía 3 eventos seguidos. El cuarto evento no debe contener campos del primero.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Timeout de 30s configurado en la conexión inicial</strong>
+                        <div class="diagnostico">Prueba: apunta a un servidor que no responde. El cliente debe fallar con mensaje de timeout, no colgar indefinidamente.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Last-Event-ID enviado en reconexión</strong>
+                        <div class="diagnostico">Prueba: imprime los headers de la segunda conexión. Debe aparecer <code>Last-Event-ID: N</code>.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Máximo 5 intentos de reconexión con backoff</strong>
+                        <div class="diagnostico">Prueba: desconecta el servidor y espera. El cliente debe parar después del 5° intento, no seguir para siempre.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Excepción en procesador de evento no cierra el stream</strong>
+                        <div class="diagnostico">Prueba: introduce un <code>raise Exception("test")</code> en el handler de <code>stock-critico</code>. El stream debe continuar procesando los siguientes eventos.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>204 No Content detiene la reconexión</strong>
+                        <div class="diagnostico">Prueba: devuelve 204 desde el servidor. El cliente debe terminar limpiamente, no intentar reconectar.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>Detención limpia con bandera</strong>
+                        <div class="diagnostico">Prueba: llama a <code>detener()</code> mientras el stream está activo. No deben quedar tareas colgadas.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reto 4 — VALIDA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">4</span>
+                    <h4>Auditoría: encuentra los 4 errores del cliente SSE generado por IA <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Generador deliberado de código con errores. La IA producirá un cliente SSE que parece funcionar pero viola varios invariantes — tu trabajo es encontrar los errores sin que la IA te los señale.</div>
+                    <div class="prompt-box">Actúa como un desarrollador que escribe código funcional pero con 4 errores sutiles que violan los invariantes de un cliente SSE robusto. Los errores deben ser del tipo que la IA normalmente genera y que pasan las pruebas superficiales pero fallan en producción.
+
+IMPORTANTE: NO me digas cuáles son los errores ni los numeres. Solo genera el código y espera a que yo los encuentre.
+
+[ANTES DE CONTINUAR — completa estas líneas. Si no puedes responderlas, revisa las fases COMPRENDE y APLICA antes de auditar]:
+"Los 6 invariantes que un cliente SSE robusto NO debe romper son: ___________"
+"El error que más frecuentemente cometí en el examen anterior fue: ___________"
+
+Genera un cliente SSE en Python para EcoMarket con estas características aparentes:
+- Conecta a GET /api/alertas
+- Parsea campos id, event, data
+- Reconecta con Last-Event-ID si la conexión cae
+- Detiene con una bandera
+
+Requisitos de los errores (para que tú los implementes, no yo):
+- Al menos uno debe relacionarse con el buffer de líneas
+- Al menos uno debe relacionarse con la reconexión
+- Al menos uno debe ser la brecha del timeout (frecuente en el examen anterior)
+- Al menos uno debe ser sutil a nivel de lógica (no de sintaxis)
+
+Después de que yo liste mis hallazgos, confírmalos y explica por qué cada uno falla en producción aunque pase pruebas básicas.</div>
+                    <div class="entregable-box">
+                        <p>Un archivo <code>auditoria_sse.md</code> con:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>Los 4 errores encontrados, nombrados y descritos</li>
+                            <li>Para cada error: <em>¿cómo falla en producción?</em> y <em>¿qué invariante viola?</em></li>
+                            <li>La versión corregida del código (o los fragmentos corregidos)</li>
+                            <li><strong>Evidencia de manifestación obligatoria:</strong> para cada error, un fragmento del output de terminal (Ruta A) o una captura de DevTools (Ruta B) que demuestre que <em>provocaste</em> el fallo en tu máquina antes de documentarlo. No se acepta descripción teórica sin evidencia de ejecución.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — Fase VALIDA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Las pruebas de VALIDA deben ejecutarse contra el servidor <strong>desconectado o con errores inducidos</strong> — no solo contra el camino feliz.</li>
+                    <li>El checklist no es decorativo: cada ítem debe tener evidencia en <code>validacion.log</code> (Ruta A) o en capturas de DevTools (Ruta B).</li>
+                    <li>Un cliente que pasa las pruebas superficiales pero no el checklist <strong>no está listo para producción</strong>.</li>
+                    <li>La auditoría del Reto 4 requiere evidencia de que el error se manifestó en tu máquina — no basta con describir el error teóricamente.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase VALIDA</h4>
+                <div class="pregunta">¿Encontré los 4 errores de la auditoría por razonamiento o los busqué con pistas de la IA?</div>
+                <div class="pregunta">¿El checklist tiene 7 ítems marcados con evidencia en el log, o lo marqué "de memoria" sin ejecutar las pruebas?</div>
+                <div class="pregunta">¿Las brechas que tuve en el examen anterior aparecen también en mi código SSE? ¿Las corregí o las repetí?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 5: PROFUNDIZA                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="profundiza" class="fase-section">
+        <div class="fase-header profundiza">
+            <div class="fase-icon">🚀</div>
+            <div class="fase-info">
+                <h2>FASE 5: PROFUNDIZA</h2>
+                <span class="bloom-tag">Nivel Bloom: Crear</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Crear</strong> un cliente SSE con múltiples tipos de eventos usando un despachador de eventos propio</li>
+                    <li><strong>Extender</strong> el cliente para soportar autenticación Bearer Token en la conexión inicial</li>
+                    <li><strong>Conectar</strong> el patrón Observer (Semana 4) con el modelo de eventos SSE</li>
+                    <li><strong>Anticipar</strong> el puente hacia WebSockets (Semana 11): qué agrega la bidireccionalidad</li>
+                </ul>
+            </div>
+
+            <div class="context-box tip">
+                <div class="box-title">💡 Conexión con el patrón Observer de Semana 4</div>
+                <p>En la Semana 4 usaste Observer para desacoplar la detección de cambios (polling) de la reacción a esos cambios (observadores). Esta semana puedes aplicar el mismo patrón al cliente SSE: cada tipo de evento (<code>precio-actualizado</code>, <code>stock-critico</code>) dispara sus propios suscriptores registrados. El receptor SSE es el Observable; los handlers son los Observers.</p>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">🤖 Tip AETL — Deslizamiento de contexto en chats nuevos</div>
+                <p>Si abres un chat nuevo para los Retos 5 y 6, la IA no recuerda las restricciones que estableciste en los Retos 2 y 4 (sin librerías externas, timeout obligatorio, máximo 5 reconexiones, etc.). Esto se llama <strong>deslizamiento de contexto</strong> — la IA empieza a dar respuestas genéricas que contradicen lo que ya construiste.</p>
+                <p style="margin-top: 0.6rem;">Usa este <strong>Prompt de Anclaje</strong> al inicio de cualquier sesión nueva de PROFUNDIZA:</p>
+                <div style="background: #0d1117; border: 1px solid #30363d; border-radius: var(--border-radius); padding: 1rem; margin-top: 0.8rem; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #c9d1d9; white-space: pre-wrap;">Contexto de mi proyecto EcoMarket:
+- Ya tengo ReceptorAlertas funcional con parseo manual de stream SSE
+- Restricciones activas: timeout 30s, máx 5 reconexiones con backoff, sin librerías externas, bandera de parada limpia
+- La clase Observable de Semana 4 está disponible y funcional
+- Soy el Arquitecto — guíame con preguntas, no me des el código completo
+
+[PEGA AQUÍ tu código actual de receptor_alertas.py para que la IA lo conozca]
+
+Ahora necesito: [describe el siguiente paso del Reto 5 o 6]</div>
+            </div>
+
+            <!-- Reto 5 — PROFUNDIZA esencial -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">5</span>
+                    <h4>Despachador de eventos SSE integrado con Observer <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de frontend que conecta patrones. Te guía para reutilizar la clase Observable de Semana 4 como despachador de eventos SSE.</div>
+                    <div class="prompt-box">Explica usando analogías cotidianas (como un tablero de llegadas de aeropuerto donde cada "tipo de anuncio" activa diferentes acciones en diferentes personas) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Arquitecto de frontend que integra patrones.
+
+Contexto: ya tengo la clase Observable funcional de la Semana 4 y un cliente SSE básico de esta semana.
+
+Quiero integrarlos así:
+- El ReceptorAlertas extiende Observable (o la compone)
+- Cuando llega un evento SSE de tipo "precio-actualizado", dispara evento Observable "precio-actualizado" con los datos
+- Cuando llega "stock-critico", dispara "stock-critico"
+- Cada componente de la UI se suscribe al tipo de evento que le interesa
+
+Guíame para:
+1. Decidir: ¿heredar de Observable o componerla? (pídeme que argumente antes de responder)
+2. Modificar ReceptorAlertas para disparar eventos Observable al recibir cada mensaje SSE
+3. Crear 3 suscriptores de ejemplo:
+   - ActualizadorPreciosUI: actualiza una tabla simulada
+   - AlertaStockCritico: imprime alerta con nivel de urgencia
+   - RegistradorAuditoria: guarda timestamp + tipo + datos en lista
+4. Demostración con 10 eventos mixtos de EcoMarket
+
+RESTRICCIÓN: los suscriptores son funciones independientes, no clases. Un suscriptor que falla no debe romper el receptor ni los demás suscriptores.
+
+NO me des el código completo. Pídeme predicciones antes de cada pieza.</div>
+                    <div class="entregable-box">
+                        <p>Extiende tu carpeta de proyecto con:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li><code>receptor_alertas_v2.py</code> — con Observer integrado y los 3 suscriptores</li>
+                            <li>Un párrafo en el README explicando: <em>¿por qué elegiste herencia vs composición para integrar Observable?</em></li>
+                            <li><code>validacion.log</code> actualizado con evidencia de los 3 suscriptores recibiendo eventos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reto 6 — PROFUNDIZA avanzado -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">6</span>
+                    <h4>Extensión: SSE con autenticación — la limitación que la IA oculta <span class="reto-badge avanzado">Avanzado</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Security Engineer que revela las limitaciones técnicas reales de la autenticación en SSE — incluyendo lo que la API nativa del navegador no puede hacer, aunque la IA a veces lo omite o genera código que no funciona.</div>
+                    <div class="prompt-box">Actúa como Security Engineer que evalúa la autenticación en clientes SSE. Necesito que seas completamente honesto sobre las limitaciones técnicas, especialmente las que los tutoriales omiten.
+
+TechNova necesita autenticar el receptor de alertas de EcoMarket con un token Bearer.
+
+PREGUNTA CENTRAL — respóndela primero antes de cualquier otra cosa:
+¿Puede la API nativa EventSource del navegador enviar un header "Authorization: Bearer TOKEN"?
+Si la respuesta es NO, explica exactamente por qué (qué especifica el estándar HTML y por qué fue diseñado así).
+
+Luego, para cada contexto de cliente, explica qué opciones reales existen:
+
+CONTEXTO A — Cliente Python/Node.js (parseo manual):
+1. ¿Cómo incluir Authorization: Bearer en la conexión inicial?
+2. ¿Cómo manejar un 401 que llega durante el stream (token expirado)?
+3. ¿Qué pasa si el token expira y el servidor cierra la conexión con 401 a mitad del stream?
+
+CONTEXTO B — EventSource en el navegador:
+1. Si NO se puede enviar Authorization header nativo, ¿cuáles son las alternativas reales?
+   - withCredentials: true (cookies) — ¿cuándo aplica y cuándo no?
+   - Token en query param (/api/alertas?token=XYZ) — ¿por qué es una mala práctica?
+   - Librerías como @microsoft/fetch-event-source — ¿qué problema resuelven?
+   - Service Worker interceptando la petición — ¿es viable para un proyecto estudiantil?
+2. ¿Cuál de estas opciones recomendarías para un panel interno corporativo (no público)?
+
+RESTRICCIÓN: No inventes que EventSource soporta headers custom si no los soporta.
+Al final: ¿qué limitación fundamental de las conexiones persistentes (SSE y WebSocket) hace que la renovación de tokens sea más compleja que en polling?</div>
+                    <div class="entregable-box">
+                        <p>Un archivo <code>sse_autenticacion.md</code> con:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>La respuesta a la pregunta central (¿soporta EventSource headers custom?) en tus propias palabras</li>
+                            <li>Tabla comparativa de las 4 alternativas para Contexto B con pros/contras desde el cliente</li>
+                            <li>Pseudocódigo del flujo de renovación de token en cliente Python/Node.js</li>
+                            <li>La limitación fundamental de conexiones persistentes para renovación de tokens (en tus propias palabras)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-box warning">
+                <div class="box-title">🔭 Mirando hacia adelante: SSE → WebSocket (Semana 11)</div>
+                <p>Esta semana aprendes que SSE resuelve muy bien el caso "servidor empuja, cliente escucha". Pero EcoMarket tiene un nuevo requerimiento: el panel de operaciones debe permitir que el usuario envíe comandos al servidor (<em>pausar alertas de categoría X</em>, <em>marcar pedido como procesado</em>) <strong>mientras mantiene la conexión de alertas abierta</strong>. Ese es exactamente el caso que justifica WebSocket. En la Semana 11 construirás sobre lo que aprendiste esta semana — la gestión de conexiones persistentes, el parseo de mensajes en líneas y el patrón Observer serán la base.</p>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — Fase PROFUNDIZA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>La integración Observer–SSE no debe duplicar el código de reconexión — ReceptorAlertas sigue siendo el responsable de la conexión, Observable solo despacha eventos.</li>
+                    <li>Tokens de autenticación nunca en URLs ni en logs — siempre en headers.</li>
+                    <li>Agregar Observable no debe romper el checklist de VALIDA — los 7 invariantes siguen aplicando.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase PROFUNDIZA</h4>
+                <div class="pregunta">¿Puedo explicar la diferencia entre Observer en polling (Semana 4) y Observer en SSE (esta semana) sin confundir los patrones?</div>
+                <div class="pregunta">¿Elegí herencia o composición para Observable? ¿Puedo defender esa decisión con un argumento técnico, no solo una preferencia?</div>
+                <div class="pregunta">¿Qué problema específico de EcoMarket requeriría cambiar de SSE a WebSocket en la Semana 11?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== EVALUACIÓN ========== -->
+    <section id="evaluacion" class="evaluacion-section">
+        <div class="evaluacion-header">
+            <h2>📊 Sistema de Evaluación — Semana 6</h2>
+            <p>Criterios alineados al ciclo AETL</p>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">COMPRENDE</span>
+            <div>
+                <strong>Traza del flujo SSE completo</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Muestra los 3 eventos, el keep-alive, la interrupción y la reconexión con Last-Event-ID. Incluye diferencia con polling.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">APLICA</span>
+            <div>
+                <strong>ReceptorAlertas funcional con reconexión</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Cliente SSE que parsea múltiples tipos de eventos, aplica Last-Event-ID, respeta retry:, se detiene limpiamente. Evidenciado en validacion.log.</span>
+            </div>
+            <span class="puntos">30 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">REFLEXIONA</span>
+            <div>
+                <strong>Docstring de trade-off: SSE vs polling</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Justificación técnica con datos concretos de los 4 escenarios. No se acepta "SSE es más eficiente" sin especificar qué métrica y bajo qué condiciones.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">VALIDA</span>
+            <div>
+                <strong>Auditoría de IA + Checklist completo</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Los 4 errores identificados y corregidos en auditoria_sse.md. Los 7 ítems del checklist con evidencia en log.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">PROFUNDIZA</span>
+            <div>
+                <strong>Observer integrado con SSE (Reto 5)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">3 suscriptores funcionando, decisión herencia/composición justificada, log con evidencia.</span>
+            </div>
+            <span class="puntos">10 pts</span>
+        </div>
+        <div style="padding: 1rem 1.5rem; background: #f8f9fa; border-top: 2px solid var(--accent);">
+            <strong>Total: 100 pts · Entrega máxima:</strong> Carpeta de proyecto con los 5 archivos requeridos subida antes de la siguiente sesión presencial.
+        </div>
+    </section>
+
+    <!-- ========== GLOSARIO ========== -->
+    <section id="glosario" class="glosario-section">
+        <div class="glosario-header">
+            <h2>📖 Glosario — Semana 6</h2>
+        </div>
+        <dl class="glosario-grid">
+            <div class="termino-card">
+                <dt>Server-Sent Events (SSE)</dt>
+                <dd>Estándar HTML5 para comunicación unidireccional servidor → cliente sobre una conexión HTTP persistente. El servidor envía mensajes solo cuando hay datos nuevos.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>EventSource</dt>
+                <dd>API del navegador que implementa SSE automáticamente: maneja la conexión, el parseo del stream y la reconexión. En Python/Node.js, el desarrollador la implementa manualmente.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>text/event-stream</dt>
+                <dd>MIME type que identifica un stream SSE. El servidor debe devolver este Content-Type para que el cliente trate la respuesta como un stream de eventos.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Last-Event-ID</dt>
+                <dd>Header HTTP que el cliente envía al reconectarse, indicando el ID del último evento recibido. Permite al servidor reanudar el stream sin reenviar eventos ya procesados.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>retry (campo SSE)</dt>
+                <dd>Campo opcional en un mensaje SSE que indica cuántos milisegundos debe esperar el cliente antes de reconectar si la conexión se pierde. Sobrescribe el valor por defecto del cliente.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Keep-alive (SSE)</dt>
+                <dd>Comentario SSE (<code>: texto</code>) enviado por el servidor para mantener la conexión viva cuando no hay eventos. El cliente lo ignora como dato pero el TCP lo procesa para evitar timeouts de red.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Push vs Pull</dt>
+                <dd>Pull: el cliente solicita datos periódicamente (polling). Push: el servidor envía datos cuando los genera (SSE, WebSocket). La elección depende de la frecuencia de cambio y la arquitectura del servidor.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Stream chunked</dt>
+                <dd>Mecanismo HTTP donde la respuesta se envía en partes (chunks) sin un Content-Length definido. SSE usa Transfer-Encoding: chunked para mantener la conexión abierta indefinidamente.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Andamiaje cognitivo (AETL)</dt>
+                <dd>Soporte temporal que la IA proporciona para que el estudiante llegue a comprensiones que aún no alcanza de forma independiente — retirado gradualmente a medida que el estudiante domina el tema.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Auditoría de IA (AETL)</dt>
+                <dd>Proceso de revisión crítica del código generado por IA para detectar errores que superan las pruebas superficiales pero fallan en producción. Metacognición aplicada al uso de herramientas IA.</dd>
+            </div>
+        </dl>
+    </section>
+
+    <!-- ========== REFERENCIAS ========== -->
+    <section id="referencias" class="referencias-section">
+        <h3>📚 Referencias</h3>
+        <div class="referencia-item">Anderson, L. W., et al. (2001). <em>A taxonomy for learning, teaching, and assessing: A revision of Bloom's educational objectives.</em> Longman.</div>
+        <div class="referencia-item">Bandura, A. (2001). Social cognitive theory: An agentic perspective. <em>Annual Review of Psychology, 52</em>(1), 1–26.</div>
+        <div class="referencia-item">Bognár, M. (2024). AI as scaffolding in the zone of proximal development. <em>Educational Technology Research and Development.</em></div>
+        <div class="referencia-item">Brod, G., et al. (2023). Agency in learning: Metacognition and self-determination in AI-assisted environments. <em>Computers & Education, 195.</em></div>
+        <div class="referencia-item">Chiu, T. K. F. (2024). Self-regulated learning with generative AI tools. <em>Computers in Human Behavior, 152.</em></div>
+        <div class="referencia-item">Fette, I., & Melnikov, A. (2011). <em>RFC 6455 — The WebSocket Protocol.</em> IETF. (Para comparación con SSE en Semana 11.)</div>
+        <div class="referencia-item">Mahdi, H., et al. (2025). Cognitive load in AI-mediated programming tasks. <em>Journal of Educational Computing Research.</em></div>
+        <div class="referencia-item">Sari, D., et al. (2025). Self-regulated learning strategies for AI-assisted development. <em>Computers & Education, 198.</em></div>
+        <div class="referencia-item">Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science, 12</em>(2), 257–285. Actualización: Sweller, J. (2020). <em>Educational Psychology Review, 32.</em></div>
+        <div class="referencia-item">WHATWG. (2024). <em>Server-Sent Events — Living Standard.</em> <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html" target="_blank" style="color: var(--secondary);">html.spec.whatwg.org</a></div>
+        <div class="referencia-item">Vygotsky, L. S. (1978). <em>Mind in society: The development of higher psychological processes.</em> Harvard University Press.</div>
+        <div class="referencia-item">Zimmerman, B. J. (2000). Self-efficacy: An essential motive to learn. <em>Contemporary Educational Psychology, 25</em>(1), 82–91.</div>
+    </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+    <div class="modelo-badge">🤖 Modelo AETL — Aprendizaje Técnico Aumentado por IA</div>
+    <p>Universidad Autónoma de Nayarit · Licenciatura en Sistemas Computacionales</p>
+    <p style="margin-top: 0.5rem; opacity: 0.8;">Programación Distribuida del Lado del Cliente · Semana 6 de 15</p>
+    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">
+        Escenarios: TechNova / EcoMarket · Fases: Comprende → Aplica → Reflexiona → Valida → Profundiza<br>
+        Próxima semana: Semana 7 · Profundizando SSE: múltiples canales, filtros del lado del servidor y limitaciones bajo HTTP/1.1
+    </p>
+	<p>Dr. Eligardo Cruz Sánchez</p>
+</footer>
+
+</body>
+</html>

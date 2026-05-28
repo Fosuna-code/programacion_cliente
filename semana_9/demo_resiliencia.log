@@ -1,0 +1,169 @@
+2026-05-21 16:24:33,982 [INFO] ::1 [21/May/2026:16:24:33 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:33,983 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:34,417 [INFO] ::1 [21/May/2026:16:24:34 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:34,417 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:34,869 [INFO] ::1 [21/May/2026:16:24:34 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:34,870 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:35,310 [INFO] ::1 [21/May/2026:16:24:35 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:35,311 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:35,763 [INFO] ::1 [21/May/2026:16:24:35 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:35,764 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:36,225 [INFO] ::1 [21/May/2026:16:24:36 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:36,226 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+2026-05-21 16:24:36,680 [INFO] ::1 [21/May/2026:16:24:36 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:36,681 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+2026-05-21 16:24:37,190 [INFO] ::1 [21/May/2026:16:24:37 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:37,191 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+2026-05-21 16:24:37,652 [INFO] ::1 [21/May/2026:16:24:37 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:37,652 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+2026-05-21 16:24:38,097 [INFO] ::1 [21/May/2026:16:24:38 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:38,098 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+2026-05-21 16:24:38,532 [INFO] ::1 [21/May/2026:16:24:38 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:38,534 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:38,980 [INFO] ::1 [21/May/2026:16:24:38 -0700] "POST /api/auth/refresh HTTP/1.1" 200 256 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:38,981 [INFO] HTTP Request: POST http://localhost:8080/api/auth/refresh "HTTP/1.1 200 OK"
+2026-05-21 16:24:39,022 [INFO] ::1 [21/May/2026:16:24:39 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:39,023 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:39,492 [INFO] ::1 [21/May/2026:16:24:39 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:39,493 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:39,935 [INFO] ::1 [21/May/2026:16:24:39 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:39,936 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:40,414 [INFO] ::1 [21/May/2026:16:24:40 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:40,415 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:40,847 [INFO] ::1 [21/May/2026:16:24:40 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:40,848 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:41,299 [INFO] ::1 [21/May/2026:16:24:41 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:41,300 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:41,743 [INFO] ::1 [21/May/2026:16:24:41 -0700] "GET /api/inventario HTTP/1.1" 401 175 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:41,744 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 401 Unauthorized"
+2026-05-21 16:24:44,387 [INFO] ::1 [21/May/2026:16:24:44 -0700] "GET /api/inventario HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:44,388 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 200 OK"
+2026-05-21 16:24:44,852 [INFO] ::1 [21/May/2026:16:24:44 -0700] "GET /api/inventario HTTP/1.1" 503 189 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:44,853 [INFO] HTTP Request: GET http://localhost:8080/api/inventario "HTTP/1.1 503 Service Unavailable"
+
+══════════════════════════════════════════════════════════════════════
+   INICIANDO EJECUCIÓN DEL HARNESS DE PRUEBAS — CIRCUIT BREAKER
+══════════════════════════════════════════════════════════════════════
+[MOCK SERVER] Servidor mock activo en http://localhost:8080
+  🔐 [16:24:33] Tokens almacenados en memoria
+  🔐 [16:24:33] refresh_token también almacenado
+🔌 [16:24:33] [EcoMarket-TestAPI] CircuitBreaker inicializado en CERRADO. Umbral=5, Timeout=2.0s
+
+────────────────────────────────────────────────────────────
+   CASO 1: Estado inicial y operación normal
+────────────────────────────────────────────────────────────
+[MOCK SERVER] [16:24:33] Petición #1 recibida | modo=normal
+[MOCK SERVER] [16:24:34] Petición #2 recibida | modo=normal
+[MOCK SERVER] [16:24:34] Petición #3 recibida | modo=normal
+[MOCK SERVER] [16:24:35] Petición #4 recibida | modo=normal
+[MOCK SERVER] [16:24:35] Petición #5 recibida | modo=normal
+Resultado: 5/5 exitosos. Breaker: CERRADO, Fallos=0
+VEREDICTO CASO 1: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 2: Transición CERRADO → ABIERTO
+────────────────────────────────────────────────────────────
+[MOCK SERVER] [16:24:36] Petición #1 recibida | modo=fallo_503
+⚠️  [16:24:36] [EcoMarket-TestAPI] Fallo registrado (1/5 consecutivos)
+[MOCK SERVER] [16:24:36] Petición #2 recibida | modo=fallo_503
+⚠️  [16:24:36] [EcoMarket-TestAPI] Fallo registrado (2/5 consecutivos)
+[MOCK SERVER] [16:24:37] Petición #3 recibida | modo=fallo_503
+⚠️  [16:24:37] [EcoMarket-TestAPI] Fallo registrado (3/5 consecutivos)
+[MOCK SERVER] [16:24:37] Petición #4 recibida | modo=fallo_503
+⚠️  [16:24:37] [EcoMarket-TestAPI] Fallo registrado (4/5 consecutivos)
+[MOCK SERVER] [16:24:38] Petición #5 recibida | modo=fallo_503
+⚠️  [16:24:38] [EcoMarket-TestAPI] Fallo registrado (5/5 consecutivos)
+🔴 [16:24:38] [EcoMarket-TestAPI] TRANSICIÓN: CERRADO → ABIERTO (Umbral de fallos alcanzado. Circuito abierto por 2.0s)
+  ⚡ Fail Fast Exitoso: Circuit breaker abierto. Reintenta en 2.0s
+Breaker abierto: True. Falla rápido: True. Protege servidor: True
+VEREDICTO CASO 2: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 3: Los 4xx no abren el circuito (Evasión Deadlock)
+────────────────────────────────────────────────────────────
+[MOCK SERVER] [16:24:38] Petición #1 recibida | modo=auth
+  🔑 [16:24:38] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  🔄 [16:24:38] Iniciando refresh del access_token...
+[MOCK SERVER] [16:24:38] Petición de refresh recibida
+  ✅ [16:24:39] Access token renovado exitosamente
+  🔁 [16:24:38] [ClienteRobusto] Reintentando petición con token renovado...
+[MOCK SERVER] [16:24:39] Petición #2 recibida | modo=auth
+  ❌ [16:24:38] [ClienteRobusto] Reintento falló con 401. Forzando logout.
+  🚪 [16:24:39] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:39] Petición #3 recibida | modo=auth
+  🔑 [16:24:39] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:39] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:39] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:39] Petición #4 recibida | modo=auth
+  🔑 [16:24:39] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:39] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:39] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:40] Petición #5 recibida | modo=auth
+  🔑 [16:24:40] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:40] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:40] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:40] Petición #6 recibida | modo=auth
+  🔑 [16:24:40] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:40] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:40] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:41] Petición #7 recibida | modo=auth
+  🔑 [16:24:41] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:41] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:41] Logout: estado limpiado completamente (tokens, timer)
+[MOCK SERVER] [16:24:41] Petición #8 recibida | modo=auth
+  🔑 [16:24:41] [ClienteRobusto] 401 Detectado en http://localhost:8080/api/inventario. Disparando refresh singleton...
+  ⚠️  [16:24:41] No hay refresh_token almacenado — imposible renovar
+  🚪 [16:24:41] Logout: estado limpiado completamente (tokens, timer)
+Breaker: CERRADO, Fallos consec=0 (debe ser 0)
+VEREDICTO CASO 3: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 4: Transición ABIERTO → SEMIABIERTO por timeout
+────────────────────────────────────────────────────────────
+Esperando a que expire el timeout_apertura (2 segundos)...
+⚠️  [16:24:43] [EcoMarket-TestAPI] TRANSICIÓN: ABIERTO → SEMIABIERTO (Timeout de apertura de 2.0s expirado. Permitiendo petición de prueba)
+Breaker tras sleep: SEMIABIERTO (debe ser SEMIABIERTO)
+VEREDICTO CASO 4: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 5: Recuperación exitosa (SEMIABIERTO → CERRADO)
+────────────────────────────────────────────────────────────
+[MOCK SERVER] [16:24:44] Petición #1 recibida | modo=normal
+🟢 [16:24:44] [EcoMarket-TestAPI] TRANSICIÓN: SEMIABIERTO → CERRADO (Petición de prueba exitosa! Servidor recuperado)
+Resultado petición: {'productos': 42, 'timestamp': 'ahora', 'status': 'OK'}. Breaker: CERRADO, Fallos consec=0
+VEREDICTO CASO 5: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 6: Fallo en SEMIABIERTO (SEMIABIERTO → ABIERTO)
+────────────────────────────────────────────────────────────
+[MOCK SERVER] [16:24:44] Petición #2 recibida | modo=fallo_503
+🔴 [16:24:44] [EcoMarket-TestAPI] TRANSICIÓN: SEMIABIERTO → ABIERTO (Fallo en la petición de prueba! Reabriendo circuito por otros 2.0s)2026-05-21 16:24:45,807 [INFO] ::1 [21/May/2026:16:24:45 -0700] "GET /api/inventario_delay HTTP/1.1" 200 214 "-" "python-httpx/0.28.1"
+2026-05-21 16:24:45,809 [INFO] HTTP Request: GET http://localhost:8080/api/inventario_delay "HTTP/1.1 200 OK"
+
+Breaker tras fallo en prueba: ABIERTO (debe ser ABIERTO)
+VEREDICTO CASO 6: ✅ PASADO
+
+────────────────────────────────────────────────────────────
+   CASO 7: Concurrencia en SEMIABIERTO (INV-A2)
+────────────────────────────────────────────────────────────
+Lanzando 3 peticiones concurrentes en SEMIABIERTO...
+[MOCK SERVER] [16:24:45] Petición con delay #1 recibida | modo=normal
+🟢 [16:24:45] [EcoMarket-TestAPI] TRANSICIÓN: SEMIABIERTO → CERRADO (Petición de prueba exitosa! Servidor recuperado)
+  Resultados concurrentes: [{'productos': 42, 'timestamp': 'ahora', 'status': 'OK'}, CircuitOpenError('Circuit breaker abierto. Reintenta en 0.0s'), CircuitOpenError('Circuit breaker abierto. Reintenta en 0.0s')]
+  Éxitos: 1 | CircuitOpenErrors: 2 | Peticiones al servidor: 1
+VEREDICTO CASO 7: ✅ PASADO
+[MOCK SERVER] Servidor mock apagado
+
+══════════════════════════════════════════════════════════════════════
+   RESUMEN DEL REPORTE DE VALIDACIÓN — 7 CASOS DE PRUEBA
+══════════════════════════════════════════════════════════════════════
+  Caso                         Veredicto    Descripción
+  ────────────────────────────────────────────────────────────────
+  Caso 1: Op Normal            ✅ PASADO     CERRADO y fallos = 0
+  Caso 2: CERRADO → ABIERTO    ✅ PASADO     Falla rápido y protege servidor
+  Caso 3: Exclusión 4xx        ✅ PASADO     401s no incrementan fallos ni abren circuito
+  Caso 4: ABIERTO → SEMIABIERTO ✅ PASADO     Transición por timeout tras sleep
+  Caso 5: SEMIABIERTO → CERRADO ✅ PASADO     Prueba exitosa cierra breaker
+  Caso 6: SEMIABIERTO → ABIERTO ✅ PASADO     Prueba fallida reabre breaker
+  Caso 7: Concurrencia         ✅ PASADO     Exactamente 1 pasa, 2 rebotan
+══════════════════════════════════════════════════════════════════════

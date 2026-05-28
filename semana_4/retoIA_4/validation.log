@@ -1,0 +1,18 @@
+Resultados de los tests de la semana 4 reto 4.
+
+--- Running Scenario A ---
+Error inesperado: Connection timed out
+Success! The timeout was handled AND the error was broadcasted.
+
+--- Running Scenario B ---
+Error inesperado: Expecting value: line 1 column 1 (char 0)
+Success! The HTML response error was handled AND the error was broadcasted.
+
+--- Running Scenario C ---
+Success! The observer exception was handled AND the success observer was called.
+
+--- Running Scenario D ---
+Success! The nullish data was handled AND the error was broadcasted.
+
+--- Running Test Desacoplamiento ---
+¡Éxito! El ServicioPolling está perfectamente desacoplado.

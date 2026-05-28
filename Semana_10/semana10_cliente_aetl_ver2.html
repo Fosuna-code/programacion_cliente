@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semana 10: Grand Deploy — Examen Práctico 2 + Hito 2 | AETL</title>
+<style>
+/* ── VARIABLES ── */
+:root {
+    --primary:#003a63; --secondary:#005b96; --accent:#f2a900;
+    --success:#28a745; --warning:#ffc107; --danger:#dc3545;
+    --info:#17a2b8; --light:#f8f9fa; --dark:#343a40; --gray:#6c757d;
+    --gold:#d97706; --xp:#7c3aed; --xp-bg:#ede9fe;
+    --radius:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.7;
+     color:var(--dark);background:linear-gradient(135deg,#f0eff7,#e4e8ec);min-height:100vh;}
+
+/* ── HEADER ── */
+.header-institucional{background:linear-gradient(135deg,#0d001f 0%,#1a0040 30%,#003a63 70%,#005b96 100%);
+    color:white;padding:2rem;text-align:center;box-shadow:0 4px 30px rgba(0,0,0,.5);}
+.logo-container{display:flex;justify-content:center;align-items:center;gap:2rem;margin-bottom:1rem;flex-wrap:wrap;}
+.escudo{width:80px;height:80px;background:white;border-radius:50%;display:flex;align-items:center;
+        justify-content:center;font-weight:bold;color:var(--primary);font-size:1.2rem;
+        box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.header-title{font-size:1.8rem;margin-bottom:.4rem;}
+.header-sub{font-size:1.05rem;opacity:.9;}
+.badge-semana{display:inline-block;background:linear-gradient(135deg,#7c3aed,#5b21b6);
+    color:white;padding:.5rem 1.5rem;border-radius:25px;font-weight:bold;margin-top:.5rem;font-size:.95rem;}
+.badge-deploy{display:inline-block;background:linear-gradient(135deg,var(--gold),#f59e0b);
+    color:white;padding:.5rem 1.5rem;border-radius:25px;font-weight:bold;margin-top:.5rem;
+    animation:glow 2s infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.5);}50%{box-shadow:0 0 20px 6px rgba(217,119,6,0);}}
+
+/* ── MODO BAR ── */
+.modo-bar{background:#0d1117;color:white;padding:.6rem 2rem;display:flex;align-items:center;
+          justify-content:center;gap:2rem;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.1);}
+.modo-lbl{font-size:.8rem;opacity:.6;}
+.modo-group{display:flex;gap:.4rem;}
+.modo-btn{padding:.3rem .9rem;border-radius:14px;border:1px solid rgba(255,255,255,.25);
+          cursor:pointer;font-size:.8rem;font-weight:600;background:transparent;color:white;transition:all .2s;}
+.modo-btn.activo{background:var(--danger);border-color:var(--danger);}
+.modo-btn.revision.activo{background:var(--success);border-color:var(--success);}
+.equipo-group{display:flex;align-items:center;gap:.5rem;}
+.equipo-lbl{font-size:.8rem;opacity:.6;}
+.equipo-input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);
+    color:white;padding:.3rem .8rem;border-radius:8px;font-size:.8rem;width:180px;}
+.equipo-input::placeholder{color:rgba(255,255,255,.4);}
+
+/* ── XP PANEL ── */
+.xp-panel{position:fixed;right:1.2rem;top:50%;transform:translateY(-50%);background:white;
+    border-radius:14px;padding:.9rem .8rem;box-shadow:0 8px 30px rgba(0,0,0,.18);
+    width:128px;z-index:300;border:2px solid var(--xp);}
+.xp-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
+.xp-panel-title{font-size:.68rem;font-weight:bold;color:var(--xp);text-transform:uppercase;letter-spacing:.5px;}
+.xp-collapse-btn{background:none;border:none;cursor:pointer;color:var(--gray);font-size:.85rem;}
+.xp-total{font-size:1.9rem;font-weight:bold;color:var(--xp);text-align:center;line-height:1;}
+.xp-sublabel{font-size:.65rem;color:var(--gray);text-align:center;margin-bottom:.4rem;}
+.xp-bar-wrap{background:#e5e7eb;border-radius:4px;height:5px;margin:.4rem 0;overflow:hidden;}
+.xp-bar{background:linear-gradient(90deg,var(--xp),#a855f7);height:100%;border-radius:4px;
+        width:0%;transition:width .5s ease;}
+.xp-certified{background:linear-gradient(135deg,var(--gold),#f59e0b);color:white;border-radius:6px;
+    padding:.25rem .4rem;text-align:center;font-size:.65rem;font-weight:bold;margin-top:.4rem;display:none;}
+.xp-certified.visible{display:block;animation:certPop .5s ease;}
+@keyframes certPop{0%{transform:scale(.6);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+.xp-badge-list{margin-top:.5rem;border-top:1px solid #f0f0f0;padding-top:.5rem;}
+.xp-badge-row{display:flex;align-items:center;gap:.3rem;margin:.15rem 0;font-size:.65rem;
+    opacity:.3;filter:grayscale(1);transition:all .4s;}
+.xp-badge-row.earned{opacity:1;filter:none;}
+.xp-badge-row.earn-anim{animation:badgePop .6s ease;}
+@keyframes badgePop{0%{transform:scale(.5) rotate(-10deg);}60%{transform:scale(1.25) rotate(4deg);}100%{transform:scale(1) rotate(0);}}
+@media(max-width:1100px){.xp-panel{display:none;}}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{background:white;padding:.9rem 2rem;box-shadow:0 2px 10px rgba(0,0,0,.1);
+               position:sticky;top:0;z-index:100;}
+.progress-bar{display:flex;justify-content:space-between;align-items:center;
+              max-width:900px;margin:0 auto;position:relative;}
+.progress-bar::before{content:'';position:absolute;top:50%;left:0;right:0;height:4px;
+                       background:#e0e0e0;transform:translateY(-50%);z-index:1;}
+.progress-step{display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;
+               cursor:pointer;transition:transform .3s;text-decoration:none;}
+.progress-step:hover{transform:scale(1.1);}
+.step-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+           justify-content:center;font-size:1.1rem;background:white;border:3px solid #e0e0e0;transition:all .3s;}
+.progress-step.active .step-icon{background:var(--xp);border-color:var(--xp);color:white;box-shadow:0 4px 15px rgba(124,58,237,.4);}
+.progress-step.completed .step-icon{background:var(--success);border-color:var(--success);color:white;}
+.step-label{font-size:.72rem;margin-top:.4rem;color:var(--gray);font-weight:600;text-transform:uppercase;}
+.progress-step.active .step-label{color:var(--xp);}
+
+/* ── NAV ── */
+.nav-wrap{background:var(--primary);padding:.7rem 2rem;}
+.nav-links{display:flex;justify-content:center;gap:.4rem;flex-wrap:wrap;max-width:1200px;margin:0 auto;}
+.nav-links a{color:white;text-decoration:none;padding:.4rem .9rem;border-radius:18px;
+             font-size:.87rem;transition:all .3s;border:1px solid transparent;}
+.nav-links a:hover{background:rgba(255,255,255,.15);border-color:var(--accent);}
+
+/* ── LAYOUT ── */
+.container{max-width:1100px;margin:0 auto;padding:2rem;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── INFO BOXES ── */
+.context-box{padding:1.2rem 1.5rem;border-radius:var(--radius);margin:1.2rem 0;border-left:4px solid;}
+.context-box.info   {background:#e3f2fd;border-color:var(--info);   color:#1a5276;}
+.context-box.warning{background:#fff8e1;border-color:var(--warning); color:#856404;}
+.context-box.success{background:#e8f5e9;border-color:var(--success); color:#1b5e20;}
+.context-box.danger {background:#fce4ec;border-color:var(--danger);  color:#7b1a25;}
+.context-box.purple {background:#ede7f6;border-color:#7b1fa2;        color:#4a148c;}
+.context-box.gold   {background:#fffbeb;border-color:var(--gold);    color:#78350f;}
+.box-title{font-weight:bold;margin-bottom:.5rem;font-size:1rem;}
+
+/* ── ESCENARIO ── */
+.escenario{background:linear-gradient(135deg,#0d001f,#003a63 55%,#005b96);
+    color:white;border-radius:var(--radius);padding:2rem;margin-bottom:2rem;}
+.escenario h3{color:var(--accent);margin-bottom:1rem;}
+.personaje{margin:1rem 0;}
+.personaje strong{opacity:.85;font-size:.88rem;}
+.dialogo{background:rgba(255,255,255,.1);padding:.8rem 1.2rem;border-radius:var(--radius);
+         margin-top:.4rem;border-left:3px solid var(--accent);font-style:italic;}
+.diagrama-ascii{background:#0d1117;color:#e6edf3;padding:1.2rem 1.5rem;border-radius:var(--radius);
+    font-family:'Consolas',monospace;font-size:.76rem;line-height:1.5;
+    overflow-x:auto;margin:1rem 0;white-space:pre;}
+.diagrama-desc{background:var(--light);padding:.75rem 1rem;border-radius:var(--radius);
+    font-size:.88rem;margin-top:.5rem;border-left:3px solid var(--secondary);}
+
+/* ── PANEL RESUMEN ── */
+.resumen-table{width:100%;border-collapse:collapse;margin-top:.6rem;font-size:.9rem;}
+.resumen-table th{text-align:left;padding:.5rem .8rem;background:rgba(0,0,0,.06);}
+.resumen-table td{padding:.5rem .8rem;}
+.resumen-pts{text-align:center;font-weight:bold;color:var(--secondary);}
+.resumen-pts-gold{text-align:center;font-weight:bold;color:var(--gold);}
+
+/* ── FASE SECTIONS ── */
+.fase-section{background:white;border-radius:var(--radius);margin-bottom:2rem;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;animation:fadeIn .5s ease-out;}
+.fase-header{padding:1.4rem 2rem;color:white;display:flex;align-items:center;
+             justify-content:space-between;gap:1rem;}
+.fase-header.comprende {background:linear-gradient(135deg,#667eea,#764ba2);}
+.fase-header.aplica    {background:linear-gradient(135deg,#f093fb,#f5576c);}
+.fase-header.reflexiona{background:linear-gradient(135deg,#4facfe,#00f2fe);}
+.fase-header.valida    {background:linear-gradient(135deg,#43e97b,#38f9d7);}
+.fase-header.profundiza{background:linear-gradient(135deg,#fa709a,#fee140);}
+.fase-hdr-left{display:flex;align-items:center;gap:1rem;}
+.fase-icon{font-size:2rem;width:58px;height:58px;background:rgba(255,255,255,.2);
+           border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.fase-title{font-size:1.4rem;margin:0;}
+.bloom-tag{background:rgba(255,255,255,.25);padding:.3rem .8rem;border-radius:14px;
+           font-size:.82rem;margin-top:.3rem;display:inline-block;}
+.fase-xp{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+          padding:.3rem .9rem;border-radius:18px;font-weight:bold;font-size:.85rem;white-space:nowrap;}
+.fase-content{padding:2rem;}
+
+/* ── OBJETIVOS ── */
+.objetivos{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid var(--info);
+    border-radius:var(--radius);padding:1.3rem;margin-bottom:1.5rem;}
+.objetivos h4{color:var(--primary);margin-bottom:.8rem;}
+.objetivos li{margin-bottom:.4rem;font-size:.9rem;}
+
+/* ── RETO IA ── */
+.reto{border:2px solid var(--secondary);border-radius:var(--radius);margin:1.5rem 0;overflow:hidden;}
+.reto.bonus{border-color:var(--gold);}
+.reto-hdr{background:var(--secondary);color:white;padding:.9rem 1.4rem;
+          display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;}
+.reto-hdr.bonus  {background:linear-gradient(135deg,var(--gold),#b45309);}
+.reto-hdr.oscuro {background:linear-gradient(135deg,#1e1b4b,#4c1d95);}
+.reto-num{background:var(--accent);color:var(--primary);width:34px;height:34px;
+          border-radius:50%;display:flex;align-items:center;justify-content:center;
+          font-weight:bold;font-size:1.05rem;flex-shrink:0;}
+.reto-num.claro{background:white;color:var(--gold);}
+.reto-num.morado{background:white;color:#4c1d95;}
+.reto-hdr h4{margin:0;font-size:.98rem;flex:1;}
+.reto-badge{font-size:.73rem;padding:.2rem .55rem;border-radius:11px;font-weight:600;}
+.reto-badge.esencial{background:#d1fae5;color:#065f46;}
+.reto-badge.avanzado{background:#fef3c7;color:#92400e;}
+.reto-badge.avanzado-claro{background:rgba(255,255,255,.2);color:white;}
+.xp-chip{background:var(--xp-bg);color:var(--xp);padding:.2rem .65rem;border-radius:11px;
+         font-size:.78rem;font-weight:bold;border:1px solid rgba(124,58,237,.3);}
+.xp-chip.claro{background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3);}
+.tiempo-chip{background:rgba(255,255,255,.2);padding:.2rem .55rem;border-radius:11px;font-size:.75rem;}
+.reto-body{padding:1.5rem;background:rgba(0,58,99,.03);}
+.rol-ia{background:rgba(0,58,99,.08);padding:.6rem 1rem;border-radius:var(--radius);
+        margin-bottom:1rem;font-size:.88rem;}
+
+/* ── PROMPT BOX ── */
+.prompt-box{background:#1e1e1e;color:#d4d4d4;padding:1rem 1.5rem;border-radius:var(--radius);
+    font-family:'Consolas',monospace;font-size:.83rem;white-space:pre-wrap;line-height:1.6;margin:1rem 0;}
+
+/* ── RETO COMPLETADO ROW ── */
+.reto-footer{background:var(--light);border-top:1px solid #e0e0e0;padding:.75rem 1.5rem;
+             display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.check-label{display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.88rem;
+             font-weight:600;color:var(--primary);user-select:none;}
+.check-label input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--success);}
+.xp-ganado{font-size:.82rem;color:var(--xp);font-weight:bold;display:none;}
+.xp-ganado.visible{display:inline;animation:xpPop .45s ease;}
+@keyframes xpPop{0%{transform:scale(.4);opacity:0;}70%{transform:scale(1.25);}100%{transform:scale(1);opacity:1;}}
+.reto-footer-nota{font-size:.78rem;color:var(--gray);}
+.reto-footer-meta{background:transparent;border:none;padding:.8rem 0 0;}
+
+/* ── RETROALIMENTACIÓN ── */
+details.retro{margin-top:.8rem;border-radius:var(--radius);border:1px solid #d1d5db;overflow:hidden;}
+details.retro summary{padding:.65rem 1.2rem;cursor:pointer;font-size:.87rem;font-weight:600;
+    background:#f0f4f8;color:var(--primary);user-select:none;list-style:none;}
+details.retro summary::-webkit-details-marker{display:none;}
+details.retro summary::before{content:'▶  ';font-size:.78rem;}
+details.retro[open] summary::before{content:'▼  ';}
+.retro-body{padding:1rem 1.5rem;background:#fafafa;font-size:.88rem;}
+.retro-body p{margin-bottom:.6rem;}
+.retro-body p:last-child{margin-bottom:0;}
+
+/* ── TABS ── */
+.ruta-tabs{display:flex;gap:.5rem;margin-bottom:1rem;}
+.ruta-tab{padding:.45rem 1.1rem;border-radius:18px;border:none;cursor:pointer;font-size:.87rem;font-weight:600;transition:all .3s;}
+.ruta-tab.python{background:#3776ab;color:white;}
+.ruta-tab.python.active,.ruta-tab.python:hover{background:#2a5f8a;box-shadow:0 2px 8px rgba(55,118,171,.4);}
+.ruta-tab.browser{background:#f7df1e;color:#333;}
+.ruta-tab.browser.active,.ruta-tab.browser:hover{background:#e0c900;box-shadow:0 2px 8px rgba(247,223,30,.4);}
+.ruta-content{display:none;}
+.ruta-content.active{display:block;}
+
+/* ── CHECKPOINT ── */
+.checkpoint{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid var(--info);
+    border-radius:var(--radius);padding:1.5rem;margin:2rem 0;}
+.checkpoint h4{color:var(--primary);margin-bottom:1rem;}
+.pregunta{background:white;padding:.8rem 1rem;border-radius:var(--radius);margin:.6rem 0;
+          font-style:italic;border-left:3px solid var(--secondary);}
+
+/* ── INVARIANTES ── */
+.inv-list{list-style:none;border:1px solid #e0e0e0;border-radius:var(--radius);overflow:hidden;}
+.inv-item{display:flex;align-items:flex-start;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid #f0f0f0;}
+.inv-item:nth-child(even){background:var(--light);}
+.inv-item:last-child{border-bottom:none;}
+.inv-chk{width:17px;height:17px;flex-shrink:0;margin-top:3px;accent-color:var(--success);cursor:pointer;}
+.inv-body{flex:1;}
+.inv-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;}
+.inv-code{font-weight:bold;color:var(--secondary);font-size:.83rem;}
+.inv-desc{font-size:.87rem;}
+.inv-hint{color:var(--gray);font-size:.8rem;font-style:italic;display:block;margin-top:.2rem;}
+.inv-estado{width:110px;flex-shrink:0;}
+.inv-estado select{width:100%;font-size:.79rem;border:1px solid #ced4da;border-radius:4px;padding:.2rem .3rem;}
+.inv-evid{width:100%;font-family:'Consolas',monospace;font-size:.77rem;border:1px solid #ced4da;
+    border-radius:4px;padding:.3rem .5rem;background:var(--light);resize:vertical;min-height:36px;
+    margin-top:.4rem;display:block;}
+
+/* ── PUZZLE FRAGMENTOS ── */
+.frag-grid{display:flex;flex-direction:column;gap:1rem;}
+.frag-card{border:1px solid #d1d5db;border-radius:var(--radius);overflow:hidden;}
+.frag-tag{background:var(--secondary);color:white;padding:.35rem 1rem;font-size:.82rem;font-weight:bold;}
+.frag-row{padding:.7rem 1rem;background:var(--light);display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;}
+.frag-select{padding:.35rem .7rem;border:1px solid #ced4da;border-radius:6px;font-size:.84rem;background:white;cursor:pointer;}
+.frag-fb{font-size:.82rem;font-weight:bold;align-self:center;}
+.frag-justif{width:100%;padding:.4rem .7rem;border:1px solid #ced4da;border-radius:6px;
+    font-size:.83rem;font-family:inherit;resize:vertical;min-height:52px;}
+.frag-ok{background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:.8rem 1.5rem;
+    text-align:center;font-weight:bold;color:#065f46;margin-top:1rem;display:none;}
+
+/* ── ADR ── */
+.adr-wrap{border:2px solid var(--secondary);border-radius:var(--radius);overflow:hidden;}
+.adr-row{padding:.8rem 1.2rem;border-bottom:1px solid #e0e0e0;}
+.adr-row:last-child{border-bottom:none;}
+.adr-lbl{font-size:.77rem;font-weight:bold;color:var(--secondary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.4rem;}
+.adr-field{width:100%;padding:.5rem;border:1px solid #ced4da;border-radius:6px;
+    font-family:inherit;font-size:.88rem;resize:vertical;background:#fdfdfd;}
+
+/* ── CÓDIGO ── */
+pre{margin:0;}
+code{background:#f1f3f4;padding:.2rem .45rem;border-radius:4px;font-family:'Consolas',monospace;
+     font-size:.88em;color:#d63384;}
+pre code{display:block;padding:1.2rem;background:#1e1e1e;color:#d4d4d4;overflow-x:auto;font-size:.82rem;line-height:1.6;}
+.bug-line{background:rgba(220,53,69,.2);border-left:3px solid var(--danger);display:block;padding-left:.4rem;}
+
+/* ── ZERO TOLERANCE ── */
+.zt-box{background:linear-gradient(135deg,#1a0000,#2d0000);color:white;border-radius:var(--radius);
+    padding:1.5rem 2rem;margin:1.5rem 0;border:2px solid var(--danger);}
+.zt-box h4{color:#ff6b6b;margin-bottom:.8rem;}
+.zt-box code{background:rgba(255,255,255,.12);color:#fca5a5;}
+.zt-warn{color:#ff6b6b;font-weight:bold;margin-top:.7rem;display:block;}
+
+/* ── HITO 2 ── */
+.hito-section{background:white;border-radius:var(--radius);margin-bottom:2rem;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;}
+.hito-header{background:linear-gradient(135deg,var(--gold),#b45309);color:white;padding:1.4rem 2rem;}
+.hito-header h2{font-size:1.35rem;margin:0;}
+.hito-sub{opacity:.9;margin-top:.4rem;}
+.hito-body{padding:1.5rem 2rem;}
+.hito-archivo{display:flex;align-items:center;gap:.8rem;padding:.5rem 0;border-bottom:1px solid #f0f0f0;font-size:.88rem;}
+.hito-archivo:last-child{border-bottom:none;}
+.rubrica-table{width:100%;border-collapse:collapse;font-size:.87rem;margin-top:.5rem;}
+.rubrica-table th{background:rgba(0,0,0,.06);text-align:left;padding:.5rem .8rem;}
+.rubrica-table td{padding:.5rem .8rem;border-bottom:1px solid #f0f0f0;}
+.rubrica-table tr:last-child td{border-bottom:none;}
+.rubrica-pts{text-align:center;font-weight:bold;color:var(--secondary);}
+.rubrica-total td{background:#e3f2fd;font-weight:bold;}
+.declaracion-check{display:flex;align-items:flex-start;gap:.6rem;margin:.4rem 0;font-size:.88rem;cursor:pointer;}
+.declaracion-check input{width:16px;height:16px;flex-shrink:0;margin-top:2px;}
+
+/* ── EVALUACIÓN ── */
+.eval-section{background:white;border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,.08);
+    overflow:hidden;margin-bottom:2rem;}
+.eval-header{background:linear-gradient(135deg,var(--success),#20c997);color:white;padding:1.4rem 2rem;}
+.eval-header h2{font-size:1.35rem;margin:0;}
+.eval-header p{opacity:.9;margin-top:.4rem;}
+.criterio-item{display:flex;align-items:flex-start;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid #e0e0e0;}
+.criterio-item:last-child{border-bottom:none;}
+.fase-badge{background:var(--secondary);color:white;padding:.2rem .7rem;border-radius:12px;
+    font-size:.75rem;font-weight:bold;white-space:nowrap;flex-shrink:0;margin-top:.1rem;}
+.criterio-body{flex:1;}
+.criterio-body strong{display:block;}
+.criterio-body span{font-size:.85rem;color:var(--gray);}
+.criterio-pts{font-size:1.05rem;font-weight:bold;color:var(--secondary);white-space:nowrap;margin-left:auto;}
+.eval-footer{padding:1rem 1.5rem;background:var(--light);border-top:1px solid #e0e0e0;}
+.eval-footer-bonus{padding:1rem 1.5rem;background:#e3f2fd;border-top:2px solid var(--info);}
+.entregable-box{background:linear-gradient(135deg,#003a63,#005b96);color:white;
+    border-radius:var(--radius);padding:1.3rem 1.8rem;margin:1.5rem 0;}
+.entregable-box h4{color:var(--accent);margin-bottom:.8rem;}
+.ent-item{padding:.35rem 0;opacity:.92;font-size:.88rem;}
+.tiempo-badge{background:var(--accent);color:var(--primary);padding:.25rem .7rem;
+    border-radius:11px;font-size:.82rem;font-weight:bold;display:inline-block;margin-top:.6rem;}
+
+/* ── GLOSARIO ── */
+.glosario-section{background:white;border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,.08);
+    overflow:hidden;margin-bottom:2rem;}
+.glosario-header{background:linear-gradient(135deg,var(--dark),#495057);color:white;padding:1.4rem 2rem;}
+.glosario-header h2{margin:0;}
+.glosario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;padding:1.5rem;}
+.termino-card{background:var(--light);padding:1rem;border-radius:var(--radius);border-left:4px solid var(--secondary);}
+.termino-card.aetl{border-left-color:var(--xp);}
+.termino-card dt{font-weight:bold;color:var(--primary);margin-bottom:.3rem;}
+.termino-card dd{font-size:.87rem;margin:0;color:var(--gray);}
+
+/* ── REFERENCIAS ── */
+.refs-section{background:white;border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,.08);
+    padding:2rem;margin-bottom:2rem;}
+.refs-section h3{color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--accent);}
+.refs-cat{color:var(--primary);font-weight:bold;margin:1rem 0 .6rem;}
+.ref-item{padding:.5rem 0;border-bottom:1px dashed #e0e0e0;font-size:.88rem;}
+.ref-item:last-child{border-bottom:none;}
+
+/* ── FOOTER ── */
+.footer{background:var(--primary);color:white;text-align:center;padding:2rem;}
+.modelo-badge{display:inline-block;background:var(--accent);color:var(--primary);
+    padding:.4rem 1.2rem;border-radius:20px;font-weight:bold;margin-bottom:.8rem;}
+
+@media(max-width:768px){.container{padding:1rem;}.fase-content{padding:1rem;}
+.fase-header{flex-direction:column;align-items:flex-start;}}
+@media print{.progress-wrap,.nav-wrap,.modo-bar,.xp-panel{position:static;}}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header-institucional">
+  <div class="logo-container">
+    <div class="escudo">UAN</div>
+    <div>
+      <h1 class="header-title">Programación Distribuida del Lado del Cliente</h1>
+      <p class="header-sub">Licenciatura en Sistemas Computacionales</p>
+    </div>
+    <div class="escudo">LSC</div>
+  </div>
+  <p><span class="badge-semana">📅 Semana 10 de 15 · Unidad IV — Cierre · Examen Práctico 2</span></p>
+  <p><span class="badge-deploy">🚀 GRAND DEPLOY — EcoMarket va a producción</span></p>
+</header>
+
+<!-- ── MODO BAR ── -->
+<div class="modo-bar">
+  <div class="equipo-group">
+    <label class="equipo-lbl" for="equipo-input">👥 Equipo:</label>
+    <input id="equipo-input" class="equipo-input" type="text" placeholder="Ej: Cruz &amp; Martínez" oninput="propagarEquipo(this.value)">
+  </div>
+  <div class="equipo-group">
+    <span class="modo-lbl">Modo:</span>
+    <div class="modo-group">
+      <button class="modo-btn activo"   id="btn-examen"   onclick="setModo('examen')">🔒 Examen</button>
+      <button class="modo-btn revision" id="btn-revision" onclick="setModo('revision')">🔓 Revisión</button>
+    </div>
+  </div>
+  <span class="modo-lbl">Examen: criterios ocultos hasta marcar completado · Revisión: criterios siempre visibles</span>
+</div>
+
+<!-- ── XP PANEL ── -->
+<div class="xp-panel" id="xpPanel">
+  <div class="xp-panel-hdr">
+    <span class="xp-panel-title">⚡ XP</span>
+    <button class="xp-collapse-btn" onclick="toggleXP()">—</button>
+  </div>
+  <div id="xpBody">
+    <div class="xp-total" id="xpTotal">0</div>
+    <div class="xp-sublabel">de 100 pts base</div>
+    <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar"></div></div>
+    <div class="xp-certified" id="xpCertified">🎖️ DEPLOY<br>CERTIFIED</div>
+    <div class="xp-badge-list">
+      <div class="xp-badge-row" id="badge-sse">🛡️ SSE Sentinel</div>
+      <div class="xp-badge-row" id="badge-token">🔑 Token Guardian</div>
+      <div class="xp-badge-row" id="badge-breaker">⚡ Breaker Spec.</div>
+      <div class="xp-badge-row" id="badge-arch">🏗️ Integ. Architect</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROGRESS BAR ── -->
+<div class="progress-wrap">
+  <div class="progress-bar">
+    <a href="#comprende"  class="progress-step"><div class="step-icon">🗺️</div><div class="step-label">Comprende</div></a>
+    <a href="#aplica"     class="progress-step"><div class="step-icon">🔧</div><div class="step-label">Aplica</div></a>
+    <a href="#reflexiona" class="progress-step"><div class="step-icon">🛡️</div><div class="step-label">Reflexiona</div></a>
+    <a href="#valida"     class="progress-step"><div class="step-icon">✅</div><div class="step-label">Valida</div></a>
+    <a href="#profundiza" class="progress-step"><div class="step-icon">🚀</div><div class="step-label">Profundiza</div></a>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<nav class="nav-wrap">
+  <div class="nav-links">
+    <a href="#escenario">🚀 Grand Deploy</a>
+    <a href="#comprende">🗺️ Comprende</a>
+    <a href="#aplica">🔧 Aplica</a>
+    <a href="#reflexiona">🛡️ Reflexiona</a>
+    <a href="#valida">✅ Valida</a>
+    <a href="#profundiza">🌌 Profundiza</a>
+    <a href="#hito2">🏆 Hito 2</a>
+    <a href="#evaluacion">📊 Evaluación</a>
+    <a href="#glosario">📖 Glosario</a>
+    <a href="#referencias">📚 Referencias</a>
+  </div>
+</nav>
+
+<main class="container">
+
+<!-- ── PANEL RESUMEN ── -->
+<div class="context-box gold">
+  <div class="box-title">📋 Semana 10 — Dos instrumentos en un solo taller (equipos de hasta 2)</div>
+  <table class="resumen-table">
+    <tr><th>Instrumento</th><th>Peso</th><th>Cobertura</th></tr>
+    <tr>
+      <td><strong>Examen Práctico 2</strong> — Arquitectura y Resiliencia</td>
+      <td class="resumen-pts">12 %</td>
+      <td>Semanas 6–9 (SSE, JWT, Circuit Breaker)</td>
+    </tr>
+    <tr>
+      <td><strong>Hito 2</strong> — Cliente Seguro y Resiliente</td>
+      <td class="resumen-pts-gold">15 %</td>
+      <td>ClienteRobusto integrado · entrega formal hoy</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Tiempo de taller (4 h):</strong>
+    R1 15 min · R2 20 min · R3 40 min · R4 30 min · R5 25 min · R7 25 min · R8 40 min · Metacognición 10 min ≈ 3 h 25 min de retos + 35 min de cierre y entrega.
+    Los Retos 6, 9 y 10 son <strong>bonus</strong> para completar fuera del taller.
+  </p>
+</div>
+
+<div class="context-box info">
+  <div class="box-title">🧭 Ajustes de autenticidad profesional incorporados</div>
+  <p>Esta versión refuerza el carácter de <strong>Grand Deploy</strong>: se exige repositorio o paquete reproducible, README de ejecución, al menos una prueba automatizada formal, evidencia del estado observable del cliente, bitácora curada de uso de IA y una política de <strong>Hard Gate</strong> para defectos críticos en lugar de anulación automática.</p>
+</div>
+
+<!-- ── ESCENARIO ── -->
+<section id="escenario">
+<div class="escenario">
+  <h3>🚀 Escenario: El Grand Deploy de EcoMarket</h3>
+  <p>Han pasado nueve semanas. El equipo de TechNova ha construido, pieza a pieza, el cliente de EcoMarket: fundamentos HTTP, programación async, polling, SSE, autenticación JWT y Circuit Breaker. Hoy es el <strong>Grand Deploy</strong>: el día que todos los ingenieros conocen y temen en igual medida.</p>
+  <p>El CTO de EcoMarket está en la sala. El equipo de infraestructura tiene los servidores de producción listos. Antes de que el cliente salga al mundo real, el arquitecto jefe exige una <em>auditoría completa</em>: cada componente demostrado, cada decisión defendida, cada integración certificada.</p>
+  <div class="personaje">
+    <strong>🏢 CTO de EcoMarket:</strong>
+    <div class="dialogo">"Necesito saber tres cosas: que cada ingeniero entiende qué hace cada componente y por qué está separado; que el código sobrevive a un servidor caído sin colapsar; y que el sistema no filtra tokens en ningún log de producción. Si pasan las tres verificaciones, desplegamos."</div>
+  </div>
+  <div class="personaje">
+    <strong>👩‍🏫 Arquitecta Senior (TechNova):</strong>
+    <div class="dialogo">"Esta semana no construimos nada nuevo. Demostramos que lo que construimos funciona correctamente y que entendemos cada decisión. Un sistema que funciona pero que su equipo no puede explicar es un sistema que no puede mantenerse."</div>
+  </div>
+  <p><em>Tu misión hoy: completar los retos de auditoría, certificar tu <strong>Hito 2</strong>, y demostrar que el cliente EcoMarket está listo para producción.</em></p>
+
+  <div class="diagrama-ascii" role="img" aria-label="Arquitectura acumulada del cliente EcoMarket — Semanas 1 a 9, auditada en Semana 10">
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│               ARQUITECTURA CLIENTE ECOMARKET — AUDITADA HOY                         │
+│                        Semanas 1–9  →  Semana 10: Grand Deploy                      │
+├──────────────────────────────────────┬──────────────────────────────────────────────┤
+│  HTTP / REST  (Sems. 1–4)            │  Tiempo Real (Sems. 6–7)                     │
+│  ┌────────────────────────────────┐  │  ┌──────────────────────────────────────┐    │
+│  │ GET /api/inventario            │  │  │ ClienteSSEMultiplex                  │    │
+│  │ PUT /api/precios               │  │  │   └─ EventRouter                     │    │
+│  │ POST /auth/login               │  │  │       ├─ handler_inventario          │    │
+│  └────────────────────────────────┘  │  │       ├─ handler_precios             │    │
+│         ↕ async/await (Sem. 3)       │  │       └─ handler_alertas             │    │
+│  ┌────────────────────────────────┐  │  └──────────────────────────────────────┘    │
+│  │ Polling + Observer (Sem. 4)    │  │                                              │
+│  └────────────────────────────────┘  │  Autenticación (Sem. 8)                      │
+│                                      │  ┌──────────────────────────────────────┐    │
+│                                      │  │ TokenManager (singleton)             │    │
+│                                      │  │   decode_payload() · get_auth_header()│   │
+│                                      │  │   refresh_access_token()             │    │
+│                                      │  └──────────────────────────────────────┘    │
+│                                      │                                              │
+│                                      │  Resiliencia (Sem. 9)                        │
+│                                      │  ┌──────────────────────────────────────┐    │
+│                                      │  │ CircuitBreaker  CERRADO/ABIERTO/SEMI │    │
+│                                      │  │ ClienteRobusto  ← núcleo del Hito 2  │    │
+│                                      │  │   orquesta CB + TM sin duplicar      │    │
+│                                      │  └──────────────────────────────────────┘    │
+├──────────────────────────────────────┴──────────────────────────────────────────────┤
+│  ★ SEMANA 10: Examen Práctico 2 + Hito 2 — auditoría de todo lo anterior            │
+│  ⏭  Semana 11: WebSocket — conexión bidireccional sobre esta misma arquitectura    │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+  </div>
+  <div class="diagrama-desc"><strong>Qué representa:</strong> la arquitectura completa del cliente EcoMarket. <strong>Aspecto clave para la auditoría:</strong> cada capa tiene exactamente una responsabilidad — el Circuit Breaker no sabe de tokens, el TokenManager no sabe del estado del circuito, el EventRouter no sabe de autenticación.</div>
+</div>
+</section>
+<!-- ═══════════════════════════════════ FASE 1: COMPRENDE ═══════════════════════════════════ -->
+<section id="comprende" class="fase-section">
+  <div class="fase-header comprende">
+    <div class="fase-hdr-left">
+      <div class="fase-icon">🗺️</div>
+      <div>
+        <h2 class="fase-title">FASE 1: COMPRENDE — Reconocimiento de Componentes</h2>
+        <span class="bloom-tag">Bloom: Recordar · Comprender</span>
+      </div>
+    </div>
+    <span class="fase-xp">15 XP base</span>
+  </div>
+  <div class="fase-content">
+
+    <div class="objetivos">
+      <h4>🎯 Qué demuestra esta fase</h4>
+      <ul>
+        <li>Identificar el componente correcto a partir de un fragmento de código, <em>sin ver el nombre del archivo</em>.</li>
+        <li>Articular por qué un fragmento pertenece a un componente específico — no solo que pertenece.</li>
+        <li>Trazar el flujo completo de una petición autenticada con SSE activo y Circuit Breaker en estado <strong>SEMIABIERTO</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- ── RETO 1 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">1</div>
+        <h4>Mapa de Responsabilidades — ¿quién hace qué? <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">8 XP</span>
+        <span class="tiempo-chip">⏱ 15 min</span>
+      </div>
+      <div class="reto-body">
+        <p>Se presentan <strong>5 fragmentos anónimos</strong> de las Semanas 6–9. Para cada uno: (a) selecciona el componente correcto y (b) escribe el criterio técnico en una oración — no basta reconocer el código, debes articular la razón.</p>
+
+        <div class="frag-grid">
+
+          <div class="frag-card">
+            <div class="frag-tag">Fragmento A</div>
+<pre><code>lines = chunk.decode('utf-8').split('\n')
+for line in lines:
+    if line.startswith('data:'):
+        payload = json.loads(line[5:].strip())
+        self._last_event_id = payload.get('id', self._last_event_id)
+        self._on_event(payload)</code></pre>
+            <div class="frag-row">
+              <select class="frag-select" data-frag="A" data-correct="ReceptorAlertas" onchange="checkFrag(this)">
+                <option value="">— Asignar componente —</option>
+                <option>ReceptorAlertas</option>
+                <option>ClienteSSEMultiplex / EventRouter</option>
+                <option>TokenManager</option>
+                <option>CircuitBreaker</option>
+                <option>ClienteRobusto</option>
+              </select>
+              <span class="frag-fb" id="fb-A"></span>
+              <textarea class="frag-justif" placeholder="Criterio técnico (1 oración)…"></textarea>
+            </div>
+          </div>
+
+          <div class="frag-card">
+            <div class="frag-tag">Fragmento B</div>
+<pre><code>def despachar(self, tipo_evento: str, payload: dict) -> None:
+    handler = self._handlers.get(tipo_evento)
+    if handler:
+        handler(payload)
+    else:
+        self._handler_default(tipo_evento, payload)</code></pre>
+            <div class="frag-row">
+              <select class="frag-select" data-frag="B" data-correct="ClienteSSEMultiplex / EventRouter" onchange="checkFrag(this)">
+                <option value="">— Asignar componente —</option>
+                <option>ReceptorAlertas</option>
+                <option>ClienteSSEMultiplex / EventRouter</option>
+                <option>TokenManager</option>
+                <option>CircuitBreaker</option>
+                <option>ClienteRobusto</option>
+              </select>
+              <span class="frag-fb" id="fb-B"></span>
+              <textarea class="frag-justif" placeholder="Criterio técnico (1 oración)…"></textarea>
+            </div>
+          </div>
+
+          <div class="frag-card">
+            <div class="frag-tag">Fragmento C</div>
+<pre><code>partes = token.split('.')
+padding = 4 - len(partes[1]) % 4
+decoded = base64.urlsafe_b64decode(partes[1] + '=' * padding)
+return json.loads(decoded)</code></pre>
+            <div class="frag-row">
+              <select class="frag-select" data-frag="C" data-correct="TokenManager" onchange="checkFrag(this)">
+                <option value="">— Asignar componente —</option>
+                <option>ReceptorAlertas</option>
+                <option>ClienteSSEMultiplex / EventRouter</option>
+                <option>TokenManager</option>
+                <option>CircuitBreaker</option>
+                <option>ClienteRobusto</option>
+              </select>
+              <span class="frag-fb" id="fb-C"></span>
+              <textarea class="frag-justif" placeholder="Criterio técnico (1 oración)…"></textarea>
+            </div>
+          </div>
+
+          <div class="frag-card">
+            <div class="frag-tag">Fragmento D</div>
+<pre><code>if self._estado == EstadoCircuito.ABIERTO:
+    if time.time() - self._tiempo_apertura >= self._timeout_apertura:
+        self._estado = EstadoCircuito.SEMIABIERTO
+    else:
+        raise CircuitOpenError(
+            f"Circuito abierto. Reintente en {self._segundos_restantes():.0f}s"
+        )</code></pre>
+            <div class="frag-row">
+              <select class="frag-select" data-frag="D" data-correct="CircuitBreaker" onchange="checkFrag(this)">
+                <option value="">— Asignar componente —</option>
+                <option>ReceptorAlertas</option>
+                <option>ClienteSSEMultiplex / EventRouter</option>
+                <option>TokenManager</option>
+                <option>CircuitBreaker</option>
+                <option>ClienteRobusto</option>
+              </select>
+              <span class="frag-fb" id="fb-D"></span>
+              <textarea class="frag-justif" placeholder="Criterio técnico (1 oración)…"></textarea>
+            </div>
+          </div>
+
+          <div class="frag-card">
+            <div class="frag-tag">Fragmento E</div>
+<pre><code>async def get_inventario(self) -> dict:
+    if self._token_manager.is_expiring_soon():
+        await self._token_manager.refresh_access_token()
+    headers = self._token_manager.get_auth_header()
+    return await self._circuit_breaker.ejecutar(
+        lambda: self._http_get('/api/inventario', headers=headers)
+    )</code></pre>
+            <div class="frag-row">
+              <select class="frag-select" data-frag="E" data-correct="ClienteRobusto" onchange="checkFrag(this)">
+                <option value="">— Asignar componente —</option>
+                <option>ReceptorAlertas</option>
+                <option>ClienteSSEMultiplex / EventRouter</option>
+                <option>TokenManager</option>
+                <option>CircuitBreaker</option>
+                <option>ClienteRobusto</option>
+              </select>
+              <span class="frag-fb" id="fb-E"></span>
+              <textarea class="frag-justif" placeholder="Criterio técnico (1 oración)…"></textarea>
+            </div>
+          </div>
+
+        </div><!-- frag-grid -->
+        <div class="frag-ok" id="puzzle-ok">✅ ¡Los 5 fragmentos asignados correctamente! Completa las justificaciones y marca el reto.</div>
+
+        <details class="retro" id="retro-r1">
+          <summary>📋 Ver criterios de evaluación — Reto 1</summary>
+          <div class="retro-body">
+            <p><strong>A → ReceptorAlertas:</strong> parsea el stream SSE línea a línea y mantiene <code>_last_event_id</code>. Es el único componente que toca el protocolo SSE a nivel de bytes.</p>
+            <p><strong>B → EventRouter:</strong> el método <code>despachar()</code> con diccionario de handlers es la firma del patrón Dispatcher. No conoce el protocolo de transporte.</p>
+            <p><strong>C → TokenManager:</strong> decodificación Base64URL con padding restaurado — única responsabilidad del TM para extraer el payload del JWT.</p>
+            <p><strong>D → CircuitBreaker:</strong> transición <code>ABIERTO → SEMIABIERTO</code> basada en tiempo, lanzando <code>CircuitOpenError</code>. Ningún otro componente tiene esta lógica de estados.</p>
+            <p><strong>E → ClienteRobusto:</strong> orquesta sin duplicar — llama a <code>is_expiring_soon()</code> del TM, construye headers y pasa la lambda al CB. No reimplementa lógica de tokens ni de estados.</p>
+            <p><strong>Error frecuente:</strong> asignar E al CircuitBreaker porque "<code>ejecutar()</code> está ahí". Pero el CB no construye headers ni llama a <code>is_expiring_soon()</code>. E orquesta; D decide.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label">
+          <input type="checkbox" data-reto="r1" data-xp="8" onchange="onRetoCheck(this)"> ✓ Reto 1 completado
+        </label>
+        <span class="xp-ganado" id="xp-r1">+8 XP ⚡</span>
+        <span class="reto-footer-nota">Desbloquea 🛡️ SSE Sentinel (con R2)</span>
+      </div>
+    </div><!-- reto 1 -->
+
+    <!-- ── RETO 2 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">2</div>
+        <h4>Diagrama de Flujo Integrado — traza la petición completa <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">7 XP</span>
+        <span class="tiempo-chip">⏱ 20 min</span>
+      </div>
+      <div class="reto-body">
+        <p>El diagrama muestra el ciclo de una petición <code>GET /api/inventario</code> con SSE activo y Circuit Breaker en estado <strong>SEMIABIERTO</strong>. Los nodos <code>[?N]</code> son los que <strong>tú debes completar</strong> en papel o texto.</p>
+<pre><code>PETICIÓN: ClienteRobusto.get_inventario()
+│
+├─ [?1] ¿Qué componente verifica si el token expira pronto?
+│        └─ Si expira: ¿qué método se llama? ¿quién lo implementa?
+│
+├─ [?2] ClienteRobusto llama a circuit_breaker.ejecutar(lambda).
+│        El estado actual es SEMIABIERTO.
+│        Escribe las 3 salidas posibles:
+│           Salida A (peticiones concurrentes adicionales): ___
+│           Salida B (la petición de prueba pasa):          ___
+│           Salida C (resultado de la petición de prueba):  ___
+│
+├─ [?3] La petición de prueba tiene ÉXITO (HTTP 200).
+│        ¿Qué transición de estado ocurre? ¿Qué método la ejecuta?
+│        ¿Qué atributo se resetea y a qué valor?
+│
+├─ [?4] Simultáneamente, el ClienteSSEMultiplex tiene una conexión SSE activa.
+│        ¿La apertura del Circuit Breaker HTTP interrumpe ese stream SSE?
+│        Justifica en una oración con referencia a los componentes.
+│
+└─ [?5] El TokenManager sabe que el Circuit Breaker acaba de cerrarse?
+         ¿Por qué sí o por qué no? (Cita el invariante correspondiente.)</code></pre>
+
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Revisor de diagramas que valida tu flujo y señala nodos incorrectos o faltantes. Úsala <em>después</em> de completar los [?N] por tu cuenta.</div>
+        <div class="prompt-box">Actúa como revisor de arquitectura de sistemas distribuidos.
+
+Completé el diagrama de flujo. Mis respuestas:
+
+[?1] _______________________________
+[?2] Salida A: ___ / Salida B: ___ / Salida C: ___
+[?3] _______________________________
+[?4] _______________________________
+[?5] _______________________________
+
+Evalúa si cada nodo es técnicamente correcto. Para los incorrectos, haz una sola pregunta
+socrática que me lleve a encontrar el error. No corrijas directamente.</div>
+
+        <details class="retro" id="retro-r2">
+          <summary>📋 Ver criterios de evaluación — Reto 2</summary>
+          <div class="retro-body">
+            <p><strong>[?1]</strong> TokenManager · <code>is_expiring_soon()</code> → <code>refresh_access_token()</code>. Único componente con conocimiento del ciclo de vida del token.</p>
+            <p><strong>[?2]</strong> A: peticiones concurrentes reciben <code>CircuitOpenError</code> inmediato (el "cupo" de prueba ya se usó). B: la lambda se ejecuta (petición de prueba pasa al servidor). C: éxito → CERRADO; fallo → ABIERTO de nuevo.</p>
+            <p><strong>[?3]</strong> <code>SEMIABIERTO → CERRADO</code> · <code>_on_exito()</code> · <code>_fallos_consecutivos = 0</code>.</p>
+            <p><strong>[?4]</strong> No. La conexión SSE ya establecida no pasa por el Circuit Breaker HTTP — son dos canales distintos. El CB aplica a peticiones HTTP del ClienteRobusto, no a la conexión TCP/SSE del ClienteSSEMultiplex.</p>
+            <p><strong>[?5]</strong> No · INV-B1: el TokenManager no consulta ni almacena el estado del CircuitBreaker.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label">
+          <input type="checkbox" data-reto="r2" data-xp="7" onchange="onRetoCheck(this)"> ✓ Reto 2 completado
+        </label>
+        <span class="xp-ganado" id="xp-r2">+7 XP ⚡</span>
+        <span class="reto-footer-nota">Desbloquea 🛡️ SSE Sentinel (con R1)</span>
+      </div>
+    </div><!-- reto 2 -->
+
+  </div><!-- fase-content -->
+</section>
+<!-- ═══════════════════════════════════ FASE 2: APLICA ═══════════════════════════════════ -->
+<section id="aplica" class="fase-section">
+  <div class="fase-header aplica">
+    <div class="fase-hdr-left">
+      <div class="fase-icon">🔧</div>
+      <div>
+        <h2 class="fase-title">FASE 2: APLICA — Implementación Bajo Presión</h2>
+        <span class="bloom-tag">Bloom: Aplicar</span>
+      </div>
+    </div>
+    <span class="fase-xp">35 XP base</span>
+  </div>
+  <div class="fase-content">
+
+    <div class="objetivos">
+      <h4>🎯 Qué demuestra esta fase</h4>
+      <ul>
+        <li>Identificar defectos de diseño en código existente — no solo qué hace el código, sino qué <em>no debería hacer</em>.</li>
+        <li>Integrar TokenManager y CircuitBreaker en un script funcional contra un mock, demostrando comprensión del flujo completo.</li>
+        <li>Reconocer los 3 tipos de bug (SRP, fuga de token, estado corrupto) a partir del síntoma, antes de leer el código.</li>
+      </ul>
+    </div>
+
+    <!-- ── RETO 3 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">3</div>
+        <h4>Autopsia de ClienteRobusto — 3 defectos deliberados <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">20 XP</span>
+        <span class="tiempo-chip">⏱ 40 min</span>
+      </div>
+      <div class="reto-body">
+        <p>El código de abajo tiene <strong>3 defectos deliberados</strong>. Solo se te dan los <em>síntomas</em>, no las ubicaciones. Tu trabajo: (1) identificar el defecto, (2) localizar la línea exacta, (3) proponer la corrección con el principio violado.</p>
+
+        <div class="context-box danger">
+          <div class="box-title">🔴 Síntomas reportados por QA</div>
+          <p><strong>SÍNTOMA A:</strong> Los operadores con rol <code>'viewer'</code> reciben un error de permisos al consultar inventario, aunque deberían poder hacer GET.</p>
+          <p><strong>SÍNTOMA B:</strong> En los logs de producción aparecen fragmentos del token de acceso.</p>
+          <p><strong>SÍNTOMA C:</strong> Después de que el servidor se recupera y el circuito cierra, sigue acumulando fallos como si fuera la primera vez — el contador no se reinicia.</p>
+        </div>
+
+        <div class="ruta-tabs">
+          <button class="ruta-tab python active" data-tab-grupo="r3" data-tab-id="r3-py" onclick="showRuta('r3','r3-py')">🐍 Python</button>
+          <button class="ruta-tab browser"       data-tab-grupo="r3" data-tab-id="r3-js" onclick="showRuta('r3','r3-js')">🌐 JavaScript</button>
+        </div>
+
+        <div id="r3-py" class="ruta-content active" data-ruta-grupo="r3">
+<pre><code># cliente_robusto_con_bugs.py — Auditoría Interna TechNova
+# Síntomas arriba. Encuentra las 3 líneas problema.
+
+import time, base64, json, logging
+from enum import Enum
+
+logger = logging.getLogger(__name__)
+
+class EstadoCircuito(Enum):
+    CERRADO = "CERRADO"; ABIERTO = "ABIERTO"; SEMIABIERTO = "SEMIABIERTO"
+
+class CircuitBreaker:
+    def __init__(self, umbral=5, timeout=60):
+        self.estado = EstadoCircuito.CERRADO
+        self._umbral = umbral; self._timeout = timeout
+        self._fallos = 0;     self._tiempo_apertura = None
+
+    def ejecutar(self, fn, token_manager=None):
+        # ─────────────────────────────────────── BUG A (síntoma A)
+        if token_manager:
+            token = token_manager.get_access_token()
+            pad = 4 - len(token.split('.')[1]) % 4
+            payload = json.loads(
+                base64.urlsafe_b64decode(token.split('.')[1] + '=' * pad)
+            )
+            if payload.get('rol') not in ('admin', 'supervisor'):
+                raise PermissionError(f"Rol '{payload['rol']}' no autorizado")
+        # ────────────────────────────────────────────────────────────
+        if self.estado == EstadoCircuito.ABIERTO:
+            if time.time() - self._tiempo_apertura >= self._timeout:
+                self.estado = EstadoCircuito.SEMIABIERTO
+            else:
+                raise Exception("CircuitOpenError")
+        try:
+            resultado = fn()
+            self._on_exito()
+            return resultado
+        except Exception as e:
+            self._on_fallo(e); raise
+
+    def _on_exito(self):
+        # ─────────────────────────────────────── BUG C (síntoma C)
+        self.estado = EstadoCircuito.CERRADO
+        # FALTA: self._fallos = 0
+        # ────────────────────────────────────────────────────────────
+
+    def _on_fallo(self, error):
+        if not self._es_fallo_servidor(error): return
+        self._fallos += 1
+        if self._fallos >= self._umbral:
+            self.estado = EstadoCircuito.ABIERTO
+            self._tiempo_apertura = time.time()
+
+    def _es_fallo_servidor(self, error):
+        msg = str(error).lower()
+        return '5' in str(error) or 'timeout' in msg or 'connection' in msg
+
+class TokenManager:
+    def __init__(self): self._access_token = 'dummy.access.token'
+    def get_access_token(self): return self._access_token
+    def get_auth_header(self): return {'Authorization': f'Bearer {self._access_token}'}
+    def is_expiring_soon(self): return False
+
+class ClienteRobusto:
+    def __init__(self, tm, cb): self._tm = tm; self._cb = cb
+
+    async def get_inventario(self):
+        headers = self._tm.get_auth_header()
+        try:
+            return await self._cb.ejecutar(
+                lambda: self._mock_http_get('/api/inventario'),
+                token_manager=self._tm     # ← relacionado con Bug A
+            )
+        except Exception as e:
+            # ─────────────────────────────────── BUG B (síntoma B)
+            logger.error(
+                f"Error: {e}. Auth: {headers['Authorization'][:40]}..."
+            )
+            # ────────────────────────────────────────────────────────
+            raise
+
+    def _mock_http_get(self, path):
+        raise ConnectionError("503 Service Unavailable")</code></pre>
+          <div class="context-box warning">
+            <div class="box-title">📝 Entregable Python</div>
+            <p><code>autopsia_bugs.md</code> con 3 secciones (una por bug): <strong>Síntoma → Causa raíz → Línea exacta → Corrección → Principio violado</strong> (SRP, INV-A1, INV-B2, etc.).</p>
+          </div>
+        </div><!-- r3-py -->
+
+        <div id="r3-js" class="ruta-content" data-ruta-grupo="r3">
+<pre><code>// cliente-robusto-con-bugs.js — mismos 3 síntomas, misma lógica buggy
+// Los bugs son equivalentes al Python: busca el mismo patrón en JS.
+// Bug A: ejecutar() decodifica JWT y verifica payload.rol
+// Bug B: catch loguea Authorization.slice(0,40)
+// Bug C: _onExito() no resetea this._fallos = 0</code></pre>
+          <div class="context-box warning">
+            <div class="box-title">📝 Entregable JavaScript</div>
+            <p>Mismo formato: <code>autopsia_bugs.md</code> con los 3 bugs identificados en tu versión JS.</p>
+          </div>
+        </div><!-- r3-js -->
+
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Inspector de código que valida tu diagnóstico. Dale el síntoma y tu hipótesis — <em>no</em> el código completo. La IA que recibe el código y da la solución directamente no te ayuda a aprender a leer código.</div>
+        <div class="prompt-box">Actúa como inspector de calidad de código.
+
+SÍNTOMA [A/B/C]: [describe el síntoma]
+Mi hipótesis: [qué creo que está mal]
+Mi corrección: [línea corregida]
+
+¿Mi hipótesis identifica la causa correcta?
+¿La corrección resuelve el síntoma completamente?
+Si hay un problema residual, haz una pregunta socrática.</div>
+
+        <details class="retro" id="retro-r3">
+          <summary>📋 Ver criterios de evaluación — Reto 3</summary>
+          <div class="retro-body">
+            <p><strong>Bug A (SRP / INV-A1):</strong> <code>CircuitBreaker.ejecutar()</code> decodifica el JWT y verifica el rol. Violación de SRP: el breaker no debe conocer el contenido del token. Corrección: eliminar el bloque <code>if token_manager:</code> completo.</p>
+            <p><strong>Bug B (Seguridad / INV-B2):</strong> <code>headers['Authorization'][:40]</code> imprime fragmentos del token en el log. Corrección: eliminar la interpolación del token — loguear solo el endpoint y el código de estado HTTP.</p>
+            <p><strong>Bug C (INV-A3):</strong> <code>_on_exito()</code> cambia el estado a CERRADO pero no resetea <code>self._fallos</code>. Corrección: agregar <code>self._fallos = 0</code> en <code>_on_exito()</code>.</p>
+            <p><strong>Puntuación:</strong> 7 pts por bug (diagnóstico + corrección + principio). Diagnóstico sin principio → 4 pts.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label">
+          <input type="checkbox" data-reto="r3" data-xp="20" onchange="onRetoCheck(this)"> ✓ Reto 3 completado
+        </label>
+        <span class="xp-ganado" id="xp-r3">+20 XP ⚡</span>
+        <span class="reto-footer-nota">Desbloquea 🔑 Token Guardian + ⚡ Breaker Specialist</span>
+      </div>
+    </div><!-- reto 3 -->
+
+    <!-- ── RETO 4 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">4</div>
+        <h4>Integración en Vivo — TokenManager + CircuitBreaker contra mock <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">15 XP</span>
+        <span class="tiempo-chip">⏱ 30 min</span>
+      </div>
+      <div class="reto-body">
+        <p>Construye un script que integre <strong>tu TokenManager (Semana 8)</strong> y <strong>tu CircuitBreaker (Semana 9)</strong> contra el mock de abajo. El mock sirve: login exitoso → 3 respuestas 200 → 5 fallos 503 → recuperación. El script debe mostrar las transiciones del circuito claramente.</p>
+        <div class="context-box info">
+          <div class="box-title">🖥️ Estado observable del cliente</div>
+          <p>Además de imprimir logs, el cliente debe exponer una señal observable para la interfaz: <code>onCircuitOpen()</code>, <code>onCircuitClosed()</code>, evento, callback, store o estado equivalente. La evidencia mínima puede ser un <code>console.warn()</code>, un cambio de variable <code>ui_state</code> o un banner simulado <code>Servidor temporalmente no disponible</code>. No se exige construir una UI completa.</p>
+        </div>
+
+        <div class="ruta-tabs">
+          <button class="ruta-tab python active" data-tab-grupo="r4" data-tab-id="r4-py" onclick="showRuta('r4','r4-py')">🐍 Python — mock_ecomarket.py</button>
+          <button class="ruta-tab browser"       data-tab-grupo="r4" data-tab-id="r4-js" onclick="showRuta('r4','r4-js')">🌐 JavaScript — mockFetch.js</button>
+        </div>
+
+        <div id="r4-py" class="ruta-content active" data-ruta-grupo="r4">
+<pre><code># mock_ecomarket.py — servidor mock para Reto 4
+# Ejecutar: python mock_ecomarket.py  (requiere: pip install aiohttp)
+# Luego ejecutar tu cliente_integrado.py en otra terminal.
+
+from aiohttp import web
+_contador = 0
+
+async def handle_login(request):
+    # Payload: {"sub":"op1","rol":"viewer","exp":9999999999}
+    token = ("eyJhbGciOiJIUzI1NiJ9"
+             ".eyJzdWIiOiJvcDEiLCJyb2wiOiJ2aWV3ZXIiLCJleHAiOjk5OTk5OTk5OTl9"
+             ".mock_sig")
+    return web.json_response({"access_token": token, "refresh_token": "mock.refresh"})
+
+async def handle_inventario(request):
+    global _contador
+    _contador += 1
+    print(f"[MOCK] Petición #{_contador}")
+    if _contador <= 3:
+        return web.json_response({"productos": _contador * 10})
+    elif _contador <= 8:
+        return web.Response(status=503, text="Service Unavailable")
+    return web.json_response({"productos": 50, "recuperado": True})
+
+app = web.Application()
+app.router.add_post('/auth/login',     handle_login)
+app.router.add_get ('/api/inventario', handle_inventario)
+
+if __name__ == '__main__':
+    print("[MOCK] EcoMarket en http://localhost:8080  (3 éxitos → 5×503 → recuperación)")
+    web.run_app(app, port=8080, print=None)</code></pre>
+          <div class="context-box info">
+            <div class="box-title">🎯 Salida esperada de tu cliente_integrado.py</div>
+<pre><code>[LOGIN] Token almacenado · rol=viewer
+[HTTP #1] 200 · productos=10  · CB: CERRADO (fallos=0)
+[HTTP #2] 200 · productos=20  · CB: CERRADO (fallos=0)
+[HTTP #3] 200 · productos=30  · CB: CERRADO (fallos=0)
+[HTTP #4] 503               · CB: CERRADO (fallos=1)
+[HTTP #5] 503               · CB: CERRADO (fallos=2)
+[HTTP #6] 503               · CB: CERRADO (fallos=3)
+[HTTP #7] 503               · CB: CERRADO (fallos=4)
+[HTTP #8] 503               · CB: ABIERTO  (umbral alcanzado)
+[UI] banner=Servidor temporalmente no disponible · action=disable_checkout
+[BREAKER] Fail fast — CircuitOpenError (sin tocar el servidor)
+[BREAKER] Timeout 60s → SEMIABIERTO
+[HTTP #9] 200 · productos=50  · CB: CERRADO  (fallos=0 reset)
+[UI] banner=oculto · action=enable_checkout
+Estado final: circuito=CERRADO · token_válido=True</code></pre>
+          </div>
+        </div><!-- r4-py -->
+
+        <div id="r4-js" class="ruta-content" data-ruta-grupo="r4">
+<pre><code>// mock-fetch.js — pegar en consola o importar antes de tu cliente
+let _n = 0;
+window.fetch = async (url, opts = {}) => {
+    await new Promise(r => setTimeout(r, 80));
+    _n++;
+    if (url.includes('/auth/login')) {
+        const t = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvcDEiLCJyb2wiOiJ2aWV3ZXIiLCJleHAiOjk5OTk5OTk5OTl9.mock';
+        return { ok:true, status:200, json: async()=>({access_token:t, refresh_token:'mock'}) };
+    }
+    if (url.includes('/api/inventario')) {
+        if (_n <= 4) return { ok:true,  status:200, json: async()=>({productos:(_n-1)*10}) };
+        if (_n <= 9) return { ok:false, status:503, json: async()=>({error:'Service Unavailable'}) };
+        return        { ok:true,  status:200, json: async()=>({productos:50, recuperado:true}) };
+    }
+};
+console.log('[MockFetch] activo — 3 éxitos + 5×503 + recuperación');</code></pre>
+        </div><!-- r4-js -->
+
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Debugger socrático — si tu script falla, describe el error y el estado del circuito. La IA hace preguntas para que tú encuentres el problema.</div>
+        <div class="prompt-box">Actúa como debugger socrático.
+
+Mi script falla en la petición #[N].
+Estado del CircuitBreaker: [CERRADO/ABIERTO/SEMIABIERTO]
+Fallos acumulados: [N] · Error: [mensaje]
+Comportamiento esperado: [qué debería pasar]
+
+¿El problema está en (a) la clasificación del error,
+(b) el reset del contador, o (c) la transición de estado?
+Haz una sola pregunta que me ayude a decidir.</div>
+
+        <details class="retro" id="retro-r4">
+          <summary>📋 Ver criterios de evaluación — Reto 4</summary>
+          <div class="retro-body">
+            <p><strong>4 pts</strong> — Login exitoso, token almacenado en TM, token no expuesto en logs.</p>
+            <p><strong>4 pts</strong> — El CB abre en la petición #8 (5 fallos 503) y produce fail-fast para las siguientes.</p>
+            <p><strong>4 pts</strong> — Después del timeout: SEMIABIERTO, petición de prueba exitosa, CB cierra con <code>_fallos = 0</code>.</p>
+            <p><strong>3 pts</strong> — El cliente emite estado observable para UI al abrir/cerrar circuito, sin spinner infinito ni silencio operativo.</p>
+            <p><strong>Trampa frecuente:</strong> si el Bug A del Reto 3 no fue corregido, el CB rechazará al rol <code>viewer</code>. Verificar corrección antes de ejecutar.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label">
+          <input type="checkbox" data-reto="r4" data-xp="15" onchange="onRetoCheck(this)"> ✓ Reto 4 completado
+        </label>
+        <span class="xp-ganado" id="xp-r4">+15 XP ⚡</span>
+        <span class="reto-footer-nota">Contribuye a 🏗️ Integration Architect (con R8)</span>
+      </div>
+    </div><!-- reto 4 -->
+
+  </div><!-- fase-content -->
+</section>
+<!-- ═══════════════════════════════════ FASE 3: REFLEXIONA ═══════════════════════════════════ -->
+<section id="reflexiona" class="fase-section">
+  <div class="fase-header reflexiona">
+    <div class="fase-hdr-left">
+      <div class="fase-icon">🛡️</div>
+      <div>
+        <h2 class="fase-title">FASE 3: REFLEXIONA — Defensa de Decisiones</h2>
+        <span class="bloom-tag">Bloom: Analizar · Evaluar</span>
+      </div>
+    </div>
+    <span class="fase-xp">15 XP base + bonus</span>
+  </div>
+  <div class="fase-content">
+
+    <!-- ── RETO 5 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">5</div>
+        <h4>ADR Express — defiende tu decisión de diseño más crítica <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">15 XP</span>
+        <span class="tiempo-chip">⏱ 25 min</span>
+      </div>
+      <div class="reto-body">
+        <p>Elige <strong>una</strong> decisión de diseño no trivial de tu Hito 2 (umbral de fallos, clasificación de errores, si el endpoint de auth pasa por el breaker, herencia vs. composición…) y documéntala en formato ADR reducido.</p>
+        <div class="adr-wrap">
+          <div class="adr-row"><div class="adr-lbl">Título</div><input class="adr-field" type="text" placeholder="Ej: Breaker separado para /auth/refresh"></div>
+          <div class="adr-row"><div class="adr-lbl">1 · Contexto (máx. 2 oraciones)</div><textarea class="adr-field" rows="2" placeholder="Qué problema o restricción motivó esta decisión…"></textarea></div>
+          <div class="adr-row"><div class="adr-lbl">2 · Decisión (1 oración)</div><textarea class="adr-field" rows="1" placeholder="Decidimos… / Elegimos…"></textarea></div>
+          <div class="adr-row"><div class="adr-lbl">3 · Consecuencias positivas (exactamente 2)</div><textarea class="adr-field" rows="2" placeholder="+&#10;+"></textarea></div>
+          <div class="adr-row"><div class="adr-lbl">4 · Consecuencias negativas (exactamente 2)</div><textarea class="adr-field" rows="2" placeholder="-&#10;-"></textarea></div>
+          <div class="adr-row"><div class="adr-lbl">5 · Escenario adverso — ¿cuándo fallaría esta decisión?</div><textarea class="adr-field" rows="2" placeholder="Esta decisión sería incorrecta si…"></textarea></div>
+        </div>
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Comité de arquitectura que impugna tu decisión con un escenario adverso. Comparte tu ADR completo <em>después</em> de llenarlo.</div>
+        <div class="context-box warning">
+          <div class="box-title">🧾 Evidencia de IA permitida y auditable</div>
+          <p>No entregues un enlace público completo si contiene datos sensibles. Entrega una <code>bitacora_ia.md</code> con: prompt usado, respuesta relevante resumida, decisión que aceptaste o rechazaste y justificación técnica. La bitácora evalúa el uso socrático de IA, no la cantidad de texto generado.</p>
+        </div>
+        <div class="prompt-box">Actúa como comité de revisión arquitectónica.
+
+Mi ADR:
+Título: [título]
+Contexto: [contexto]   Decisión: [decisión]
+Consecuencias +: [pos1] / [pos2]
+Consecuencias −: [neg1] / [neg2]
+Escenario adverso: [mi respuesta]
+
+Presenta un escenario concreto de EcoMarket donde mi decisión produce
+un resultado peor que la alternativa rechazada. No me digas cuál es la
+alternativa — solo el escenario. Luego evalúa si identifiqué el trade-off.</div>
+        <details class="retro" id="retro-r5">
+          <summary>📋 Ver criterios de evaluación — Reto 5</summary>
+          <div class="retro-body">
+            <p><strong>15 pts:</strong> Contexto técnico preciso (3) · Decisión con verbo claro (2) · 2 consecuencias positivas no triviales (3) · 2 consecuencias negativas honestas (3) · Escenario adverso diferente a las consecuencias negativas (4).</p>
+            <p><strong>Inválido:</strong> "Elegí Python porque lo conozco" — no es una decisión arquitectónica del sistema.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r5" data-xp="15" onchange="onRetoCheck(this)"> ✓ Reto 5 completado</label>
+        <span class="xp-ganado" id="xp-r5">+15 XP ⚡</span>
+      </div>
+    </div>
+
+    <!-- ── RETO 6 BONUS ── -->
+    <div class="reto bonus">
+      <div class="reto-hdr bonus">
+        <div class="reto-num claro">6</div>
+        <h4>Árbitro de Reconexión SSE — ¿qué estrategia elige EcoMarket? <span class="reto-badge avanzado-claro">🚀 Bonus</span></h4>
+        <span class="xp-chip claro">+7 XP extra</span>
+        <span class="tiempo-chip">⏱ fuera de taller</span>
+      </div>
+      <div class="reto-body">
+        <p>Cuando el Circuit Breaker está <strong>ABIERTO</strong> y la conexión SSE cae simultáneamente, hay 3 estrategias posibles. Evalúalas y argumenta cuál es correcta para EcoMarket en <strong>Black Friday</strong>.</p>
+        <div class="context-box info">
+          <div class="box-title">Las 3 estrategias</div>
+          <p><strong>A — Esperar al breaker:</strong> el ClienteSSEMultiplex no reconecta SSE hasta que el Circuit Breaker cierre (≥60 s).</p>
+          <p><strong>B — SSE independiente:</strong> el ClienteSSEMultiplex reconecta inmediatamente — SSE es una conexión persistente distinta de las peticiones HTTP; el CB no la afecta.</p>
+          <p><strong>C — Cache como fallback:</strong> mientras el breaker está abierto, el sistema sirve los últimos eventos SSE del caché local. No reconecta hasta que el breaker cierre.</p>
+        </div>
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de AWS con experiencia en e-commerce de alta disponibilidad. Presenta el contra-argumento más fuerte a tu estrategia.</div>
+        <div class="prompt-box">Actúa como arquitecto de AWS especialista en e-commerce.
+
+EcoMarket tiene 1 200 operadores simultáneos en Black Friday.
+El servidor de inventario falla (CB abre por 60 s), pero el servidor
+SSE de alertas es un servicio separado y sigue funcionando.
+
+Mi argumento para Estrategia [A/B/C]:
+[escribe tu argumento con referencia a los componentes de Semanas 7 y 9]
+
+Presenta el contra-argumento más fuerte. Luego pregunta qué pasa
+si los dos servidores (HTTP e SSE) están en el mismo host.</div>
+        <details class="retro" id="retro-r6">
+          <summary>📋 Ver análisis técnico — Reto 6</summary>
+          <div class="retro-body">
+            <p><strong>Estrategia B es técnicamente correcta</strong> cuando los servicios están separados: el CB (Semana 9) envuelve peticiones HTTP del ClienteRobusto, no la conexión SSE del ClienteSSEMultiplex. Son stacks distintos.</p>
+            <p><strong>Trampa:</strong> si ambos servidores están en el mismo host, el CB abierto es evidencia de que el SSE también puede fallar — reconectar SSE contra un servidor caído genera tráfico innecesario. Un sistema robusto tendría un CB separado por protocolo.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r6" data-xp="7" onchange="onRetoCheck(this)"> ✓ Reto 6 completado (bonus)</label>
+        <span class="xp-ganado" id="xp-r6">+7 XP ⚡</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ FASE 4: VALIDA ═══════════════════════════════════ -->
+<section id="valida" class="fase-section">
+  <div class="fase-header valida">
+    <div class="fase-hdr-left">
+      <div class="fase-icon">✅</div>
+      <div>
+        <h2 class="fase-title">FASE 4: VALIDA — Suite de Certificación</h2>
+        <span class="bloom-tag">Bloom: Evaluar</span>
+      </div>
+    </div>
+    <span class="fase-xp">25 XP base</span>
+  </div>
+  <div class="fase-content">
+
+    <!-- ── RETO 7 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">7</div>
+        <h4>Certificación de Invariantes — los 7 guardianes del Hito 2 <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">13 XP</span>
+        <span class="tiempo-chip">⏱ 30 min</span>
+      </div>
+      <div class="reto-body">
+        <p>Para cada invariante: (1) ejecuta la prueba, (2) registra el estado y la evidencia observable, (3) si falló, documenta la corrección aplicada. Este checklist es simultáneamente la <strong>rúbrica de entrega del Hito 2</strong>. No basta leer el código — ejecuta el escenario.</p>
+        <div class="context-box info">
+          <div class="box-title">🧪 Prueba automatizada mínima</div>
+          <p>Al menos <strong>uno</strong> de los invariantes críticos debe validarse con una prueba automatizada formal: <code>test_circuit_breaker.py</code> con pytest/pytest-asyncio o <code>circuit-breaker.test.js</code> con Jest/Vitest. Se recomienda automatizar INV-A2 o INV-B3 porque reducen el error humano al verificar concurrencia.</p>
+        </div>
+        <ul class="inv-list">
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-A1</span></div>
+              <div class="inv-desc">El CircuitBreaker nunca accede a campos del payload JWT (<code>sub</code>, <code>exp</code>, <code>rol</code>, etc.)</div>
+              <span class="inv-hint">Prueba: importar CB con token malformado "no.es.jwt" — no debe lanzar error de decodificación.</span>
+              <textarea class="inv-evid" placeholder="Evidencia…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-A2</span></div>
+              <div class="inv-desc">En estado SEMIABIERTO, exactamente <em>una</em> petición pasa al servidor; las demás reciben <code>CircuitOpenError</code> inmediato.</div>
+              <span class="inv-hint">Prueba: lanzar 3 peticiones concurrentes en SEMIABIERTO — solo 1 debe llegar al mock.</span>
+              <textarea class="inv-evid" placeholder="N peticiones al mock en SEMIABIERTO…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-A3</span></div>
+              <div class="inv-desc">Al transicionar SEMIABIERTO → CERRADO, el contador <code>_fallos_consecutivos</code> se pone en 0.</div>
+              <span class="inv-hint">Prueba: abrir circuito (5 fallos), esperar timeout, petición exitosa → verificar <code>cb._fallos == 0</code>.</span>
+              <textarea class="inv-evid" placeholder="cb._fallos después de cerrar = …"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-A4</span></div>
+              <div class="inv-desc">Un error HTTP 401 o 403 <strong>no</strong> incrementa <code>_fallos_consecutivos</code>.</div>
+              <span class="inv-hint">Prueba: N+5 peticiones que retornen 401 → el circuito debe seguir CERRADO con <code>_fallos == 0</code>.</span>
+              <textarea class="inv-evid" placeholder="cb.estado y cb._fallos después de N+5 peticiones 401…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-B1</span></div>
+              <div class="inv-desc">El TokenManager no tiene ningún atributo relacionado con el estado del Circuit Breaker.</div>
+              <span class="inv-hint">Prueba: <code>hasattr(tm, '_estado')</code> y búsqueda de 'circuit', 'breaker', 'open' en los atributos del TM.</span>
+              <textarea class="inv-evid" placeholder="Resultado de hasattr / inspección…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-B2</span></div>
+              <div class="inv-desc">El token de acceso nunca aparece en logs, ni parcialmente, ni truncado con <code>[:N]</code>.</div>
+              <span class="inv-hint">Prueba: forzar error, revisar stdout/stderr — grep por el valor del token en el log.</span>
+              <textarea class="inv-evid" placeholder="grep 'Bearer' en el log de errores…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+          <li class="inv-item">
+            <input type="checkbox" class="inv-chk">
+            <div class="inv-body">
+              <div class="inv-head"><span class="inv-code">INV-B3</span></div>
+              <div class="inv-desc">Con múltiples peticiones concurrentes expiradas, solo <em>un</em> refresh se ejecuta (patrón singleton).</div>
+              <span class="inv-hint">Prueba: 5 peticiones concurrentes con token próximo a expirar → contar peticiones al endpoint /auth/refresh.</span>
+              <textarea class="inv-evid" placeholder="N peticiones de refresh observadas (debe ser 1)…"></textarea>
+            </div>
+            <div class="inv-estado">
+              <select><option>— estado —</option><option>✅ Pasa</option><option>❌ Falla</option><option>⚠️ Parcial</option></select>
+            </div>
+          </li>
+        </ul>
+        <div class="context-box success">
+          <div class="box-title">📊 Interpretación del checklist</div>
+          <p>7 ✅ Hito 2 aprobado sin observaciones · 5–6 ✅ Aprobado con observaciones · ≤4 ✅ Requiere corrección · INV-A1 o INV-B1 en ❌ → verificar condición Zero Tolerance.</p>
+        </div>
+        <details class="retro" id="retro-r7">
+          <summary>📋 Ver criterios — Reto 7</summary>
+          <div class="retro-body">
+            <p><strong>13 pts:</strong> 1 pt por invariante verificado con evidencia observable (no solo checkbox marcado). Correcciones documentadas valen punto completo aunque el invariante haya fallado inicialmente.</p>
+            <p><strong>Más frecuentemente fallado:</strong> INV-A3 — olvidan <code>_fallos = 0</code> en <code>_on_exito()</code>. Es el Bug C del Reto 3.</p>
+            <p><strong>Más difícil de probar:</strong> INV-B3 requiere concurrencia real o un mock que cuente peticiones al endpoint de refresh.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r7" data-xp="13" onchange="onRetoCheck(this)"> ✓ Reto 7 completado</label>
+        <span class="xp-ganado" id="xp-r7">+13 XP ⚡</span>
+        <span class="reto-footer-nota">Contribuye a ⚡ Breaker Specialist (con R3)</span>
+      </div>
+    </div>
+
+    <!-- ── RETO 8 ── -->
+    <div class="reto">
+      <div class="reto-hdr">
+        <div class="reto-num">8</div>
+        <h4>Test de Regresión Cruzada — 3 escenarios de la pila completa <span class="reto-badge esencial">Esencial</span></h4>
+        <span class="xp-chip">12 XP</span>
+        <span class="tiempo-chip">⏱ 35 min</span>
+      </div>
+      <div class="reto-body">
+        <p>Estos 3 casos de prueba son <strong>nuevos</strong> — requieren SSE, JWT y Circuit Breaker operando simultáneamente. Para cada TC: protocolo (setup + acción + verificación), implementación y resultado documentado.</p>
+        <div class="context-box gold">
+          <div class="box-title">⚙️ Diferencias por lenguaje en concurrencia</div>
+          <p><strong>Python:</strong> simula concurrencia con <code>asyncio.gather()</code> y protege el refresh singleton con <code>asyncio.Lock</code> o promesa/tarea compartida. <strong>JavaScript:</strong> usa <code>Promise.all()</code> y una promesa compartida <code>refreshInFlight</code>. La evaluación exige equivalencia conceptual, no código idéntico.</p>
+        </div>
+
+        <div class="context-box purple">
+          <div class="box-title">TC-X1 — SSE activo + Circuit Breaker transiciona a ABIERTO</div>
+          <p>El ClienteSSEMultiplex tiene conexión SSE activa. Simultáneamente, el ClienteRobusto falla 5 veces consecutivas y abre el circuito.</p>
+          <p><strong>Verificar:</strong> ¿La apertura del CB HTTP interrumpe el stream SSE establecido? ¿El EventRouter sigue despachando eventos SSE mientras el HTTP circuit está abierto?</p>
+          <p><strong>Esperado:</strong> La conexión SSE <em>no se interrumpe</em> — el CB aplica a peticiones HTTP, no a la conexión TCP/SSE.</p>
+        </div>
+
+        <div class="context-box purple">
+          <div class="box-title">TC-X2 — Token expira mientras CB en SEMIABIERTO</div>
+          <p>El CB está en SEMIABIERTO. Simultáneamente, <code>is_expiring_soon()</code> retorna True.</p>
+          <p><strong>Verificar:</strong> ¿El ClienteRobusto intenta primero el refresh o la petición de prueba? Documenta el orden explícito en tu implementación y justifica si es correcto.</p>
+          <p><strong>Entrega obligatoria:</strong> implementa este caso como prueba automatizada: <code>test_tc_x2_refresh_semiaabierto.py</code> o <code>tc-x2-refresh-semiopen.test.js</code>. La prueba debe contar cuántas veces se invoca <code>refresh_access_token()</code> y cuántas peticiones llegan al mock.</p>
+        </div>
+
+        <div class="context-box purple">
+          <div class="box-title">TC-X3 — Reconexión SSE con Last-Event-ID tras cierre del circuito</div>
+          <p>El stream SSE cae mientras el CB está ABIERTO. Cuando el CB cierra (60 s después), el ReceptorAlertas intenta reconectar.</p>
+          <p><strong>Verificar:</strong> ¿La reconexión incluye el header <code>Last-Event-ID</code> con el último ID recibido? ¿El token en el header de reconexión está actualizado?</p>
+        </div>
+
+        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Co-desarrollador de pruebas que revisa tu protocolo antes de que lo implementes.</div>
+        <div class="prompt-box">Actúa como co-desarrollador de pruebas de integración.
+
+TC-X[1/2/3]:
+Setup:        [qué configuro]
+Acción:       [qué ejecuto]
+Verificación: [qué observo y cómo lo mido]
+
+¿El protocolo es reproducible?
+¿Hay un caso borde que mi verificación no cubre?
+Máximo 2 observaciones antes de que implemente.</div>
+
+        <details class="retro" id="retro-r8">
+          <summary>📋 Ver criterios — Reto 8</summary>
+          <div class="retro-body">
+            <p><strong>12 pts:</strong> TC-X1 y TC-X3 valen 3 pts cada uno: protocolo reproducible (1.5) + resultado documentado (1.5). TC-X2 vale 6 pts por ser prueba automatizada obligatoria: setup reproducible (2), aserciones correctas (2), evidencia de ejecución (2).</p>
+            <p><strong>TC-X1:</strong> "SSE no se interrumpe" es el insight clave — los estudiantes que confunden los dos canales fallan aquí.</p>
+            <p><strong>TC-X2:</strong> No hay respuesta única sobre el orden, pero sí debe existir una prueba formal que lo haga observable y repetible.</p>
+            <p><strong>TC-X3:</strong> Verificar que el <code>_last_event_id</code> del ReceptorAlertas no se resetea al desconectarse.</p>
+          </div>
+        </details>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r8" data-xp="12" onchange="onRetoCheck(this)"> ✓ Reto 8 completado</label>
+        <span class="xp-ganado" id="xp-r8">+12 XP ⚡</span>
+        <span class="reto-footer-nota">Desbloquea 🏗️ Integration Architect (con R4)</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ FASE 5: PROFUNDIZA ═══════════════════════════════════ -->
+<section id="profundiza" class="fase-section">
+  <div class="fase-header profundiza">
+    <div class="fase-hdr-left">
+      <div class="fase-icon">🌌</div>
+      <div>
+        <h2 class="fase-title">FASE 5: PROFUNDIZA — Bonus Tracks + Metacognición</h2>
+        <span class="bloom-tag">Bloom: Crear · Sintetizar</span>
+      </div>
+    </div>
+    <span class="fase-xp">10 XP meta + bonus</span>
+  </div>
+  <div class="fase-content">
+
+    <!-- ── RETO 9 BONUS ── -->
+    <div class="reto bonus">
+      <div class="reto-hdr bonus">
+        <div class="reto-num claro">9</div>
+        <h4>Postmortem del Hito 2 — retrospectiva de arquitecto <span class="reto-badge avanzado-claro">🚀 Bonus</span></h4>
+        <span class="xp-chip claro">+5 XP extra</span>
+        <span class="tiempo-chip">⏱ fuera de taller</span>
+      </div>
+      <div class="reto-body">
+        <p>Responde las 3 preguntas <strong>sin usar la IA</strong> para redactarlas — el valor es tu reflexión real.</p>
+        <div class="context-box gold">
+          <p><strong>1.</strong> ¿Qué decisión de diseño tomarías diferente si empezaras el Hito 2 desde cero hoy? ¿Por qué sería diferente con lo que sabes ahora?</p>
+          <p><strong>2.</strong> ¿Cuál de los 7 invariantes fue el más difícil de cumplir? Describe el obstáculo concreto — qué específicamente fallaba y por qué.</p>
+          <p><strong>3.</strong> ¿Cuál patrón (SSE, JWT, Circuit Breaker) costó más tiempo de implementación y cuál fue más valioso para EcoMarket? ¿Coinciden?</p>
+          <p><strong>4.</strong> Si trabajaste en equipo: ¿cómo dividieron el trabajo, qué conflicto técnico apareció y cómo lo resolvieron? Si trabajaste solo: ¿qué decisión habrías discutido con un par técnico?</p>
+        </div>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r9" data-xp="5" onchange="onRetoCheck(this)"> ✓ Reto 9 completado (bonus)</label>
+        <span class="xp-ganado" id="xp-r9">+5 XP ⚡</span>
+      </div>
+    </div>
+
+    <!-- ── RETO 10 BONUS ── -->
+    <div class="reto bonus">
+      <div class="reto-hdr oscuro">
+        <div class="reto-num morado">10</div>
+        <h4>Preview WebSocket — ¿cómo se adapta el Circuit Breaker? <span class="reto-badge avanzado-claro">🚀 Bonus</span></h4>
+        <span class="xp-chip claro">+3 XP extra</span>
+        <span class="tiempo-chip">⏱ fuera de taller</span>
+      </div>
+      <div class="reto-body">
+        <p>La Semana 11 introduce WebSocket. Sin implementar nada, diseña en papel (máx. 1 página) cómo el CircuitBreaker de la Semana 9 necesitaría adaptarse.</p>
+        <div class="context-box info">
+          <div class="box-title">Preguntas que tu diseño debe responder</div>
+          <p>• Con HTTP, el CB detecta fallos por petición. Con WebSocket, ¿qué evento equivale a "un fallo"? (¿desconexión? ¿mensaje de error? ¿timeout de pong?)</p>
+          <p>• Si la conexión WS es persistente, ¿el estado del CB tiene sentido por petición o por conexión?</p>
+          <p>• ¿El TokenManager necesita cambios? El handshake WS inicial incluye headers HTTP — ¿cómo refresca el token en una conexión ya establecida?</p>
+        </div>
+        <div class="context-box warning">
+          <div class="box-title">🔮 Conexión con Semana 11</div>
+          <p>Tus notas serán el punto de partida de la semana siguiente. No se evalúa que estés "en lo correcto" — se evalúa que hayas pensado en el problema <em>antes</em> de ver la solución.</p>
+        </div>
+      </div>
+      <div class="reto-footer">
+        <label class="check-label"><input type="checkbox" data-reto="r10" data-xp="3" onchange="onRetoCheck(this)"> ✓ Reto 10 completado (bonus)</label>
+        <span class="xp-ganado" id="xp-r10">+3 XP ⚡</span>
+      </div>
+    </div>
+
+    <!-- ── CHECKPOINTS METACOGNITIVOS ── -->
+    <div class="checkpoint">
+      <h4>🪞 Checkpoints Metacognitivos — 10 XP con micro-rúbrica</h4>
+      <div class="pregunta">¿Puedo explicar verbalmente, en 2 minutos, qué hace el <code>ClienteRobusto</code> sin mencionar ningún lenguaje de programación? (Señal de que comprendes el patrón, no solo la sintaxis.)</div>
+      <div class="pregunta">¿Usé la IA para generar código en algún reto sin entender el problema primero? Si sí: ¿cuál fue el costo? ¿Qué parte del código no puedo explicar con mis palabras hoy?</div>
+      <div class="pregunta">Si mañana el CTO de EcoMarket me pregunta "¿por qué el Circuit Breaker no abre con errores 401?", ¿tengo una respuesta de 30 segundos que un no-programador pueda seguir?</div>
+      <div class="pregunta">¿Estoy listo para la Semana 11 (WebSocket)? ¿Qué concepto de las Semanas 6–9 necesito repasar antes?</div>
+      <table class="rubrica-table">
+        <tr><th>Nivel</th><th>Criterio de calidad</th><th>Pts</th></tr>
+        <tr><td>Superficial</td><td>Responde con frases genéricas sin concepto técnico verificable.</td><td class="rubrica-pts">0–3</td></tr>
+        <tr><td>Descriptivo</td><td>Identifica un problema o aprendizaje, pero no explica causa ni consecuencia.</td><td class="rubrica-pts">4–6</td></tr>
+        <tr><td>Analítico</td><td>Relaciona problema, causa técnica e impacto en la arquitectura.</td><td class="rubrica-pts">7–8</td></tr>
+        <tr><td>Transferible</td><td>Además propone una acción concreta para mejorar el Hito 2 o prepararse para WebSocket.</td><td class="rubrica-pts">9–10</td></tr>
+      </table>
+      <div class="reto-footer reto-footer-meta">
+        <label class="check-label"><input type="checkbox" data-reto="meta" data-xp="10" onchange="onRetoCheck(this)"> ✓ Los 4 checkpoints respondidos con evidencia técnica</label>
+        <span class="xp-ganado" id="xp-meta">+10 XP ⚡</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- ── HARD GATE ── -->
+<div class="zt-box">
+  <h4>🔴 Hard Gate de Seguridad y Separación de Responsabilidades</h4>
+  <p>Al calificar, se ejecutará el <strong>Script de Certificación HG</strong> en dos pasos:</p>
+  <p><strong>Paso 1 (INV-A1):</strong> Se importa el <code>CircuitBreaker</code> con un TokenManager cuyo <code>get_access_token()</code> retorna <code>"no.es.jwt"</code>. Se ejecutan N+5 peticiones que retornan <code>401 Unauthorized</code>. Si se lanza un error de decodificación Base64/JSON durante la ejecución, el Hard Gate se activa.</p>
+  <p><strong>Paso 2 (INV-B1):</strong> Se ejecuta <code>hasattr(tm, '_estado')</code> y se buscan las cadenas <code>'circuit'</code>, <code>'breaker'</code>, <code>'open'</code>, <code>'closed'</code> en los atributos del TokenManager. Cualquier coincidencia activa el Hard Gate.</p>
+  <span class="zt-warn">Si cualquier paso activa el Hard Gate, el entregable queda bloqueado y no se califica hasta corregir el defecto crítico. La corrección tardía permite recuperar la evaluación, pero con penalización máxima de 20–30 % según oportunidad, explicación técnica y evidencia de prueba. Esta verificación es conductual: se evalúa el comportamiento en ejecución, no la apariencia del código.</span>
+</div>
+
+<!-- ═══════════════════════════════════ HITO 2 ═══════════════════════════════════ -->
+<section id="hito2" class="hito-section">
+  <div class="hito-header">
+    <h2>🏆 Hito 2 — Cliente Seguro y Resiliente · Entrega Formal</h2>
+    <p class="hito-sub">Peso: 15 % del curso · Equipos de hasta 2 integrantes</p>
+  </div>
+  <div class="hito-body">
+    <div class="context-box warning">
+      <div class="box-title">📁 Archivos requeridos</div>
+      <div class="hito-archivo">🔗 <code>URL del repositorio o paquete .zip reproducible</code> — estructura clara, commits o historial de cambios, y versión final etiquetada como <code>hito2</code>.</div>
+      <div class="hito-archivo">📘 <code>README.md</code> — versión de Python/Node, instalación, comandos de ejecución, comandos de prueba y resultado esperado.</div>
+      <div class="hito-archivo">📄 <code>circuit_breaker.py / circuit-breaker.js</code> — CircuitBreaker con decisiones de diseño en docstring.</div>
+      <div class="hito-archivo">📄 <code>token_manager.py / token-manager.js</code> — TokenManager de la Semana 8, corregido si tenía bugs.</div>
+      <div class="hito-archivo">📄 <code>cliente_robusto.py / cliente-robusto.js</code> — ClienteRobusto que orquesta CB + TM sin duplicar lógica.</div>
+      <div class="hito-archivo">📋 <code>demo_resiliencia.log</code> — Salida de ≥10 peticiones mostrando las 3 fases del circuito y el estado observable de UI.</div>
+      <div class="hito-archivo">🧪 <code>test_circuit_breaker.py / circuit-breaker.test.js</code> — Al menos una prueba automatizada formal para INV-A2, INV-B3 o TC-X2.</div>
+      <div class="hito-archivo">📋 <code>autopsia_bugs.md</code> — Los 3 bugs del Reto 3 (Síntoma · Causa raíz · Corrección · Principio).</div>
+      <div class="hito-archivo">📋 <code>checklist_invariantes.md</code> — Los 7 invariantes del Reto 7 con estado y evidencia.</div>
+      <div class="hito-archivo">📋 <code>adr_decision_critica.md</code> — El ADR Express del Reto 5.</div>
+      <div class="hito-archivo">🧾 <code>bitacora_ia.md</code> — Prompt, respuesta relevante resumida, decisión aceptada/rechazada y justificación técnica.</div>
+      <div class="hito-archivo">👥 <code>contribucion_equipo.md</code> — División de trabajo, aportaciones individuales y conflicto técnico resuelto.</div>
+      <span class="tiempo-badge">⏱ Tiempo acumulado estimado (Sems. 9–10): 8–12 horas</span>
+    </div>
+
+    <div class="context-box info">
+      <div class="box-title">📊 Rúbrica del Hito 2</div>
+      <table class="rubrica-table">
+        <tr><th>Criterio</th><th>Pts</th><th>Evaluado en</th></tr>
+        <tr><td>CircuitBreaker: 3 estados correctos + transiciones</td><td class="rubrica-pts">15</td><td>INV-A2, INV-A3, demo_resiliencia.log</td></tr>
+        <tr><td>TokenManager: decode + auth header + refresh singleton</td><td class="rubrica-pts">12</td><td>INV-B2, INV-B3, Reto 4</td></tr>
+        <tr><td>ClienteRobusto: orquesta sin duplicar (SRP)</td><td class="rubrica-pts">12</td><td>INV-A1, INV-B1, Reto 3 Bug A</td></tr>
+        <tr><td>Clasificación correcta de errores (401 ≠ fallo de servidor)</td><td class="rubrica-pts">12</td><td>INV-A4, Hard Gate</td></tr>
+        <tr><td>Prueba automatizada reproducible</td><td class="rubrica-pts">12</td><td>pytest/Jest/Vitest, TC-X2 o invariante crítico</td></tr>
+        <tr><td>Estado observable del cliente ante apertura/cierre del circuito</td><td class="rubrica-pts">10</td><td>Reto 4, demo_resiliencia.log</td></tr>
+        <tr><td>Documentación de decisiones y uso de IA</td><td class="rubrica-pts">12</td><td>docstrings, ADR Express, bitacora_ia.md</td></tr>
+        <tr><td>Repositorio/README reproducible y trazabilidad de entrega</td><td class="rubrica-pts">10</td><td>README.md, estructura, comandos, historial</td></tr>
+        <tr><td>Contribución del equipo documentada</td><td class="rubrica-pts">5</td><td>contribucion_equipo.md / defensa breve</td></tr>
+        <tr class="rubrica-total"><td>Total base</td><td class="rubrica-pts">100</td><td></td></tr>
+      </table>
+    </div>
+
+    <div class="context-box success">
+      <div class="box-title">✅ Declaración de integridad del equipo</div>
+      <label class="declaracion-check"><input type="checkbox"> Cada miembro puede explicar verbalmente cualquier función del código entregado.</label>
+      <label class="declaracion-check"><input type="checkbox"> El uso de IA está documentado en <code>bitacora_ia.md</code> con decisiones aceptadas y rechazadas, no solo capturas o transcripciones.</label>
+      <label class="declaracion-check"><input type="checkbox"> El código fue probado ejecutando el Script de Certificación HG antes de la entrega.</label>
+      <label class="declaracion-check"><input type="checkbox"> La contribución de cada integrante está documentada y ambos pueden defender la decisión arquitectónica principal.</label>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ EVALUACIÓN ═══════════════════════════════════ -->
+<section id="evaluacion" class="eval-section">
+  <div class="eval-header">
+    <h2>📊 Sistema de Evaluación — Semana 10</h2>
+    <p>Examen Práctico 2 (12 %) · Hito 2 (15 %) · Equipos de hasta 2 integrantes</p>
+  </div>
+  <div class="hito-body">
+    <div class="entregable-box">
+      <h4>📁 Entregables del Examen Práctico 2 (en taller, 4 horas)</h4>
+      <div class="ent-item">🔗 Repositorio, PR o paquete comprimido reproducible con <code>README.md</code>.</div>
+      <div class="ent-item">📝 Fragmentos del Reto 1 con asignación y justificación documentada.</div>
+      <div class="ent-item">📝 <code>diagrama_flujo.txt</code> — Los 5 nodos [?N] del Reto 2 completados.</div>
+      <div class="ent-item">📋 <code>autopsia_bugs.md</code> — Los 3 bugs del Reto 3.</div>
+      <div class="ent-item">📄 <code>cliente_integrado.py / .js</code> + salida de consola del Reto 4, incluyendo estado observable de UI.</div>
+      <div class="ent-item">📋 <code>adr_decision_critica.md</code> — Reto 5.</div>
+      <div class="ent-item">📋 <code>checklist_invariantes.md</code> — Reto 7 (7 invariantes con evidencia).</div>
+      <div class="ent-item">📋 <code>tc_cross_regression.md</code> — Los 3 casos de prueba del Reto 8.</div>
+      <div class="ent-item">🧪 <code>test_*.py / *.test.js</code> — Prueba automatizada obligatoria para TC-X2 o invariante crítico.</div>
+      <div class="ent-item">🧾 <code>bitacora_ia.md</code> — Evidencia curada del uso socrático de IA.</div>
+      <div class="ent-item">👥 <code>contribucion_equipo.md</code> — División de trabajo y defensa breve de aportaciones.</div>
+      <span class="tiempo-badge">⏱ Tiempo estimado: 3h 25min retos + 35min Hito 2</span>
+    </div>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">COMPRENDE</span>
+    <div class="criterio-body">
+      <strong>Retos 1 y 2: Mapa de Responsabilidades + Diagrama de Flujo</strong>
+      <span>5 fragmentos con justificación técnica. 5 nodos con precisión de componente, no de lenguaje.</span>
+    </div>
+    <span class="criterio-pts">15 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">APLICA</span>
+    <div class="criterio-body">
+      <strong>Reto 3: Autopsia de los 3 bugs (7 pts c/u)</strong>
+      <span>Síntoma → causa → corrección → principio violado. Diagnóstico sin principio → 4 pts/bug.</span>
+    </div>
+    <span class="criterio-pts">21 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">APLICA</span>
+    <div class="criterio-body">
+      <strong>Reto 4: Script de integración ejecutable contra mock</strong>
+      <span>Login → transición CERRADO→ABIERTO→SEMI/CERRADO visible en log. Token no expuesto. Rol viewer no bloqueado.</span>
+    </div>
+    <span class="criterio-pts">14 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">REFLEXIONA</span>
+    <div class="criterio-body">
+      <strong>Reto 5: ADR Express con escenario adverso</strong>
+      <span>Decisión no trivial, consecuencias honestas, escenario adverso diferente a las consecuencias negativas.</span>
+    </div>
+    <span class="criterio-pts">15 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">VALIDA</span>
+    <div class="criterio-body">
+      <strong>Reto 7: Certificación de los 7 invariantes con evidencia</strong>
+      <span>1 pt por invariante con evidencia observable. Correcciones documentadas valen punto completo.</span>
+    </div>
+    <span class="criterio-pts">13 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">VALIDA</span>
+    <div class="criterio-body">
+      <strong>Reto 8: 3 casos de prueba cruzada</strong>
+      <span>TC-X2 debe entregarse como prueba automatizada; TC-X1 y TC-X3 requieren protocolo reproducible y evidencia documentada.</span>
+    </div>
+    <span class="criterio-pts">12 pts</span>
+  </div>
+  <div class="criterio-item">
+    <span class="fase-badge">META</span>
+    <div class="criterio-body">
+      <strong>Checkpoints metacognitivos (4 preguntas)</strong>
+      <span>Se califican con micro-rúbrica: concepto técnico, causa, impacto y acción de mejora. "Aprendí mucho" no califica.</span>
+    </div>
+    <span class="criterio-pts">10 pts</span>
+  </div>
+  <div class="eval-footer-bonus">
+    <strong>🌟 Bonus (fuera de taller):</strong>
+    Reto 6 (Árbitro SSE) +7 pts · Reto 9 (Postmortem) +5 pts · Reto 10 (Preview WS) +3 pts · <strong>Máx. bonus: +15 pts sobre base.</strong>
+  </div>
+  <div class="eval-footer">
+    <strong>⚠️ Entrega mínima:</strong> CircuitBreaker con 3 estados + ≥4 invariantes verificados + diagnóstico de ≥2 bugs del Reto 3 + README reproducible + una prueba automatizada. Si falla el Hard Gate, la entrega queda bloqueada hasta corregirse con penalización formativa.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ GLOSARIO ═══════════════════════════════════ -->
+<section id="glosario" class="glosario-section">
+  <div class="glosario-header"><h2>📖 Glosario de Revisión — Semanas 6–9</h2></div>
+  <div class="glosario-grid">
+    <dl class="termino-card"><dt>Server-Sent Events (SSE)</dt><dd>Protocolo unidireccional (servidor→cliente) sobre HTTP. El cliente abre una conexión persistente; el servidor envía eventos en texto (<code>data:</code>, <code>event:</code>, <code>id:</code>). El cliente reconecta automáticamente con <code>Last-Event-ID</code>.</dd></dl>
+    <dl class="termino-card"><dt>EventRouter</dt><dd>Componente del ClienteSSEMultiplex que despacha eventos SSE al handler registrado según el tipo. No conoce el protocolo de transporte ni la autenticación.</dd></dl>
+    <dl class="termino-card"><dt>JWT — JSON Web Token</dt><dd>Token firmado: header.payload.signature en Base64URL. El cliente decodifica el payload sin verificar la firma. La verificación siempre ocurre en el servidor.</dd></dl>
+    <dl class="termino-card"><dt>Base64URL</dt><dd>Variante de Base64 que reemplaza <code>+</code> por <code>-</code> y <code>/</code> por <code>_</code>, y omite el padding <code>=</code>. Los decodificadores estándar requieren restaurar el padding antes de procesar el payload JWT.</dd></dl>
+    <dl class="termino-card"><dt>Circuit Breaker</dt><dd>Patrón del cliente que monitorea éxitos/fallos de llamadas remotas. Ante fallo sostenido, abre el circuito y rechaza peticiones inmediatamente para proteger al servidor durante su recuperación.</dd></dl>
+    <dl class="termino-card"><dt>Estado Semiabierto (Half-Open)</dt><dd>Estado de transición: una sola petición de prueba pasa al servidor. Éxito → cierra (y resetea contador). Fallo → abre de nuevo con timeout completo reiniciado.</dd></dl>
+    <dl class="termino-card"><dt>Fail Fast</dt><dd>Principio: fallar inmediatamente con un error claro es mejor que esperar el timeout completo. El CircuitBreaker abierto implementa fail fast devolviendo <code>CircuitOpenError</code> sin tocar la red.</dd></dl>
+    <dl class="termino-card"><dt>Singleton de Refresh</dt><dd>Si múltiples peticiones concurrentes detectan el token expirado, solo una ejecuta el refresh. Las demás esperan al mismo resultado. Evita N peticiones redundantes al endpoint de autenticación.</dd></dl>
+    <dl class="termino-card aetl"><dt>INV-A / INV-B (AETL)</dt><dd>Familias de invariantes del curso. INV-A: del CircuitBreaker (no conoce JWT, una petición en SEMI, reset al cerrar, 401 no es fallo). INV-B: del TokenManager (no conoce el breaker, token fuera de logs, refresh singleton).</dd></dl>
+    <dl class="termino-card aetl"><dt>Deadlock Auth-Breaker (AETL)</dt><dd>Anti-patrón: el CB abierto bloquea las peticiones de refresh de token, dejando el cliente incapaz de autenticarse y de hacer peticiones simultáneamente. Se previene excluyendo el endpoint de auth del breaker.</dd></dl>
+    <dl class="termino-card aetl"><dt>ADR — Architecture Decision Record (AETL)</dt><dd>Documento breve que registra una decisión de diseño con su contexto, la decisión tomada y las consecuencias. Hace explícito lo que de otro modo quedaría implícito en el código.</dd></dl>
+    <dl class="termino-card aetl"><dt>Grand Deploy (AETL)</dt><dd>Denominación de la Semana 10 en la narrativa del curso: el momento en que todos los componentes se integran, auditan y certifican antes de "salir a producción" con el cliente EcoMarket.</dd></dl>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ REFERENCIAS ═══════════════════════════════════ -->
+<section id="referencias" class="refs-section">
+  <h3>📚 Referencias</h3>
+  <p class="refs-cat">Patrones de Resiliencia y Arquitectura</p>
+  <div class="ref-item">Nygard, M. T. (2018). <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. [Caps. 4–5: Stability Antipatterns y Stability Patterns]</div>
+  <div class="ref-item">Richardson, C. (2018). <em>Microservices Patterns: With Examples in Java.</em> Manning Publications. [Cap. 3: Circuit Breaker en clientes de microservicios]</div>
+  <div class="ref-item">Fowler, M. (2014). CircuitBreaker. <em>martinfowler.com.</em> https://martinfowler.com/bliki/CircuitBreaker.html</div>
+  <div class="ref-item">Microsoft Azure Architecture Center. (2023). Circuit Breaker pattern. https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker</div>
+  <p class="refs-cat">Autenticación y Comunicación en Tiempo Real</p>
+  <div class="ref-item">Jones, M., Bradley, J., &amp; Sakimura, N. (2015). <em>RFC 7519: JSON Web Token (JWT).</em> IETF. https://datatracker.ietf.org/doc/html/rfc7519</div>
+  <div class="ref-item">Fette, I., &amp; Melnikov, A. (2011). <em>RFC 6455: The WebSocket Protocol.</em> IETF. https://datatracker.ietf.org/doc/html/rfc6455 [Base conceptual del Reto 10]</div>
+  <div class="ref-item">W3C. (2015). <em>Server-Sent Events.</em> https://www.w3.org/TR/eventsource/</div>
+  <p class="refs-cat">Estándares HTTP</p>
+  <div class="ref-item">Fielding, R., &amp; Reschke, J. (2014). <em>RFC 7231: HTTP/1.1 Semantics and Content.</em> IETF. https://datatracker.ietf.org/doc/html/rfc7231</div>
+  <div class="ref-item">Nottingham, M. (2022). <em>RFC 9110: HTTP Semantics.</em> IETF. https://datatracker.ietf.org/doc/html/rfc9110</div>
+  <p class="refs-cat">Currículo de Referencia</p>
+  <div class="ref-item">ACM, IEEE-CS, &amp; AAAI. (2024). <em>Computer Science Curricula 2023 (CS2023).</em> DOI: 10.1145/3664191</div>
+</section>
+
+</main><!-- /container -->
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="modelo-badge">AETL — Aprendizaje Técnico Aumentado por IA</div>
+  <p>Semana 10 · Unidad IV: Cierre · Grand Deploy — Examen Práctico 2 + Hito 2</p>
+  <p>Programación Distribuida del Lado del Cliente · Licenciatura en Sistemas Computacionales · UAN</p>
+  <p>Dr. Eligardo Cruz Sánchez</p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════════ -->
+<script>
+// ── Datos de retos y badges ────────────────────────────────────
+const RETOS = {
+  r1:{xp:8}, r2:{xp:7}, r3:{xp:20}, r4:{xp:15},
+  r5:{xp:15}, r6:{xp:7}, r7:{xp:13}, r8:{xp:12},
+  r9:{xp:5}, r10:{xp:3}, meta:{xp:10}
+};
+const BASE_MAX = 100; // r1+r2+r3+r4+r5+r7+r8+meta
+const done = {};
+
+// ── XP y badges ───────────────────────────────────────────────
+function calcXP() {
+  return Object.keys(done).filter(k=>done[k]).reduce((s,k)=>{
+    const r = RETOS[k]; return r ? s + r.xp : s;
+  }, 0);
+}
+
+function updateXP() {
+  const xp = calcXP();
+  document.getElementById('xpTotal').textContent = xp;
+  const pct = Math.min((xp / BASE_MAX) * 100, 100);
+  document.getElementById('xpBar').style.width = pct + '%';
+  document.getElementById('xpCertified').classList.toggle('visible', xp >= 80);
+  checkBadges();
+}
+
+function checkBadges() {
+  toggleBadge('badge-sse',     done.r1 && done.r2);
+  toggleBadge('badge-token',   done.r3);
+  toggleBadge('badge-breaker', done.r3 && done.r7);
+  toggleBadge('badge-arch',    done.r4 && done.r8);
+}
+
+function toggleBadge(id, condition) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const wasEarned = el.classList.contains('earned');
+  el.classList.toggle('earned', !!condition);
+  if (condition && !wasEarned) el.classList.add('earn-anim');
+}
+
+// ── Checkbox de reto ──────────────────────────────────────────
+function onRetoCheck(cb) {
+  const key = cb.dataset.reto;
+  done[key] = cb.checked;
+  const xpEl = document.getElementById('xp-' + key);
+  if (xpEl) xpEl.classList.toggle('visible', cb.checked);
+  // En modo Revisión los detalles ya están abiertos; en Examen, abrir al completar
+  if (cb.checked && document.body.dataset.modo === 'examen') {
+    const retro = document.getElementById('retro-' + key);
+    if (retro) retro.open = true;
+  }
+  updateXP();
+  saveState();
+}
+
+// ── Tabs Python / Browser ─────────────────────────────────────
+function showRuta(grupo, id) {
+  document.querySelectorAll('[data-ruta-grupo="' + grupo + '"]').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('[data-tab-grupo="' + grupo + '"]').forEach(el => el.classList.remove('active'));
+  const t = document.getElementById(id);
+  if (t) t.classList.add('active');
+  document.querySelectorAll('[data-tab-grupo="' + grupo + '"][data-tab-id="' + id + '"]')
+          .forEach(el => el.classList.add('active'));
+}
+
+// ── Puzzle fragmentos ─────────────────────────────────────────
+function checkFrag(sel) {
+  const fb = document.getElementById('fb-' + sel.dataset.frag);
+  if (!fb) return;
+  if (!sel.value) { fb.textContent = ''; return; }
+  const ok = sel.value === sel.dataset.correct;
+  fb.textContent = ok ? '✅' : '❌';
+  fb.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  const all = document.querySelectorAll('.frag-select');
+  if ([...all].every(s => s.value && s.value === s.dataset.correct)) {
+    document.getElementById('puzzle-ok').style.display = 'block';
+  }
+}
+
+// ── Modo Examen / Revisión ────────────────────────────────────
+function setModo(modo) {
+  document.body.dataset.modo = modo;
+  document.getElementById('btn-examen').classList.toggle('activo', modo === 'examen');
+  document.getElementById('btn-revision').classList.toggle('activo', modo === 'revision');
+  document.querySelectorAll('details.retro').forEach(d => {
+    if (modo === 'revision') d.open = true;
+    else {
+      const key = d.id.replace('retro-', '');
+      d.open = !!done[key];
+    }
+  });
+  localStorage.setItem('s10_modo', modo);
+}
+
+// ── Equipo ────────────────────────────────────────────────────
+function propagarEquipo(valor) {
+  localStorage.setItem('s10_equipo', valor);
+}
+
+// ── XP panel collapse ─────────────────────────────────────────
+function toggleXP() {
+  const body = document.getElementById('xpBody');
+  const btn  = document.querySelector('.xp-collapse-btn');
+  const hidden = body.style.display === 'none';
+  body.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '—' : '+';
+}
+
+// ── Progress bar observer ─────────────────────────────────────
+const FASES = ['comprende','aplica','reflexiona','valida','profundiza'];
+const obsProgress = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const id = entry.target.id;
+    document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active','completed'));
+    const idx = FASES.indexOf(id);
+    FASES.forEach((f,i) => {
+      const el = document.querySelector(`.progress-step[href="#${f}"]`);
+      if (!el) return;
+      if (i < idx) el.classList.add('completed');
+      else if (i === idx) el.classList.add('active');
+    });
+  });
+}, { threshold: 0.2 });
+FASES.forEach(f => { const el = document.getElementById(f); if (el) obsProgress.observe(el); });
+
+// ── Persistencia localStorage ─────────────────────────────────
+function saveState() {
+  localStorage.setItem('s10_done', JSON.stringify(done));
+}
+
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem('s10_done') || '{}');
+    Object.assign(done, d);
+    Object.keys(done).forEach(key => {
+      if (!done[key]) return;
+      const cb = document.querySelector(`input[data-reto="${key}"]`);
+      if (cb) cb.checked = true;
+      const xpEl = document.getElementById('xp-' + key);
+      if (xpEl) xpEl.classList.add('visible');
+    });
+  } catch(e) {}
+  const equipo = localStorage.getItem('s10_equipo');
+  if (equipo) document.getElementById('equipo-input').value = equipo;
+  const modo = localStorage.getItem('s10_modo') || 'examen';
+  setModo(modo);
+  updateXP();
+}
+
+document.addEventListener('DOMContentLoaded', loadState);
+</script>
+</body>
+</html>

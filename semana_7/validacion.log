@@ -1,0 +1,172 @@
+2026-05-21 15:46:00 ============================================================
+2026-05-21 15:46:00   CLIENTE SSE MULTIPLEX — EcoMarket · Semana 7
+2026-05-21 15:46:00   Programación Distribuida del Lado del Cliente · UAN
+2026-05-21 15:46:00 ============================================================
+2026-05-21 15:46:00   Módulos: ['precios', 'inventario', 'pedidos']
+2026-05-21 15:46:00   URL: https://api.ecomarket.com/eventos?modulos=precios,inventario,pedidos
+2026-05-21 15:46:00   Timeout: 30s | Max reintentos: 5
+2026-05-21 15:46:00 ============================================================
+
+2026-05-21 15:46:00 📋 Registrando handlers...
+2026-05-21 15:46:00   📋 Suscriptor registrado para 'precio-actualizado': handler_precio_actualizado
+2026-05-21 15:46:00   📋 Suscriptor registrado para 'stock-critico': handler_stock_critico
+2026-05-21 15:46:00   📋 Suscriptor registrado para 'pedido-nuevo': handler_pedido_nuevo
+2026-05-21 15:46:00   📋 Suscriptor registrado para 'sistema-ping': handler_heartbeat
+
+2026-05-21 15:46:00 🚀 DEMO OFFLINE — 10 eventos mixtos de EcoMarket
+2026-05-21 15:46:00    (sin servidor real; usando mock SSE)
+2026-05-21 15:46:00 ------------------------------------------------------------
+
+--- EVENTO 1 ---
+  📥 [15:46:00] RAW: 'id: evt-001'
+  📥 [15:46:00] RAW: 'event: precio-actualizado'
+  📥 [15:46:00] RAW: 'data: {"producto_id": "P042", "precio_anterior": 89.00, "precio_nuevo": 79.50, "timestamp": "2026-03-10T14:32:00Z"}'
+  📥 [15:46:00] RAW: ''
+
+  📣 [15:46:00] EVENTO id=evt-001 | tipo=precio-actualizado
+  💰 ALERTA PRECIO: P042 cambió 10.7% (89.00 → 79.50)
+
+--- EVENTO 2 ---
+  📥 [15:46:01] RAW: 'id: evt-002'
+  📥 [15:46:01] RAW: 'event: stock-critico'
+  📥 [15:46:01] RAW: 'data: {"producto_id": "P019", "stock_actual": 3, "umbral": 10, "timestamp": "2026-03-10T14:32:05Z"}'
+  📥 [15:46:01] RAW: ''
+
+  📣 [15:46:01] EVENTO id=evt-002 | tipo=stock-critico
+  📦 [🔴 CRÍTICO] Stock de P019: 3 unidades (umbral=10)
+
+--- EVENTO 3 ---
+  📥 [15:46:01] RAW: 'id: evt-003'
+  📥 [15:46:01] RAW: 'event: pedido-nuevo'
+  📥 [15:46:01] RAW: 'data: {"pedido_id": "ORD-2026-0471", "cliente": "Distribuidora Norte S.A.", "total": 1250.00, "items": 8}'
+  📥 [15:46:01] RAW: ''
+
+  📣 [15:46:01] EVENTO id=evt-003 | tipo=pedido-nuevo
+  🛒 PEDIDO IMPORTANTE: ORD-2026-0471 — Distribuidora Norte S.A. — $1250.00 (registrado; total en lista: 1)
+
+--- EVENTO 4 ---
+  📥 [15:46:02] RAW: 'id: evt-004'
+  📥 [15:46:02] RAW: 'event: sistema-ping'
+  📥 [15:46:02] RAW: 'data: {"timestamp": "2026-03-10T14:32:30Z"}'
+  📥 [15:46:02] RAW: ''
+
+  📣 [15:46:02] EVENTO id=evt-004 | tipo=sistema-ping
+  🏓 Heartbeat recibido — última conexión activa: 2026-03-10T14:32:30Z
+
+--- EVENTO 5 (ESCENARIO DE FALLO: datos malformados) ---
+  📥 [15:46:02] RAW: 'id: evt-005'
+  📥 [15:46:02] RAW: 'event: precio-actualizado'
+  📥 [15:46:02] RAW: 'data: DATOS_INVALIDOS_NO_JSON'
+  📥 [15:46:02] RAW: ''
+
+  📣 [15:46:02] EVENTO id=evt-005 | tipo=precio-actualizado
+  ⚡ [precio-actualizado] JSON inválido: 'DATOS_INVALIDOS_NO_JSON'
+[La excepción del handler fue capturada. La conexión SSE CONTINÚA normalmente.]
+
+--- EVENTO 6 (tipo desconocido 'alerta-fraude') ---
+  📥 [15:46:03] RAW: 'id: evt-006'
+  📥 [15:46:03] RAW: 'event: alerta-fraude'
+  📥 [15:46:03] RAW: 'data: {"sospechoso": "IP-192.168.1.50"}'
+  📥 [15:46:03] RAW: ''
+
+  📣 [15:46:03] EVENTO id=evt-006 | tipo=alerta-fraude
+  [router] [15:46:03] Tipo desconocido 'alerta-fraude' — ignorado silenciosamente
+
+--- EVENTO 7 (pedido bajo el umbral de $500) ---
+  📥 [15:46:03] RAW: 'id: evt-007'
+  📥 [15:46:03] RAW: 'event: pedido-nuevo'
+  📥 [15:46:03] RAW: 'data: {"pedido_id": "ORD-2026-0472", "cliente": "Cliente Casual", "total": 89.99, "items": 1}'
+  📥 [15:46:03] RAW: ''
+
+  📣 [15:46:03] EVENTO id=evt-007 | tipo=pedido-nuevo
+  🛒 Pedido ORD-2026-0472: $89.99 (bajo umbral de $500 — ignorado)
+
+--- EVENTO 8 (sin campo event: → tipo por defecto "message") ---
+  📥 [15:46:04] RAW: 'id: evt-008'
+  📥 [15:46:04] RAW: 'data: {"mensaje": "evento sin tipo explícito"}'
+  📥 [15:46:04] RAW: ''
+
+  📣 [15:46:04] EVENTO id=evt-008 | tipo=message
+  [router] [15:46:04] Tipo desconocido 'message' — ignorado silenciosamente
+[INV-A1 verificado: tipo por defecto "message" asignado correctamente]
+
+--- EVENTO 9 (stock moderado) ---
+  📥 [15:46:04] RAW: 'id: evt-009'
+  📥 [15:46:04] RAW: 'event: stock-critico'
+  📥 [15:46:04] RAW: 'data: {"producto_id": "P099", "stock_actual": 15, "umbral": 10}'
+  📥 [15:46:04] RAW: ''
+
+  📣 [15:46:04] EVENTO id=evt-009 | tipo=stock-critico
+  📦 [🟡 MODERADO] Stock de P099: 15 unidades (umbral=10)
+
+--- EVENTO 10 (precio con cambio < 5%) ---
+  📥 [15:46:05] RAW: 'id: evt-010'
+  📥 [15:46:05] RAW: 'event: precio-actualizado'
+  📥 [15:46:05] RAW: 'data: {"producto_id": "P042", "precio_anterior": 79.50, "precio_nuevo": 80.00}'
+  📥 [15:46:05] RAW: ''
+
+  📣 [15:46:05] EVENTO id=evt-010 | tipo=precio-actualizado
+  💰 Precio P042: 79.50 → 80.00 (cambio 0.6% — sin alerta)
+
+2026-05-21 15:46:05 ============================================================
+2026-05-21 15:46:05 📊 ESTADO FINAL:
+2026-05-21 15:46:05   Último evento ID: evt-010
+2026-05-21 15:46:05   Pedidos importantes (>$500): 1
+2026-05-21 15:46:05     • ORD-2026-0471 — Distribuidora Norte S.A. — $1250.00
+2026-05-21 15:46:05   Última conexión activa: 2026-03-10T14:32:30Z
+2026-05-21 15:46:05 ============================================================
+
+============================================================
+  AUDITORÍA — 4 ESCENARIOS DE FALLO (Reto 4)
+============================================================
+
+══ ESCENARIO 1: Datos malformados en medio del stream ══
+  📣 [15:46:05] EVENTO id=e1 | tipo=precio-actualizado
+  ⚡ [precio-actualizado] JSON inválido: 'DATO_CORRUPTO_NO_ES_JSON'
+  📣 [15:46:05] EVENTO id=e2 | tipo=stock-critico
+  📦 [🟠 BAJO] Stock de P001: 5 unidades (umbral=10)
+  → RESULTADO: el handler de precio-actualizado recibió JSON inválido,
+    logueó el error y CONTINUÓ. El evento e2 (stock-critico) se procesó.
+  → CORRECTO ✅ (INV-V1)
+
+══ ESCENARIO 2: Reconexión con Last-Event-ID ══
+  → URL: https://api.ecomarket.com/eventos?modulos=precios,inventario,pedidos
+  → Headers de reconexión: {'Accept': 'text/event-stream', 'Last-Event-ID': 'evt-005'}
+  → Last-Event-ID = 'evt-005' está en los headers ✅
+  → CORRECTO ✅ (INV-V2)
+
+══ ESCENARIO 3: Tipo de evento desconocido 'alerta-fraude' ══
+  📣 [15:46:05] EVENTO id=e3 | tipo=alerta-fraude
+  [router] [15:46:05] Tipo desconocido 'alerta-fraude' — ignorado silenciosamente
+  📣 [15:46:05] EVENTO id=e4 | tipo=sistema-ping
+  🏓 Heartbeat recibido — última conexión activa: 2026-03-10T15:00:00Z
+  → 'alerta-fraude' fue ignorado silenciosamente por el router
+  → 'sistema-ping' (e4) se procesó correctamente después
+  → CORRECTO ✅ (EventRouter ignora tipos desconocidos)
+
+══ ESCENARIO 4: iniciar() con conexión ya activa ══
+  Estado actual: CONECTADO
+⚠️  iniciar() ignorado — el cliente ya está en estado 'CONECTADO'
+  Estado después de la llamada: CONECTADO
+  → iniciar() fue ignorado (no abrió segunda conexión) ✅
+  → CORRECTO ✅ (INV-V3)
+
+============================================================
+  RESUMEN DE AUDITORÍA:
+  Escenario 1 (datos malformados): CORRECTO ✅
+  Escenario 2 (Last-Event-ID en reconexión): CORRECTO ✅
+  Escenario 3 (tipo desconocido): CORRECTO ✅
+  Escenario 4 (doble iniciar()): CORRECTO ✅
+  Los 4 escenarios pasaron sin modificaciones al código.
+============================================================
+
+--- Checklist de autoevaluación rápida ---
+✅ No abre segunda conexión si ya tiene una activa (INV-V3)
+✅ Bloque SSE sin campo event: → tipo "message" (INV-A1)
+✅ Handler que lanza excepción no interrumpe el stream (INV-A3)
+✅ Reconecta correctamente con Last-Event-ID (INV-V2)
+✅ data: que no es JSON válido no crashea el cliente (INV-V1)
+✅ detener() para limpiamente sin streams colgados (bandera _parar)
+✅ URL construida con módulos es válida y contiene todos los activos (INV-C3)
+
+--- FIN DE VALIDACION.LOG ---

@@ -1,0 +1,75 @@
+======================================================================
+  EcoMarket — Cliente Integrado (Reto 4: Grand Deploy)
+======================================================================
+
+
+──────────────────────────────────────────────────────────────────────
+FASE 0: Login
+──────────────────────────────────────────────────────────────────────
+14:39:40 [INFO] token_manager: Logging in user 'op1' to http://localhost:3000/auth/login
+14:39:46 [INFO] token_manager: Login successful for user 'op1'
+[LOGIN] Token almacenado · rol=viewer · sub=op1
+[LOGIN] Token expira en 900s
+
+──────────────────────────────────────────────────────────────────────
+FASE 1: Peticiones exitosas (3 × 200)
+──────────────────────────────────────────────────────────────────────
+[ADMIN] Modo servidor -> normal
+[HTTP #1] 200 · productos=3 · CB: CERRADO (fallos=0)
+[HTTP #2] 200 · productos=3 · CB: CERRADO (fallos=0)
+[HTTP #3] 200 · productos=3 · CB: CERRADO (fallos=0)
+
+──────────────────────────────────────────────────────────────────────
+FASE 2: Fallos 503 sostenidos (CB se abre)
+──────────────────────────────────────────────────────────────────────
+[ADMIN] Modo servidor -> fallo_503
+14:39:46 [WARNING] circuit_breaker: [EcoMarketAPI] Fallo registrado #1/5
+[HTTP #4] 503 · CB: CERRADO (fallos=1)
+14:39:46 [WARNING] circuit_breaker: [EcoMarketAPI] Fallo registrado #2/5
+[HTTP #5] 503 · CB: CERRADO (fallos=2)
+14:39:46 [WARNING] circuit_breaker: [EcoMarketAPI] Fallo registrado #3/5
+[HTTP #6] 503 · CB: CERRADO (fallos=3)
+14:39:46 [WARNING] circuit_breaker: [EcoMarketAPI] Fallo registrado #4/5
+[HTTP #7] 503 · CB: CERRADO (fallos=4)
+14:39:46 [WARNING] circuit_breaker: [EcoMarketAPI] Fallo registrado #5/5
+14:39:46 [ERROR] circuit_breaker: [EcoMarketAPI] Transición CERRADO → ABIERTO (umbral alcanzado: 5 fallos)
+[UI] 🟡 DEGRADADO — Circuito ABIERTO - servicio no disponible
+     circuito_abierto=True
+[HTTP #8] 503 · CB: ABIERTO (fallos=5)
+
+──────────────────────────────────────────────────────────────────────
+FASE 3: Fail-fast (CB ABIERTO — sin tocar el servidor)
+──────────────────────────────────────────────────────────────────────
+[UI] 🟡 DEGRADADO — Servicio no disponible. Reintenta en 60.0s
+     tiempo_restante=59.99988984700008
+     circuito_abierto=True
+[BREAKER] Fail fast — CircuitOpenError (sin tocar el servidor)
+[BREAKER] Tiempo restante: 60.0s
+
+──────────────────────────────────────────────────────────────────────
+FASE 4: Esperando timeout (60.0s) → SEMIABIERTO...
+──────────────────────────────────────────────────────────────────────
+[BREAKER] Timeout 60.0s → SEMIABIERTO
+14:40:47 [INFO] circuit_breaker: [EcoMarketAPI] Transición ABIERTO → SEMIABIERTO (timeout expiró)
+[BREAKER] Estado actual: SEMIABIERTO
+
+──────────────────────────────────────────────────────────────────────
+FASE 5: Recuperacion (restaurar modo normal)
+──────────────────────────────────────────────────────────────────────
+[ADMIN] Modo servidor -> normal
+14:40:47 [INFO] circuit_breaker: [EcoMarketAPI] Transición SEMIABIERTO → CERRADO (recuperación exitosa)
+[UI] 🟢 CONECTADO — Circuito CERRADO - conexion restablecida
+     circuito_abierto=False
+[HTTP #9] 200 · productos=3 · CB: CERRADO (fallos=0)
+[UI] banner=oculto · action=enable_checkout
+
+Estado final: circuito=CERRADO · fallos=0 · token_valido=True
+
+──────────────────────────────────────────────────────────────────────
+FASE 6: Verificar que rol 'viewer' puede hacer GET
+──────────────────────────────────────────────────────────────────────
+[HTTP GET /inventario] 200 · rol=viewer puede consultar inventario ✅
+
+======================================================================
+  🏁 Demo integrado finalizado.
+======================================================================

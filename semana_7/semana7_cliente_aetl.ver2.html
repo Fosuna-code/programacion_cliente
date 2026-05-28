@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 7: SSE Avanzado — Múltiples Canales y Gestión de Conexiones | AETL</title>
+    <style>
+:root {
+    --primary: #003a63;
+    --secondary: #005b96;
+    --accent: #f2a900;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --gray: #6c757d;
+    --border-radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7; color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+}
+/* ── HEADER ───────────────────────────────────────── */
+.header-institucional {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 2rem; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,58,99,0.3);
+}
+.header-institucional .logo-container {
+    display: flex; justify-content: center; align-items: center;
+    gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.header-institucional .escudo {
+    width: 80px; height: 80px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--primary); font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.header-institucional h1 { font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.header-institucional .subtitulo { font-size: 1.1rem; opacity: 0.9; }
+.header-institucional .badge-semana {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold;
+    margin-top: 1rem; font-size: 1rem;
+}
+/* ── PROGRESS BAR ─────────────────────────────────── */
+.progress-container {
+    background: white; padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+.progress-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin: 0 auto; position: relative;
+}
+.progress-bar::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: #e0e0e0; transform: translateY(-50%); z-index: 1;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2; cursor: pointer;
+    transition: transform 0.3s; text-decoration: none;
+}
+.progress-step:hover { transform: scale(1.1); }
+.progress-step .step-icon {
+    width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; background: white; border: 3px solid #e0e0e0;
+    transition: all 0.3s;
+}
+.progress-step.active .step-icon {
+    background: var(--secondary); border-color: var(--secondary);
+    color: white; box-shadow: 0 4px 15px rgba(0,91,150,0.4);
+}
+.progress-step.completed .step-icon {
+    background: var(--success); border-color: var(--success); color: white;
+}
+.progress-step .step-label {
+    font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray);
+    font-weight: 600; text-transform: uppercase;
+}
+.progress-step.active .step-label { color: var(--secondary); }
+/* ── NAV ──────────────────────────────────────────── */
+.nav-container {
+    background: var(--primary); padding: 0.8rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-links {
+    display: flex; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; max-width: 1200px; margin: 0 auto;
+}
+.nav-links a {
+    color: white; text-decoration: none; padding: 0.5rem 1rem;
+    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s;
+    border: 1px solid transparent;
+}
+.nav-links a:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
+/* ── LAYOUT ───────────────────────────────────────── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+/* ── FASE SECTIONS ────────────────────────────────── */
+.fase-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden; animation: fadeIn 0.5s ease-out;
+}
+.fase-header { padding: 1.5rem 2rem; color: white; display: flex; align-items: center; gap: 1rem; }
+.fase-header.comprende { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.fase-header.aplica    { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.fase-header.reflexiona{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.fase-header.valida    { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.fase-header.profundiza{ background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.fase-header .fase-icon {
+    font-size: 2rem; width: 60px; height: 60px;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.fase-header .fase-info h2 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.fase-header .fase-info .bloom-tag { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+.fase-content { padding: 2rem; }
+/* ── SHARED COMPONENTS ────────────────────────────── */
+.objetivos-box {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1e8fa 100%);
+    border-left: 4px solid var(--secondary); padding: 1.5rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem;
+}
+.objetivos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.objetivos-box ul { list-style: none; padding-left: 0; }
+.objetivos-box li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+.objetivos-box li::before { content: '🎯'; position: absolute; left: 0; }
+.context-box { padding: 1.2rem 1.5rem; border-radius: var(--border-radius); margin: 1.5rem 0; border-left: 4px solid; }
+.context-box.tip     { background: linear-gradient(135deg, #e3f9e5 0%, #c8f7dc 100%); border-color: var(--success); }
+.context-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-color: var(--warning); }
+.context-box.danger  { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-color: var(--danger); }
+.context-box.info    { background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-color: var(--info); }
+.context-box.purple  { background: linear-gradient(135deg, #f3e8ff 0%, #e8d5f5 100%); border-color: #6f42c1; }
+.context-box .box-title { font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.reto-ia {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; border-radius: var(--border-radius); margin: 1.5rem 0;
+    overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.reto-ia-header {
+    background: linear-gradient(90deg, var(--accent) 0%, #e89900 100%);
+    color: var(--primary); padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+}
+.reto-ia-header .reto-numero {
+    background: var(--primary); color: var(--accent);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem;
+}
+.reto-ia-header h4 { flex: 1; font-size: 1.1rem; }
+.reto-ia-body { padding: 1.5rem; }
+.reto-ia .rol-ia {
+    background: rgba(242,169,0,0.15); border: 1px solid var(--accent);
+    padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    margin-bottom: 1rem; font-size: 0.9rem;
+}
+.reto-ia .rol-ia strong { color: var(--accent); }
+.prompt-box {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: var(--border-radius); padding: 1.2rem; margin: 1rem 0;
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem;
+    line-height: 1.6; white-space: pre-wrap; color: #c9d1d9;
+}
+.prompt-box::before {
+    content: '📝 PROMPT'; display: block; color: var(--accent);
+    font-weight: bold; margin-bottom: 0.8rem; font-family: 'Segoe UI', sans-serif;
+}
+.entregable-box {
+    background: rgba(40,167,69,0.15); border: 1px dashed var(--success);
+    padding: 1rem; border-radius: var(--border-radius); margin-top: 1rem;
+}
+.entregable-box::before {
+    content: '📦 ENTREGABLE ESPERADO'; display: block; color: var(--success);
+    font-weight: bold; margin-bottom: 0.5rem;
+}
+.checkpoint {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0;
+}
+.checkpoint h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checkpoint .pregunta {
+    background: white; padding: 1rem; border-radius: var(--border-radius);
+    margin: 0.8rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative; padding-left: 3rem;
+}
+.checkpoint .pregunta::before { content: '❓'; position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.ascii-diagram {
+    background: #1e1e1e; color: #00ff00;
+    font-family: 'Consolas', 'Monaco', monospace; padding: 1.5rem;
+    border-radius: var(--border-radius); overflow-x: auto;
+    margin: 1.5rem 0; font-size: 0.85rem; line-height: 1.4; white-space: pre;
+}
+.diagrama-descripcion {
+    background: #f8f9fa; border-left: 4px solid var(--info);
+    padding: 1rem; margin-top: -1rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem; color: var(--dark);
+}
+.escenario-inmersivo {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; padding: 2rem; border-radius: var(--border-radius);
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+}
+.escenario-inmersivo::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: 0.1;
+}
+.escenario-inmersivo h3 { color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.escenario-inmersivo .personaje {
+    background: rgba(255,255,255,0.1); padding: 1rem;
+    border-radius: var(--border-radius); margin: 1rem 0;
+    border-left: 3px solid var(--accent);
+}
+.escenario-inmersivo .dialogo {
+    font-style: italic; margin: 1rem 0; padding-left: 1rem;
+    border-left: 2px solid rgba(255,255,255,0.3);
+}
+.fundamentos-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
+}
+.fundamentos-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.constructo-card {
+    border: 1px solid #e0e0e0; border-radius: var(--border-radius);
+    margin: 1rem; overflow: hidden; transition: all 0.3s;
+}
+.constructo-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.constructo-card .card-header { padding: 1rem 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.8rem; }
+.constructo-card:nth-child(1) .card-header { background: #e8f4fd; color: var(--primary); }
+.constructo-card:nth-child(2) .card-header { background: #fff3e0; color: #e65100; }
+.constructo-card:nth-child(3) .card-header { background: #e8f5e9; color: #2e7d32; }
+.constructo-card:nth-child(4) .card-header { background: #f3e5f5; color: #7b1fa2; }
+.constructo-card:nth-child(5) .card-header { background: #fce4ec; color: #c2185b; }
+.constructo-card .card-body { padding: 1.5rem; font-size: 0.95rem; }
+.constructo-card .referencia { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.8rem; }
+.constructo-card .operacional {
+    background: #f8f9fa; padding: 0.8rem; border-radius: var(--border-radius);
+    margin-top: 1rem; font-size: 0.9rem; border-left: 3px solid var(--accent);
+}
+.invariantes-box {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border: 2px dashed #c2185b; border-radius: var(--border-radius);
+    padding: 1.5rem; margin-top: 2rem;
+}
+.invariantes-box h4 { color: #880e4f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.errores-comunes {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 2px solid var(--warning); border-radius: var(--border-radius);
+    padding: 1.5rem; margin: 1.5rem 0;
+}
+.errores-comunes h4 { color: #e65100; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.error-item { background: white; padding: 1rem; border-radius: var(--border-radius); margin: 0.8rem 0; border-left: 4px solid var(--warning); }
+.error-item strong { color: #e65100; }
+.reto-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: 0.5rem; }
+.reto-badge.esencial { background: var(--success); color: white; }
+.reto-badge.avanzado { background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white; }
+.prerrequisitos-box { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid var(--accent); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; }
+.prerrequisitos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.prerrequisitos-box ul { margin-left: 1.5rem; }
+.prerrequisitos-box li { margin-bottom: 0.5rem; }
+.conexion-semana-anterior { background: linear-gradient(135deg, #e8f4fd 0%, #bbdefb 100%); border-left: 4px solid var(--secondary); padding: 1.2rem 1.5rem; border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem; }
+.conexion-semana-anterior h4 { color: var(--primary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+.tabla-comparativa { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.tabla-comparativa th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+.tabla-comparativa td { padding: 0.8rem 1rem; border-bottom: 1px solid #e0e0e0; }
+.tabla-comparativa tr:last-child td { border-bottom: none; }
+.tabla-comparativa tr:hover { background: #f8f9fa; }
+.glosario-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.glosario-header { background: var(--dark); color: white; padding: 1.5rem 2rem; }
+.glosario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1.5rem; }
+.termino-card { background: #f8f9fa; padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--secondary); }
+.termino-card.aetl { border-left-color: var(--accent); }
+.termino-card dt { font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+.termino-card dd { font-size: 0.9rem; color: var(--gray); }
+.evaluacion-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.evaluacion-header { background: linear-gradient(135deg, var(--success) 0%, #20c997 100%); color: white; padding: 1.5rem 2rem; }
+.criterio-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+.criterio-item:last-child { border-bottom: none; }
+.criterio-item .fase-badge { background: var(--secondary); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; margin-right: 1rem; min-width: 100px; text-align: center; }
+.criterio-item .puntos { background: var(--accent); color: var(--primary); padding: 0.5rem 1rem; border-radius: var(--border-radius); font-weight: bold; margin-left: auto; }
+.referencias-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 2rem; }
+.referencias-section h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); }
+.referencia-item { padding: 0.8rem 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+.referencia-item:last-child { border-bottom: none; }
+code { background: #f1f3f4; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d63384; }
+pre code { display: block; padding: 1rem; background: #1e1e1e; color: #d4d4d4; overflow-x: auto; }
+.footer { background: var(--primary); color: white; text-align: center; padding: 2rem; margin-top: 2rem; }
+.footer .modelo-badge { display: inline-block; background: var(--accent); color: var(--primary); padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold; margin-bottom: 1rem; }
+.checklist-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid var(--success); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.checklist-box h4 { color: #1b5e20; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-item { background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius); margin: 0.6rem 0; display: flex; align-items: flex-start; gap: 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.checklist-item .check-icon { font-size: 1.1rem; min-width: 24px; }
+.checklist-item .diagnostico { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; font-style: italic; }
+/* ── ENTREGABLE ÚNICO BOX ─────────────────────────── */
+.entregable-unico-box {
+    background: linear-gradient(135deg, #003a63 0%, #005b96 100%);
+    color: white; border-radius: var(--border-radius); padding: 1.5rem 2rem;
+    margin: 1.5rem 0; box-shadow: 0 4px 20px rgba(0,58,99,0.25);
+}
+.entregable-unico-box h4 { color: var(--accent); margin-bottom: 1rem; font-size: 1.1rem; }
+.entregable-unico-box .archivo-item {
+    background: rgba(255,255,255,0.1); padding: 0.7rem 1rem;
+    border-radius: var(--border-radius); margin: 0.5rem 0;
+    display: flex; align-items: center; gap: 0.8rem;
+}
+.entregable-unico-box .tiempo-badge {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.3rem 1rem; border-radius: 20px; font-weight: bold;
+    font-size: 0.9rem; margin-top: 1rem;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+    .header-institucional h1 { font-size: 1.4rem; }
+    .container { padding: 1rem; }
+    .fase-header { flex-direction: column; text-align: center; }
+    .progress-step .step-label { display: none; }
+    .nav-links { flex-direction: column; align-items: center; }
+    .criterio-item { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .criterio-item .puntos { margin-left: 0; margin-top: 0.5rem; }
+}
+@media print { .progress-container, .nav-container { display: none; } body { background: white; } .reto-ia { break-inside: avoid; } }
+.text-center { text-align: center; } .text-primary { color: var(--primary); } .text-accent { color: var(--accent); } .text-muted { color: var(--gray); }
+.mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; } .mt-4 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 0.5rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mb-4 { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+<!-- ========== HEADER INSTITUCIONAL ========== -->
+<header class="header-institucional">
+    <div class="logo-container">
+        <div class="escudo">UAN</div>
+        <div>
+            <h1>Programación Distribuida del Lado del Cliente</h1>
+            <p class="subtitulo">Licenciatura en Sistemas Computacionales</p>
+        </div>
+        <div class="escudo">LSC</div>
+    </div>
+    <span class="badge-semana">📅 Semana 7 de 15 · Unidad II: Patrones de Comunicación · SSE Avanzado</span>
+</header>
+
+<!-- ========== BARRA DE PROGRESO ========== -->
+<div class="progress-container">
+    <div class="progress-bar">
+        <a href="#comprende" class="progress-step active">
+            <div class="step-icon">📖</div>
+            <span class="step-label">Comprende</span>
+        </a>
+        <a href="#aplica" class="progress-step">
+            <div class="step-icon">⚡</div>
+            <span class="step-label">Aplica</span>
+        </a>
+        <a href="#reflexiona" class="progress-step">
+            <div class="step-icon">🔍</div>
+            <span class="step-label">Reflexiona</span>
+        </a>
+        <a href="#valida" class="progress-step">
+            <div class="step-icon">✔</div>
+            <span class="step-label">Valida</span>
+        </a>
+        <a href="#profundiza" class="progress-step">
+            <div class="step-icon">🚀</div>
+            <span class="step-label">Profundiza</span>
+        </a>
+    </div>
+</div>
+
+<!-- ========== NAVEGACIÓN ========== -->
+<nav class="nav-container">
+    <div class="nav-links">
+        <a href="#prereq">📋 Prerrequisitos</a>
+        <a href="#escenario">🏢 Escenario</a>
+        <a href="#fundamentos">🧠 Fundamentos</a>
+        <a href="#comprende">📖 Comprende</a>
+        <a href="#aplica">⚡ Aplica</a>
+        <a href="#reflexiona">🔍 Reflexiona</a>
+        <a href="#valida">✔ Valida</a>
+        <a href="#profundiza">🚀 Profundiza</a>
+        <a href="#evaluacion">📊 Evaluación</a>
+        <a href="#glosario">📖 Glosario</a>
+        <a href="#referencias">📚 Referencias</a>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- ========== PRERREQUISITOS ========== -->
+    <section id="prereq" class="prerrequisitos-box">
+        <h4>📋 Para tener éxito esta semana, asegúrate de dominar...</h4>
+        <ul>
+            <li><strong>Cliente SSE básico (Semana 6):</strong> parseo manual de <code>text/event-stream</code>, campos <code>event:</code>, <code>data:</code>, <code>id:</code> y <code>retry:</code>, reconexión con backoff exponencial, bandera de parada limpia.</li>
+            <li><strong>Patrón Observer (Semana 4):</strong> cómo una fuente de eventos notifica a múltiples suscriptores sin conocerlos directamente. Esta semana se extiende ese patrón para routing por tipo de evento.</li>
+            <li><strong>async/await en tu lenguaje elegido:</strong> abrir una conexión SSE sin bloquear el hilo principal, leer líneas de forma asíncrona.</li>
+            <li><strong>Manejo de errores HTTP:</strong> qué hace tu cliente ante 4xx (no reintentar) y 5xx (reintentar con backoff).</li>
+            <li><strong>Señal de fin de bloque SSE (<code>\n\n</code>):</strong> tu cliente de Semana 6 debía esperar el doble salto de línea antes de procesar un evento. Esta semana los bloques son más complejos (cuatro campos posibles). Si tu parseo disparaba el handler antes del <code>\n\n</code>, corrígelo ahora — esta semana ese bug causará eventos duplicados o incompletos.</li>
+        </ul>
+        <div class="context-box warning" style="margin-top: 1rem; margin-bottom: 0;">
+            <div class="box-title">⚠️ Si tu cliente de Semana 6 no reconecta limpiamente...</div>
+            <p>Esta semana añade complejidad sobre ese fundamento. Si la bandera de parada o el backoff no funcionaron en Semana 6, revísalos <strong>antes</strong> de continuar — el starter code de la sección APLICA incluye esa base ya resuelta para que no te bloquees.</p>
+        </div>
+    </section>
+
+    <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+    <div class="conexion-semana-anterior">
+        <h4>🔗 Semana 6 → Semana 7: ¿Qué extiende este documento?</h4>
+        <p>La semana pasada construiste un cliente SSE que recibe un único tipo de eventos de inventario de EcoMarket. El cliente funciona bien para <em>un</em> canal. Ahora EcoMarket creció: necesitas recibir eventos de <strong>tres módulos simultáneos</strong> — precios, inventario y pedidos. La solución ingenua sería abrir tres conexiones SSE separadas. Esta semana descubrirás por qué eso es un problema real en el cliente, y construirás la solución correcta: un cliente que multiplexa múltiples tipos de eventos sobre <strong>una sola conexión</strong>, usando el patrón <strong>EventRouter</strong>.</p>
+    </div>
+
+    <!-- ========== ESCENARIO INMERSIVO ========== -->
+    <section id="escenario">
+        <div class="escenario-inmersivo">
+            <h3>🏢 Escenario: EcoMarket — El Panel de Control Unificado</h3>
+            <p>TechNova acaba de recibir una solicitud urgente de EcoMarket: el equipo de operaciones necesita un <strong>Panel de Control Unificado</strong> que muestre actualizaciones en tiempo real de tres módulos del negocio simultáneamente:</p>
+            <ul style="margin: 1rem 0 1rem 1.5rem; opacity: 0.9;">
+                <li>🏷️ <strong>Módulo Precios</strong>: notificaciones cuando el precio de un producto cambia más del 5%</li>
+                <li>📦 <strong>Módulo Inventario</strong>: alertas cuando el stock de un SKU cae por debajo del umbral de reposición</li>
+                <li>🛒 <strong>Módulo Pedidos</strong>: aviso en tiempo real de nuevos pedidos con valor superior a $500</li>
+            </ul>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior (equipo TechNova):</strong>
+                <div class="dialogo">"Ya lo tengo: abro tres objetos EventSource, uno por módulo. Cada uno escucha su endpoint. Fácil."</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior (TechNova):</strong>
+                <div class="dialogo">"¿Y qué pasa cuando el navegador haya usado 6 conexiones HTTP/1.1 a ese mismo origen? Las llamadas <code>fetch()</code> normales empiezan a encolarse. El panel se congela mientras espera conexiones disponibles. Tres SSE persistentes más un fetch de autenticación ya son cuatro. Nos quedan solo dos para las demás operaciones del panel."</div>
+            </div>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior:</strong>
+                <div class="dialogo">"No sabía que había un límite... ¿Qué hacemos entonces?"</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior:</strong>
+                <div class="dialogo">"Una sola conexión SSE al endpoint <code>/api/ecomarket/eventos</code>, con los módulos que te interesan como parámetro. El servidor envía eventos tipados; tu cliente los enruta al handler correcto. Un canal, tres módulos, cero problema de pool de conexiones. Tú diseñas el <strong>EventRouter</strong>."</div>
+            </div>
+            <p style="margin-top: 1rem; opacity: 0.85;"><em>Tu misión esta semana: construir ese <strong>ClienteSSEMultiplex</strong> que gestiona la suscripción filtrada, parsea los eventos tipados y los despacha a los módulos correctos — todo sobre una única conexión HTTP persistente.</em></p>
+        </div>
+    </section>
+
+    <!-- ========== FUNDAMENTOS TEÓRICOS AETL ========== -->
+    <section id="fundamentos" class="fundamentos-section">
+        <div class="fundamentos-header">
+            <h2>🧠 Fundamentos AETL — Semana 7</h2>
+            <p style="opacity: 0.85; margin-top: 0.3rem;">Cinco constructos pedagógicos aplicados al diseño de clientes multiplexados</p>
+        </div>
+        <div style="padding: 1rem;">
+
+            <div class="constructo-card">
+                <div class="card-header">🏗️ 1. Constructivismo — Vygotsky &amp; Bognár (2024)</div>
+                <div class="card-body">
+                    <div class="referencia">Vygotsky (1978): Zona de Desarrollo Próximo (ZDP) · Bognár (2024): IA como andamiaje en la ZDP</div>
+                    <p>El EventRouter pre-construido que aparece en APLICA es andamiaje cognitivo en acción: resuelve el problema que aún no dominas (routing genérico) para que tu ZDP se extienda hacia donde sí debes llegar (gestión de conexiones multiplexadas). La IA complementa ese andamiaje guiándote para conectar los piezas.</p>
+                    <div class="operacional">⚙️ <strong>Operacional esta semana:</strong> Usas el EventRouter dado para concentrarte en construir la <em>conexión multiplexada</em> y la <em>lógica de suscripción</em> — no en reinventar un despachador de eventos genérico.</div>
+                </div>
+            </div>
+
+            <div class="constructo-card">
+                <div class="card-header">📋 2. Aprendizaje Autorregulado (SRL) — Zimmerman (2000) · Chiu (2024)</div>
+                <div class="card-body">
+                    <div class="referencia">Zimmerman (2000): ciclo planificación-ejecución-autorreflexión · Chiu (2024): SRL con herramientas IA generativas</div>
+                    <p>Esta semana el ciclo SRL se aplica al diseño de la estrategia de suscripción: <em>¿qué módulos registra el cliente al inicio? ¿Cómo añade uno nuevo en tiempo de ejecución sin cortar la conexión?</em> Planificar estas preguntas antes de codificar es la diferencia entre un cliente frágil y uno extensible.</p>
+                    <div class="operacional">⚙️ <strong>Operacional esta semana:</strong> Antes de escribir código, escribe en comentarios las cuatro decisiones de diseño del cliente: módulos iniciales, estrategia de reconexión, comportamiento ante handler fallido, y cómo añadir suscripciones en tiempo real.</div>
+                </div>
+            </div>
+
+            <div class="constructo-card">
+                <div class="card-header">🧮 3. Carga Cognitiva — Sweller (1988/2020) · Mahdi et al. (2025)</div>
+                <div class="card-body">
+                    <div class="referencia">Sweller (1988): carga intrínseca, extrínseca y germana · Mahdi et al. (2025): carga cognitiva en tareas de programación asistidas por IA</div>
+                    <p>Esta semana tiene dos fuentes de carga intrínseca: (a) el concepto de multiplexación sobre una sola conexión, y (b) el routing de eventos por tipo. El EventRouter pre-dado elimina la carga extrínseca de implementar routing genérico, liberando carga germana para internalizar <em>por qué</em> una sola conexión es mejor arquitectura.</p>
+                    <div class="operacional">⚙️ <strong>Operacional esta semana:</strong> Si te encuentras pensando en los internos del EventRouter (cómo almacena los handlers), para. Ese problema ya está resuelto. Tu energía cognitiva debe estar en la lógica de conexión y en las decisiones de suscripción.</div>
+                </div>
+            </div>
+
+            <div class="constructo-card">
+                <div class="card-header">🤝 4. Agencia Compartida — Bandura (2001) · Brod et al. (2023)</div>
+                <div class="card-body">
+                    <div class="referencia">Bandura (2001): auto-eficacia y agencia · Brod et al. (2023): agencia en entornos de aprendizaje asistidos por IA</div>
+                    <p>Esta semana el riesgo de dependencia excesiva de la IA es alto: el problema parece complejo y la IA puede generar código completo con un solo prompt. Tu rol como <strong>Arquitecto del Cliente</strong> es decidir <em>antes</em> de preguntar: ¿conexión única o múltiple? ¿Parámetros de suscripción en URL o en cuerpo? Entonces la IA valida tu diseño, no lo inventa por ti.</p>
+                    <div class="operacional">⚙️ <strong>Operacional esta semana:</strong> Escribe una línea de pseudocódigo para cada método del ClienteSSEMultiplex antes de iniciar el Reto 2. Esa preparación define la agenda de la sesión con la IA.</div>
+                </div>
+            </div>
+
+            <div class="constructo-card">
+                <div class="card-header">🎓 5. Taxonomía de Bloom Digital — Anderson et al. (2001)</div>
+                <div class="card-body">
+                    <div class="referencia">Anderson et al. (2001): revisión de Bloom para entornos digitales y de creación colaborativa</div>
+                    <p>El arco de esta semana recorre toda la taxonomía: <strong>Recordar</strong> el formato SSE (Comprende) → <strong>Aplicar</strong> el EventRouter al cliente real (Aplica) → <strong>Analizar</strong> trade-offs de una vs. múltiples conexiones (Reflexiona) → <strong>Evaluar</strong> el cliente construido con escenarios de fallo (Valida) → <strong>Crear</strong> un sistema de routing con prioridades (Profundiza).</p>
+                    <div class="operacional">⚙️ <strong>Operacional esta semana:</strong> En la fase Valida, detectar errores en tu propio cliente (Evaluar) es tan importante como haberlo construido (Aplicar). Un cliente que no supera los escenarios de fallo no está terminado.</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FASE 1: COMPRENDE ========== -->
+    <section id="comprende" class="fase-section">
+        <div class="fase-header comprende">
+            <div class="fase-icon">📖</div>
+            <div class="fase-info">
+                <h2>Fase 1: COMPRENDE</h2>
+                <div class="bloom-tag">🧠 Bloom: Recordar · Comprender — Identificar el problema de conexiones y explicar la solución de multiplexación</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de aprendizaje</h4>
+                <ul>
+                    <li><strong>Identificar</strong> cuántas conexiones HTTP/1.1 puede mantener un cliente hacia un mismo origen y qué implica eso para un cliente que abre múltiples SSE.</li>
+                    <li><strong>Explicar</strong> cómo un único stream SSE puede transportar múltiples tipos de eventos usando el campo <code>event:</code> del protocolo.</li>
+                    <li><strong>Describir</strong> el patrón EventRouter (despachador de eventos por tipo) y cómo lo utiliza el cliente para enrutar eventos sin modificar la conexión.</li>
+                    <li><strong>Reconocer</strong> los estados de conexión del cliente (DESCONECTADO → CONECTANDO → CONECTADO → RECONECTANDO) y las transiciones válidas entre ellos.</li>
+                    <li><strong>Comparar</strong> desde la perspectiva del código cliente las estrategias de múltiples conexiones vs. una conexión multiplexada.</li>
+                </ul>
+            </div>
+
+            <h3 class="mt-3 mb-2">🌐 El problema del pool de conexiones en el cliente</h3>
+            <p>HTTP/1.1 limita el número de conexiones simultáneas que un cliente puede abrir hacia el <em>mismo origen</em> (mismo host + puerto + protocolo). Los navegadores modernos aplican un límite de <strong>6 conexiones por origen</strong>; los clientes Python/Node.js no tienen ese límite nativo, pero cada conexión abierta consume un descriptor de archivo del sistema operativo y una ranura del pool TCP.</p>
+            <p class="mt-2">Una conexión SSE es persistente: permanece abierta indefinidamente mientras el servidor envía eventos. Cada <code>EventSource</code> en el navegador (o equivalente en Python/Node) <strong>ocupa una de esas 6 ranuras</strong> mientras exista. Con tres módulos escuchando simultáneamente, más los <code>fetch()</code> normales del panel, el pool se agota y las peticiones normales quedan esperando.</p>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama del problema: tres conexiones SSE consumen el pool de conexiones del cliente">
+┌─────────────────────────────────────────────────────────────────────┐
+│                  CLIENTE (navegador / app)                          │
+│                                                                     │
+│   Pool de conexiones HTTP/1.1 hacia api.ecomarket.com               │
+│   ┌───────┬───────┬───────┬───────┬───────┬───────┐                │
+│   │ SSE#1 │ SSE#2 │ SSE#3 │fetch()│fetch()│  ???  │                │
+│   │precios│invent.│pedidos│ auth  │ datos │[bloq.]│                │
+│   └───────┴───────┴───────┴───────┴───────┴───────┘                │
+│     ↑                                       ↑                       │
+│   Conexiones persistentes                Los fetch() adicionales    │
+│   (no se liberan nunca)                  se encolan y esperan       │
+│                                          ← experiencia degradada    │
+└─────────────────────────────────────────────────────────────────────┘</div>
+            <div class="diagrama-descripcion">
+                <strong>📋 Qué ilustra este diagrama:</strong> Las tres conexiones SSE (una por módulo) ocupan permanentemente tres de las seis ranuras del pool del cliente. Cuando el código del cliente necesita hacer llamadas <code>fetch()</code> adicionales (renovar token, cargar datos históricos, enviar un pedido), esas peticiones se encolan porque el pool está lleno. <strong>Qué simplifica:</strong> omite el time-sharing de TCP y las variaciones por versión de navegador. <strong>Aspecto clave del protocolo:</strong> la naturaleza persistente de SSE convierte cada conexión en un recurso no-liberable mientras el cliente esté activo.
+            </div>
+
+            <h3 class="mb-2">✅ La solución: multiplexación de eventos sobre una sola conexión</h3>
+            <p>HTTP/1.1 y SSE permiten que el servidor envíe eventos de <strong>distintos tipos</strong> sobre la misma conexión usando el campo <code>event:</code>. En lugar de tres conexiones, el cliente abre <strong>una sola</strong> hacia <code>/api/ecomarket/eventos?modulos=precios,inventario,pedidos</code> y recibe todos los tipos de eventos mezclados en ese stream. El cliente es responsable de leer el campo <code>event:</code> y despachar cada mensaje al handler correcto. Eso es multiplexación del lado del cliente.</p>
+
+            <div class="ascii-diagram" role="img" aria-label="Diagrama de solución: una sola conexión SSE con EventRouter despachando por tipo">
+┌─────────────────────────────────────────────────────────────────────┐
+│                  CLIENTE (navegador / app)                          │
+│                                                                     │
+│   Pool de conexiones HTTP/1.1 hacia api.ecomarket.com               │
+│   ┌───────┬───────┬───────┬───────┬───────┬───────┐                │
+│   │SSE    │fetch()│fetch()│fetch()│fetch()│fetch()│                │
+│   │multi- │ libre │ libre │ libre │ libre │ libre │                │
+│   │plex   │       │       │       │       │       │                │
+│   └───────┴───────┴───────┴───────┴───────┴───────┘                │
+│       │                                                             │
+│       │  GET /api/ecomarket/eventos?modulos=precios,inventario,     │
+│       │                             pedidos                         │
+│       ▼                                                             │
+│   ┌─────────────────────────────────────────────────────────┐      │
+│   │            ClienteSSEMultiplex                          │      │
+│   │   ┌──────────────────────────────────────────────────┐  │      │
+│   │   │  EventRouter                                     │  │      │
+│   │   │                                                  │  │      │
+│   │   │  "precio-actualizado" ──► [handler_tabla_UI]     │  │      │
+│   │   │  "stock-critico"      ──► [handler_alerta,       │  │      │
+│   │   │                            handler_email]        │  │      │
+│   │   │  "pedido-nuevo"       ──► [handler_pedidos_UI]   │  │      │
+│   │   │  "sistema-ping"       ──► [handler_heartbeat]    │  │      │
+│   │   └──────────────────────────────────────────────────┘  │      │
+│   └─────────────────────────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────────────────────┘</div>
+            <div class="diagrama-descripcion">
+                <strong>📋 Qué ilustra este diagrama:</strong> Una sola conexión SSE ocupa una ranura del pool; las otras cinco quedan libres para peticiones normales. El EventRouter vive completamente en el código del cliente — es una tabla de despacho en memoria. <strong>Qué simplifica:</strong> no muestra la reconexión ni el estado de la conexión. <strong>Aspecto clave del patrón:</strong> el routing por tipo de evento es responsabilidad del cliente; el servidor solo pone el campo <code>event:</code> en cada mensaje.
+            </div>
+
+            <h3 class="mb-2">📡 Revisión: formato del stream SSE con múltiples tipos</h3>
+            <p>El protocolo SSE estándar (WHATWG) define los siguientes campos en cada bloque de evento. Esta semana el campo crítico es <code>event:</code>:</p>
+            <pre><code>
+# ─── Mensaje SSE de tipo "precio-actualizado" ───────────────────────────────
+id: evt-001
+event: precio-actualizado
+data: {"producto_id": "P042", "precio_anterior": 89.00, "precio_nuevo": 79.50, "timestamp": "2026-03-10T14:32:00Z"}
+
+# ─── Mensaje SSE de tipo "stock-critico" ─────────────────────────────────────
+id: evt-002
+event: stock-critico
+data: {"producto_id": "P019", "stock_actual": 3, "umbral": 10, "timestamp": "2026-03-10T14:32:05Z"}
+
+# ─── Mensaje SSE de tipo "pedido-nuevo" ──────────────────────────────────────
+id: evt-003
+event: pedido-nuevo
+data: {"pedido_id": "ORD-2026-0471", "cliente": "Distribuidora Norte S.A.", "total": 1250.00, "items": 8, "timestamp": "2026-03-10T14:32:11Z"}
+
+# ─── Keep-alive (ping del sistema) ────────────────────────────────────────────
+id: evt-004
+event: sistema-ping
+data: {"timestamp": "2026-03-10T14:32:30Z"}
+            </code></pre>
+            <div class="context-box info">
+                <div class="box-title">ℹ️ ¿Qué pasa si el cliente no conoce el tipo de evento?</div>
+                <p>Si el servidor envía un <code>event: sistema-alerta-critica</code> que el cliente no tiene registrado en su EventRouter, el cliente debe ignorarlo silenciosamente — sin lanzar excepción, sin cortar la conexión. Esto permite al servidor agregar nuevos tipos de eventos sin forzar actualizaciones del cliente. El EventRouter pre-dado ya maneja este caso.</p>
+            </div>
+
+            <div class="context-box warning">
+                <div class="box-title">⚠️ Aclaración importante: cómo funciona <code>Last-Event-ID</code> — y cómo NO funciona</div>
+                <p>Un malentendido frecuente: el campo <code>id:</code> en un mensaje SSE <strong>no requiere que el cliente responda nada</strong>. SSE es unidireccional: el servidor envía, el cliente solo escucha. El cliente simplemente guarda en memoria el último ID visto (<code>self.ultimo_id</code>).</p>
+                <p style="margin-top: 0.6rem;">El <code>Last-Event-ID</code> <strong>solo se usa en la petición HTTP de reconexión</strong> — cuando la conexión se corta y el cliente abre una nueva. En ese momento, incluye el header <code>Last-Event-ID: evt-005</code> para que el servidor sepa desde dónde reanudar. No existe ningún mensaje de confirmación del cliente hacia el servidor durante el stream normal.</p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.8rem; white-space: pre-wrap;">── Stream normal (el cliente NO responde nada) ──────────────────
+SERVIDOR → CLIENTE: id: evt-001 \n event: precio-actualizado \n data: {...} \n\n
+SERVIDOR → CLIENTE: id: evt-002 \n event: stock-critico \n data: {...} \n\n
+  ... (conexión TCP se corta aquí) ...
+
+── Reconexión (el cliente envía Last-Event-ID en el GET) ────────
+CLIENTE → SERVIDOR: GET /api/ecomarket/eventos?modulos=...
+                    Last-Event-ID: evt-002   ← solo aquí aparece
+SERVIDOR → CLIENTE: reanuda stream desde evt-003</pre>
+            </div>
+
+            <h3 class="mb-2 mt-3">⚙️ Cómo el cliente envía sus preferencias de suscripción</h3>
+            <p>SSE usa HTTP GET para establecer la conexión. El cliente no puede enviar un cuerpo en un GET, por lo que las preferencias de suscripción se codifican como <strong>parámetros de URL</strong>. Esta es la responsabilidad clave del ClienteSSEMultiplex: construir la URL correcta antes de abrir la conexión.</p>
+            <pre><code>
+# ── Pseudocódigo: Construcción de URL con suscripciones ─────────────────────
+FUNCTION construir_url(base_url, modulos_activos):
+    # modulos_activos es una lista: ["precios", "inventario", "pedidos"]
+
+    # Codificar la lista como parámetro de URL
+    # Resultado: ?modulos=precios,inventario,pedidos
+    params = "modulos=" + UNIR(modulos_activos, separador=",")
+
+    # Retornar la URL completa
+    RETURN base_url + "?" + params
+
+# ── Uso: ─────────────────────────────────────────────────────────────────────
+url = construir_url(
+    "https://api.ecomarket.com/eventos",
+    ["precios", "inventario", "pedidos"]
+)
+# → "https://api.ecomarket.com/eventos?modulos=precios,inventario,pedidos"
+
+# ── Si en tiempo de ejecución el cliente quiere AGREGAR un módulo: ────────────
+# No puede simplemente agregar un handler — necesita cerrar la conexión actual,
+# actualizar modulos_activos, y reconectar con la nueva URL.
+# Esa decisión (¿cuándo reconectar?) es tuya como Arquitecto del Cliente.
+            </code></pre>
+
+            <h3 class="mb-2 mt-3">🔄 Máquina de estados del cliente — Gestión de conexión</h3>
+            <p>El ClienteSSEMultiplex debe rastrear en qué estado se encuentra su conexión para evitar abrir conexiones duplicadas o ignorar errores. Aquí el diagrama de estados que tu cliente debe implementar:</p>
+
+            <div class="ascii-diagram" role="img" aria-label="Máquina de estados del cliente SSE Multiplex">
+                                    iniciar()
+                                       │
+                     ┌─────────────────▼──────────────────┐
+                     │           DESCONECTADO              │
+                     │    (estado inicial y final)         │
+                     └─────────────────────────────────────┘
+                                       │
+                         llamar a conectar() internamente
+                                       │
+                     ┌─────────────────▼──────────────────┐
+                     │            CONECTANDO               │
+                     │   (solicitud HTTP en vuelo,         │
+                     │    esperando respuesta 200)         │
+                     └─────────────────────────────────────┘
+                              │                │
+                         HTTP 200           error/timeout/
+                     stream inicia           4xx sin retry
+                              │                │
+     ┌────────────────────────▼──┐    ┌────────▼──────────────────────┐
+     │          CONECTADO        │    │         DESCONECTADO          │
+     │  (recibiendo eventos,     │    │  (si error no recuperable:    │
+     │   despachando al Router)  │    │   4xx, max reintentos)        │
+     └────────────────────────┬──┘    └───────────────────────────────┘
+              │               │
+       detener()         error 5xx /
+              │          cierre TCP /
+              │          timeout de red
+              │               │
+     ┌────────▼──┐    ┌────────▼──────────────────────────────────────┐
+     │DESCONECTADO│   │           RECONECTANDO                        │
+     │(intencional│   │  (backoff exponencial, conteo de reintentos,  │
+     │  por flag) │   │   Last-Event-ID enviado al reconectar)        │
+     └────────────┘   └────────────────────────┬──────────────────────┘
+                                               │
+                                    conectar() internamente
+                                    (regresa a CONECTANDO)
+            </div>
+            <div class="diagrama-descripcion">
+                <strong>📋 Qué ilustra este diagrama:</strong> Los 4 estados posibles del cliente y cuándo ocurre cada transición. <strong>Por qué importa al código del cliente:</strong> si el cliente no verifica el estado antes de llamar a <code>iniciar()</code>, podría abrir una segunda conexión SSE mientras la primera sigue abierta — duplicando todos los eventos recibidos. El campo de estado (<code>self.estado</code> en Python) debe ser la única fuente de verdad. <strong>Simplificación:</strong> no muestra el manejo de concurrencia en entornos multihilo, solo el flujo lógico.
+            </div>
+
+            <h3 class="mb-2 mt-3">📊 Comparación: múltiples conexiones vs. conexión multiplexada</h3>
+            <p>Todas las columnas de esta tabla describen impacto en el <strong>código y comportamiento del cliente</strong>, no métricas del servidor.</p>
+
+            <table class="tabla-comparativa">
+                <thead>
+                    <tr>
+                        <th>Característica (perspectiva del cliente)</th>
+                        <th>3 Conexiones SSE separadas</th>
+                        <th>1 Conexión SSE multiplexada ✅</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Conexiones abiertas por el cliente</strong></td>
+                        <td>3 (una por módulo, persistentes)</td>
+                        <td>1 (compartida por todos los módulos)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ranuras del pool HTTP/1.1 usadas</strong></td>
+                        <td>3 de 6 (en navegador) — las otras 3 para fetch()</td>
+                        <td>1 de 6 — 5 libres para fetch() normales</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Código de reconexión en el cliente</strong></td>
+                        <td>3 lógicas de backoff independientes, hay que coordinarlas</td>
+                        <td>1 lógica de backoff, centralizada, más fácil de mantener</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Comportamiento si un módulo falla</strong></td>
+                        <td>Solo ese stream se corta; los otros siguen</td>
+                        <td>Todos los módulos pierden eventos hasta que se reconecta</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Añadir un módulo nuevo en tiempo real</strong></td>
+                        <td>Abrir un cuarto EventSource — otro slot del pool</td>
+                        <td>Cerrar, actualizar URL y reconectar (todos los módulos se reconectan)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Complejidad del cliente</strong></td>
+                        <td>Simple: 3 objetos EventSource independientes</td>
+                        <td>Moderada: hay que implementar routing por tipo de evento</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Compatibilidad con HTTP/2</strong></td>
+                        <td>HTTP/2 multiplexaría las 3 a nivel de transporte (el cliente no cambia mucho)</td>
+                        <td>HTTP/2 hace que esta solución sea aún más eficiente en transporte</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Caso de uso ideal del cliente</strong></td>
+                        <td>Módulos completamente independientes con fuentes de datos separadas</td>
+                        <td>Múltiples módulos del mismo dominio con actualizaciones relacionadas</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Reto 1 — COMPRENDE -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">1</span>
+                    <h4>Exploración: El límite de conexiones y tú <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Tutor Socrático que hace preguntas antes de responder. No da la respuesta hasta que el estudiante hace un intento.</div>
+                    <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como la cantidad de cajas que un cajero puede atender a la vez, o las mesas disponibles en un restaurante con aforo limitado) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como tutor socrático. NO respondas directamente — hazme preguntas una por una y espera mi respuesta.
+
+Quiero entender el problema de conexiones del cliente antes de codificar. Hazme estas preguntas en orden, una a la vez:
+
+1. "Si abro 3 objetos EventSource en un navegador hacia el mismo origen, y el límite es 6 conexiones por origen, ¿cuántas quedan libres para fetch()? ¿Qué pasa si también necesito hacer un fetch() de autenticación cada hora?"
+
+2. "Si en lugar de un navegador uso Python con requests, ¿hay el mismo límite? ¿Qué limita las conexiones en ese caso?"
+
+3. "Si el servidor envía este bloque SSE:
+   event: precio-actualizado
+   data: {\"precio\": 79.50}
+   
+   ...y yo no tengo registrado ningún handler para 'precio-actualizado', ¿qué debería hacer mi cliente? ¿Lanzar excepción? ¿Ignorar? ¿Por qué?"
+
+4. "Si quiero añadir el módulo 'devoluciones' a mi conexión multiplexada mientras está activa (sin reconectar), ¿mi cliente puede hacerlo con los parámetros de URL? ¿Por qué sí o no?"
+
+Después de mis respuestas, da una síntesis de los conceptos que haya entendido correctamente y señala lo que deba corregir.
+
+Mi nivel: entiendo SSE básico de la semana pasada y el patrón Observer de Semana 4.</div>
+                    <div class="context-box info" style="margin: 0.8rem 0;">
+                        <div class="box-title">💡 Tip AETL — Si la IA responde todo de golpe</div>
+                        Si la IA te da las cuatro respuestas juntas en lugar de una pregunta y esperar, escríbele: <em>"Para. Hazme solo la primera pregunta y espera mi respuesta antes de continuar. Yo controlo el ritmo."</em> Insistir en el modo socrático toma 10 segundos y cambia completamente la calidad del aprendizaje.
+                    </div>
+                    <div class="entregable-box">
+                        Anota las respuestas a las 4 preguntas y la síntesis correctiva de la IA en un archivo <code>README.md</code> de tu carpeta de proyecto (sección: "Decisiones de diseño — entendidas antes de codificar"). Son la base del docstring de REFLEXIONA.
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — COMPRENDE</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-C1:</strong> El cliente no abre una segunda conexión SSE si ya hay una en estado CONECTADO o CONECTANDO. Verificar el estado antes de llamar a <code>iniciar()</code>.</li>
+                    <li><strong>INV-C2:</strong> El campo <code>event:</code> ausente en un mensaje SSE no es un error de conexión — es un mensaje de tipo "message" (nombre por defecto del protocolo). El cliente nunca debe cerrar la conexión por recibir un tipo no registrado.</li>
+                    <li><strong>INV-C3:</strong> Los módulos de suscripción siempre deben enviarse como parámetros en la URL de la conexión inicial. El cliente nunca construye la URL sin verificar que la lista de módulos no esté vacía.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint metacognitivo — COMPRENDE</h4>
+                <div class="pregunta">¿Puedes explicar, sin mirar el diagrama, por qué una conexión SSE multiplexada deja más ranuras libres en el pool del cliente que tres conexiones separadas?</div>
+                <div class="pregunta">Si alguien te pregunta "¿por qué no usas WebSocket en lugar de SSE multiplexado?", ¿qué le responderías desde la perspectiva del código que el cliente tiene que escribir?</div>
+                <div class="pregunta">¿Qué diferencia hay entre "el servidor filtra eventos por módulo" y "el cliente enruta eventos por tipo"? ¿Cuál de esos dos pasos requiere cambiar el código del cliente si se añade un módulo nuevo?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FASE 2: APLICA ========== -->
+    <section id="aplica" class="fase-section">
+        <div class="fase-header aplica">
+            <div class="fase-icon">⚡</div>
+            <div class="fase-info">
+                <h2>Fase 2: APLICA</h2>
+                <div class="bloom-tag">🛠️ Bloom: Aplicar · Analizar — Construir el ClienteSSEMultiplex integrando el EventRouter dado</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de aprendizaje</h4>
+                <ul>
+                    <li><strong>Implementar</strong> el ClienteSSEMultiplex: construcción de URL con módulos, apertura de conexión, parseo del stream y despacho al EventRouter.</li>
+                    <li><strong>Integrar</strong> el EventRouter pre-construido en el flujo de recepción de eventos del cliente.</li>
+                    <li><strong>Construir</strong> tres handlers reales para los módulos de EcoMarket (precios, inventario, pedidos) y registrarlos en el EventRouter.</li>
+                    <li><strong>Verificar</strong> que la maquina de estados (DESCONECTADO → CONECTANDO → CONECTADO → RECONECTANDO) se implementa correctamente.</li>
+                </ul>
+            </div>
+
+            <!-- CÓDIGO BASE DE REFERENCIA -->
+            <div class="context-box tip">
+                <div class="box-title">🚀 Código base de referencia — Starter Code</div>
+                <p>Si tu cliente SSE de Semana 6 funciona correctamente y te sientes cómodo extendiéndolo, úsalo como base. Si tuviste problemas con el parseo del stream, el backoff o la parada limpia, aquí tienes el esqueleto mínimo y bien probado para que partas con confianza. <strong>No es "hacer trampa": es usar una base sólida para enfocarte en aprender multiplexación de eventos</strong>, no en depurar el stream reader de la semana pasada.</p>
+            </div>
+
+            <pre><code>
+# ─── starter_multiplex.py — Esqueleto base (pseudocódigo agnóstico) ──────────
+# Archivo de referencia: copia y completa los TODO antes de empezar el Reto 2
+
+CONSTANTE BASE_URL = "https://api.ecomarket.com/eventos"
+CONSTANTE TIMEOUT  = 30        # segundos — Trade-off: detección de cuelgues vs. jitter
+CONSTANTE MAX_REINTENTOS = 5   # intentos — Trade-off: resiliencia vs. latencia de fallo
+CONSTANTE ESPERA_INICIAL = 1   # segundo  — base del backoff exponencial
+
+CLASS EventRouter:
+    # --- ESTA CLASE ESTÁ COMPLETA. NO LA MODIFIQUES. ---
+    # Puedes leerla para entenderla, pero no necesitas reimplementarla.
+
+    FUNCTION __init__(self):
+        self.handlers = {}              # Diccionario: tipo → lista de funciones
+
+    FUNCTION registrar(self, tipo, fn):
+        # Si no existe la lista para este tipo, crearla vacía
+        IF tipo NOT IN self.handlers:
+            self.handlers[tipo] = []
+        # Agregar la función a la lista de ese tipo de evento
+        self.handlers[tipo].append(fn)
+
+    FUNCTION desregistrar(self, tipo, fn):
+        # Quitar una función específica de la lista del tipo dado
+        IF tipo IN self.handlers AND fn IN self.handlers[tipo]:
+            self.handlers[tipo].remove(fn)
+
+    FUNCTION despachar(self, tipo, datos):
+        # Buscar handlers para este tipo de evento
+        IF tipo NOT IN self.handlers:
+            RETURN  # Tipo desconocido → ignorar silenciosamente (no es error)
+
+        # Ejecutar cada handler registrado para este tipo
+        FOR cada fn EN self.handlers[tipo]:
+            TRY:
+                fn(datos)           # Llamar al handler con los datos del evento
+            EXCEPT Exception as e:
+                # ⚠️ Un handler que falla NO interrumpe los otros handlers
+                # ni corta la conexión SSE
+                LOG_ERROR(f"Handler para '{tipo}' falló: {e}")
+                CONTINUE            # Seguir con el siguiente handler
+
+
+CLASS ClienteSSEMultiplex:
+    # --- ESTA CLASE LA IMPLEMENTAS TÚ EN EL RETO 2 ---
+
+    FUNCTION __init__(self, modulos: list):
+        self.modulos = modulos          # Lista de módulos: ["precios","inventario","pedidos"]
+        self.router  = EventRouter()    # ← Tu EventRouter ya está disponible aquí
+        self.estado  = "DESCONECTADO"   # Máquina de estados (INV-C1)
+        self.reintentos = 0             # Contador de reconexiones
+        self.ultimo_id  = None          # Para el header Last-Event-ID
+        self._parar     = False         # Bandera de parada limpia (Semana 6)
+
+    FUNCTION suscribir(self, tipo_evento, handler_fn):
+        # TODO: delegar a self.router.registrar(...)
+        PASS
+
+    FUNCTION construir_url(self):
+        # TODO: construir URL con self.modulos como query param
+        # Retornar: BASE_URL + "?modulos=" + UNIR(self.modulos, ",")
+        PASS
+
+    FUNCTION _parsear_linea(self, linea, evento_parcial):
+        # TODO: parsear el formato SSE (campo: valor)
+        # Actualizar evento_parcial según el campo leído
+        # Devolver evento_parcial actualizado
+        PASS
+
+    FUNCTION _procesar_evento(self, evento_parcial):
+        # TODO: cuando llega una línea vacía (fin de bloque SSE):
+        # 1. Actualizar self.ultimo_id si el evento tiene campo "id"
+        # 2. Llamar a self.router.despachar(tipo, datos)
+        # 3. Limpiar evento_parcial para el siguiente bloque
+        PASS
+
+    ASYNC FUNCTION _leer_stream(self, respuesta_http):
+        # TODO: iterar líneas del stream, llamar a _parsear_linea y _procesar_evento
+        PASS
+
+    ASYNC FUNCTION _conectar(self):
+        # TODO: construir URL, hacer GET con TIMEOUT, actualizar self.estado,
+        # incluir Last-Event-ID si self.ultimo_id no es None,
+        # llamar a self._leer_stream()
+        PASS
+
+    ASYNC FUNCTION iniciar(self):
+        # TODO: verificar que estado == "DESCONECTADO" (INV-C1),
+        # llamar a _conectar() con lógica de backoff exponencial,
+        # respetar self._parar como bandera de salida limpia
+        PASS
+
+    FUNCTION detener(self):
+        # TODO: activar self._parar = True para salida limpia
+        PASS
+
+
+# ─── Handlers de ejemplo para los módulos de EcoMarket ──────────────────────
+# (Implementar en el Reto 2 — Etapa 2)
+
+FUNCTION handler_precio_actualizado(datos):
+    # TODO: mostrar alerta si cambio > 5%
+    PASS
+
+FUNCTION handler_stock_critico(datos):
+    # TODO: mostrar alerta con nivel de urgencia según stock_actual
+    PASS
+
+FUNCTION handler_pedido_nuevo(datos):
+    # TODO: registrar pedido si total > 500
+    PASS
+
+FUNCTION handler_heartbeat(datos):
+    # TODO: actualizar timestamp de última conexión activa
+    PASS
+            </code></pre>
+
+            <div class="context-box purple">
+                <div class="box-title">💡 Nota sobre la industria — Por qué no reimplementamos EventRouter</div>
+                <p>En producción, el EventRouter que aparece en este material es lo que hacen librerías como <strong>EventEmitter</strong> (Node.js core), <strong>RxJS</strong> (Angular/React), o <strong>PyDispatcher</strong> (Python). Lo importante no es saber reimplementar ese mecanismo de despacho genérico — es saber <em>usarlo bien</em>: qué tipo de evento registrar, qué hace tu handler cuando los datos son inesperados, y cómo manejar handlers que fallan sin romper el stream. Eso es lo que practicamos esta semana.</p>
+            </div>
+
+            <h3 class="mt-3 mb-2">🖥️ Elige tu lenguaje/plataforma</h3>
+            <p>El objective es el mismo en cualquier plataforma: una conexión HTTP GET persistente, leer líneas del stream, parsear el formato SSE y despachar al EventRouter. Cada opción enseña algo diferente:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li><strong>Python + <code>requests</code> / <code>aiohttp</code></strong> → lógica de stream más visible, ideal para ver el protocolo "puro". El parseo manual de líneas es explícito. <em>Recomendado si vienes de Semana 6 con Python.</em></li>
+                <li><strong>JavaScript/TypeScript + <code>fetch</code> + <code>ReadableStream</code></strong> → event loop y async/await nativos, modelo de concurrencia web real. EventSource del browser ya lo hace, pero implementarlo con fetch enseña más.</li>
+                <li><strong>Java/Kotlin + <code>HttpClient</code></strong> → tipado fuerte, gestión explícita de null en los campos del evento, ideal para aprender manejo de datos inesperados.</li>
+                <li><strong>CLI en cualquier lenguaje sin framework</strong> → ideal para ver el protocolo sin UI que distraiga. Verificas el comportamiento con <code>cat validacion.log</code>.</li>
+            </ul>
+            <p class="mt-2 text-muted" style="font-size: 0.9rem;"><em>El objetivo no es copiar código — es entender qué decisión de diseño impone cada plataforma. ¿Por qué en Python necesitas <code>iter_lines()</code> y en JS necesitas un <code>TextDecoder</code> sobre el <code>ReadableStream</code>?</em></p>
+
+            <div class="context-box info">
+                <div class="box-title">🔀 ¿Vienes de la Ruta B — EventSource nativo en JS (Semana 6)?</div>
+                <p>Si en Semana 6 elegiste la API nativa <code>EventSource</code> del navegador, <strong>no necesitas implementar <code>_parsear_linea</code>, <code>_leer_stream</code> ni el EventRouter</strong> — la API ya enruta eventos por tipo internamente mediante <code>addEventListener('precio-actualizado', handler)</code>.</p>
+                <p style="margin-top: 0.6rem;">Tu reto específico esta semana es distinto al del estudiante con parseo manual. Enfócate en:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.4rem;">
+                    <li><strong>Construir la URL dinámica</strong> con <code>?modulos=precios,inventario,pedidos</code> antes de instanciar el <code>EventSource</code>.</li>
+                    <li><strong>Gestionar el ciclo de vida</strong>: cerrar el <code>EventSource</code> actual, actualizar la lista de módulos y reconectar cuando cambia la suscripción.</li>
+                    <li><strong>Implementar la máquina de estados</strong> (DESCONECTADO / CONECTANDO / CONECTADO / RECONECTANDO) con las propiedades <code>readyState</code> de EventSource más un estado propio para RECONECTANDO con backoff.</li>
+                    <li><strong>Manejar el escenario de fallo de un handler</strong>: si un listener lanza excepción en un <code>addEventListener</code>, ¿eso corta el stream? Pruébalo.</li>
+                </ul>
+                <p style="margin-top: 0.6rem; font-size: 0.9rem; color: var(--gray);"><em>En el Reto 2 adapta el prompt indicando "Ruta B / EventSource nativo" y reemplaza las referencias a <code>_parsear_linea</code> por las tareas de arriba.</em></p>
+            </div>
+
+            <!-- Reto 2 — APLICA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">2</span>
+                    <h4>Proyecto: ClienteSSEMultiplex — Panel de Control de EcoMarket <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Ingeniero Senior de Clientes que me guía método por método. No resuelve por mí, pero revisa cada pieza antes de pasar a la siguiente y señala casos frontera olvidados.</div>
+                    <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como un distribuidor de correo de oficina que recibe cartas de distintos remitentes y las reparte a los buzones correctos, o un conmutador telefónico que enruta llamadas al departamento correcto) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como un instructor Senior de Clientes que me guía sin resolver por mí.
+
+Voy a construir un ClienteSSEMultiplex para el Panel de Control de EcoMarket, implementado en [MI LENGUAJE/PLATAFORMA].
+
+El cliente debe conectarse a:
+  GET https://api.ecomarket.com/eventos?modulos=precios,inventario,pedidos
+
+y recibir eventos SSE de cuatro tipos:
+  "precio-actualizado", "stock-critico", "pedido-nuevo", "sistema-ping"
+
+(Nota: ya tengo la clase EventRouter funcional del material de la semana;
+ enfócate en ayudarme con ClienteSSEMultiplex, no en reimplementar EventRouter)
+
+Vamos a trabajar en dos etapas dentro del MISMO proyecto:
+
+═══ ETAPA 1: ClienteSSEMultiplex funcional ═══
+
+Implementar los métodos del starter code en este orden:
+  - construir_url(): URL con módulos como query param, lista no vacía (INV-C3)
+  - _parsear_linea(): extrae campo y valor de una línea SSE
+  - _procesar_evento(): despacha al router cuando llega bloque completo
+  - _leer_stream(): itera líneas, llama parsear y procesar
+  - _conectar(): GET con timeout, estado CONECTANDO→CONECTADO, Last-Event-ID
+  - iniciar(): máquina de estados, backoff exponencial, bandera de parada
+
+Para CADA método:
+  - Pídeme que prediga qué debería pasar antes de que lo codifique
+  - Revisa mi código y señala casos frontera olvidados
+  - Una pregunta de verificación antes de pasar al siguiente
+
+Casos frontera que NO debo olvidar en _parsear_linea:
+  - Línea vacía (fin de bloque de evento)
+  - Línea que empieza con ":" (comentario SSE, ignorar silenciosamente)
+  - Línea sin ":" (solo nombre de campo, valor vacío)
+  - Línea con múltiples ":" (valor que contiene ":")
+
+═══ ETAPA 2: Integrar en el flujo real de EcoMarket ═══
+
+  - handler_precio_actualizado: imprime alerta si cambio > 5%, silencioso si no
+  - handler_stock_critico: clasifica urgencia (CRITICO: ≤3, BAJO: ≤10)
+  - handler_pedido_nuevo: registra solo pedidos con total > $500 en lista local
+  - handler_heartbeat: actualiza variable "ultima_conexion_activa" con timestamp
+
+  Registrar los 4 handlers en el router antes de llamar a iniciar().
+  Demostración con mock de 10 eventos mixtos (sin servidor real).
+
+Escenario de fallo obligatorio que debo probar:
+  - handler_precio_actualizado lanza excepción en el evento #5
+  - Verificar que el evento #6 llega a handler_stock_critico sin problemas
+
+NO me des el código completo. Guíame método por método.
+Mi nivel: Semana 6 con Python/aiohttp completada. EventRouter del material disponible.</div>
+                    <div class="context-box warning" style="margin: 0.8rem 0;">
+                        <div class="box-title">💡 Tip AETL — Divide el prompt si la IA pierde el hilo</div>
+                        Este prompt tiene dos etapas. Si al empezar la Etapa 2 notas que la IA "olvidó" las restricciones de la Etapa 1 (por ejemplo, de repente propone reimplementar el EventRouter o te da el código completo sin pedir predicciones), <strong>detente y abre una nueva sesión</strong>. Pega solo la Etapa 2 con el Prompt de Anclaje de PROFUNDIZA como contexto. <em>Tú controlas el ritmo — si la IA intenta darte todo el código de golpe, dile: "Para. Guíame solo por construir_url() primero."</em>
+                    </div>
+                    <div class="context-box tip" style="margin: 0.8rem 0;">
+                        <div class="box-title">🛠️ Skeleton del mock — Cómo probar sin servidor real</div>
+                        <p>Para la demostración de 10 eventos mixtos no necesitas un servidor real. Construye una función generadora que simule el stream SSE y pásala directamente a <code>_leer_stream()</code>:</p>
+                        <pre style="background: #0d1117; color: #c9d1d9; padding: 0.8rem; border-radius: 6px; font-size: 0.82rem; margin-top: 0.6rem; white-space: pre-wrap;">
+# ── mock_stream.py — generador de stream SSE falso ──────────────────────────
+FUNCTION generar_stream_mock():
+    # Devuelve una cadena con bloques SSE completos.
+    # Cada bloque termina con \n\n — igual que el protocolo real.
+    RETURN (
+        "id: evt-001\nevent: precio-actualizado\n"
+        "data: {\"producto_id\": \"P042\", \"precio_anterior\": 89.0, \"precio_nuevo\": 79.5}\n\n"
+
+        "id: evt-002\nevent: stock-critico\n"
+        "data: {\"producto_id\": \"P019\", \"stock_actual\": 3, \"umbral\": 10}\n\n"
+
+        "id: evt-003\nevent: pedido-nuevo\n"
+        "data: {\"pedido_id\": \"ORD-0471\", \"total\": 1250.0, \"items\": 8}\n\n"
+
+        "id: evt-004\nevent: sistema-ping\n"
+        "data: {\"timestamp\": \"2026-03-10T14:32:30Z\"}\n\n"
+
+        "id: evt-005\nevent: precio-actualizado\n"
+        # ← Este evento provoca excepción en el handler (escenario de fallo)
+        "data: {\"producto_id\": \"FORZAR_EXCEPCION\", \"precio_anterior\": 0}\n\n"
+
+        # ... agrega 5 eventos más con tipos mezclados ...
+    )
+
+# ── Uso en tu prueba ──────────────────────────────────────────────────────────
+# import io
+# stream_falso = io.StringIO(generar_stream_mock())
+# await cliente._leer_stream(stream_falso)
+# → observa en consola que los handlers correctos se disparan para cada bloque</pre>
+                        <p style="margin-top: 0.5rem; font-size: 0.88rem; color: var(--gray);">En JS puedes construir un <code>ReadableStream</code> desde la cadena con <code>new TextEncoder().encode(streamFalso)</code> y envolverlo en un <code>Response</code> para que tu cliente lo procese igual que una respuesta HTTP real.</p>
+                    </div>
+                    <div class="entregable-box">
+                        <p>Carpeta <code>semana7_ecomarket/</code> con:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li><code>cliente_sse_multiplex.py</code> (o el archivo equivalente en tu lenguaje) — código principal con EventRouter integrado y 4 handlers funcionando</li>
+                            <li><code>README.md</code> — sección de decisiones de diseño (llenada con las notas del Reto 1)</li>
+                            <li><code>validacion.log</code> — salida de la demostración de 10 eventos, incluyendo evidencia del escenario de fallo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-box danger">
+                <div class="box-title">🚫 Tolerancia Cero — Estas prácticas invalidan el entregable</div>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Copiar el código completo del ClienteSSEMultiplex de la IA sin implementar los métodos tú mismo.</li>
+                    <li>Entregar código que no ejecuta o que lanza excepción al procesar cualquier tipo de evento válido.</li>
+                    <li>Omitir el timeout en la conexión HTTP — toda petición sin timeout puede colgar indefinidamente.</li>
+                    <li>Loguear el contenido completo del token de autenticación (si aplica) en texto plano en ningún archivo de log.</li>
+                </ul>
+            </div>
+
+            <div class="errores-comunes">
+                <h4>⚠️ Errores comunes esta semana</h4>
+                <div class="error-item">
+                    <strong>Error 1: Abrir conexión duplicada al reconectar</strong><br>
+                    El cliente detecta un error de red, llama a <code>iniciar()</code> de nuevo sin verificar el estado, y termina con dos streams leyendo en paralelo. Cada evento llega duplicado. <em>Solución: verificar <code>estado == "DESCONECTADO"</code> antes de todo <code>iniciar()</code>. La IA rara vez advierte sobre este race condition.</em>
+                </div>
+                <div class="error-item">
+                    <strong>Error 2: Confundir línea vacía con evento sin datos</strong><br>
+                    En el protocolo SSE, una línea vacía (<code>"\n"</code>) es la señal de fin de bloque — significa "despacha el evento que venía construyendo". No es un evento vacío ni un error. Si el cliente dispara el router al recibir esa línea vacía sin haber parseado el tipo, se despacha con <code>tipo=None</code> y el router lo ignora... pero no debería llegar ahí. <em>Solución: el router solo se llama cuando hay un campo <code>event:</code> en el bloque.</em>
+                </div>
+                <div class="error-item">
+                    <strong>Error 3: No manejar el campo "event:" ausente</strong><br>
+                    Si el servidor envía un bloque SSE sin campo <code>event:</code>, el protocolo define que el tipo es <code>"message"</code> por defecto. Si el cliente asume que siempre habrá un campo <code>event:</code> explícito, no registra ningún handler para <code>"message"</code> y silenciosamente descarta esos eventos. <em>Solución: el tipo por defecto debe ser <code>"message"</code> si no aparece el campo <code>event:</code>.</em>
+                </div>
+                <div class="error-item">
+                    <strong>Error 4: Resetear Last-Event-ID al reconectar</strong><br>
+                    El cliente guarda el ID del último evento recibido para enviarlo como header <code>Last-Event-ID</code> al reconectar, permitiendo al servidor reanudar el stream desde donde se quedó. Si el cliente reinicia ese campo a <code>None</code> en cada reconexión, el servidor le vuelve a enviar todos los eventos desde el inicio y el cliente los procesa como nuevos. <em>Solución: <code>self.ultimo_id</code> solo se resetea cuando el usuario llama explícitamente a <code>detener()</code>.</em>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — APLICA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-A1:</strong> El cliente nunca llama a <code>router.despachar()</code> con <code>tipo=None</code>. Si el bloque SSE no tiene campo <code>event:</code>, el tipo es <code>"message"</code> por defecto del protocolo.</li>
+                    <li><strong>INV-A2:</strong> Toda conexión HTTP debe configurar un timeout explícito. Sin timeout, una conexión colgada puede bloquear el cliente indefinidamente sin que el código lo detecte.</li>
+                    <li><strong>INV-A3:</strong> Un handler que lanza excepción no interrumpe la recepción de eventos ni afecta a otros handlers. El EventRouter captura la excepción y continúa. Este invariante es responsabilidad del EventRouter dado — no lo rompas modificando el código del router.</li>
+                    <li><strong>INV-A4:</strong> La variable <code>self.ultimo_id</code> no se resetea a <code>None</code> durante una reconexión automática (por fallo de red). Solo se resetea si el usuario explícitamente llama a <code>detener()</code> e <code>iniciar()</code> de nuevo desde cero.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint metacognitivo — APLICA</h4>
+                <div class="pregunta">¿Puedes explicar exactamente qué hace cada línea del método <code>_parsear_linea</code>? Si la IA te lo generó, ciérralo e intenta reescribirlo de memoria — las 4 condiciones de las que habla el Reto 2.</div>
+                <div class="pregunta">¿Qué pasa en tu cliente si el servidor envía <code>data: texto que no es JSON válido</code>? ¿Dónde falla? ¿Cómo se maneja ese error sin cortar la conexión?</div>
+                <div class="pregunta">Si la lista <code>self.modulos</code> está vacía al llamar a <code>construir_url()</code>, ¿qué debería hacer tu cliente? ¿Lanzar excepción, usar una lista por defecto, o rechazar la operación con un mensaje claro?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FASE 3: REFLEXIONA ========== -->
+    <section id="reflexiona" class="fase-section">
+        <div class="fase-header reflexiona">
+            <div class="fase-icon">🔍</div>
+            <div class="fase-info">
+                <h2>Fase 3: REFLEXIONA</h2>
+                <div class="bloom-tag">🧠 Bloom: Analizar — Explicitar los trade-offs del diseño del cliente multiplexado</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de aprendizaje</h4>
+                <ul>
+                    <li><strong>Analizar</strong> los trade-offs de la decisión de multiplexar: qué se gana y qué se sacrifica en el comportamiento del cliente.</li>
+                    <li><strong>Articular</strong> las razones detrás de las constantes de diseño del cliente (<code>TIMEOUT</code>, <code>MAX_REINTENTOS</code>, módulos activos).</li>
+                    <li><strong>Evaluar críticamente</strong> el resumen de la IA, detectando si contiene afirmaciones incorrectas o centradas en el servidor en lugar del cliente.</li>
+                    <li><strong>Documentar</strong> las decisiones de diseño en el docstring del archivo principal.</li>
+                </ul>
+            </div>
+
+            <p>Esta fase no produce un documento nuevo. El resultado de la reflexión va <strong>directamente en el docstring del archivo principal de código</strong> — exactamente donde un desarrollador lo buscaría cuando retome el proyecto semanas después.</p>
+
+            <!-- Reto 3 — REFLEXIONA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">3</span>
+                    <h4>Discusión Socrática: Las decisiones que tomaste como Arquitecto <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Interrogador Socrático. Hace preguntas una por una sobre las decisiones del cliente, espera respuesta antes de continuar. Al final, genera un resumen de 5 puntos que el estudiante debe leer críticamente.</div>
+                    <div class="prompt-box">Explica usando analogías (como elegir entre una extensión telefónica compartida vs. teléfonos separados, o decidir cuántas veces llamar a alguien antes de asumir que no contesta) antes de profundizar. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como un interrogador socrático sobre mis decisiones de diseño del cliente.
+Haz las preguntas una por una. Espera mi respuesta antes de pasar a la siguiente.
+
+Mi ClienteSSEMultiplex tiene estas constantes:
+[PEGA AQUÍ tu código con las constantes TIMEOUT, MAX_REINTENTOS, ESPERA_INICIAL y la lista MODULOS_ACTIVOS]
+
+Preguntas en este orden:
+
+1. "Tu TIMEOUT es [X] segundos. Si una red corporativa tiene latencia de 8 segundos para establecer la primera conexión, ¿qué le pasa a tu cliente? ¿Y si el timeout fuera de 5 segundos?"
+
+2. "Tienes MAX_REINTENTOS = [X]. Si el servidor de EcoMarket se cae a las 3am y regresa a las 5am (2 horas después), ¿tu cliente sigue intentando reconectar a las 5am? ¿Qué pasa con la UX del panel de control si el cliente se rinde antes?"
+
+3. "Cuando un handler_precio_actualizado lanza excepción, tu cliente sigue recibiendo eventos. ¿Eso es siempre lo correcto? ¿Hay algún tipo de error del handler donde sería mejor detener el cliente por completo?"
+
+4. "Si el módulo 'devoluciones' se activa en EcoMarket a las 11am y necesitas empezar a recibirlo, ¿cómo lo agregas a tu conexión activa? ¿Qué le pasa al flujo de eventos durante la reconexión forzada?"
+
+5. "¿Qué diferencia hay, en términos de lo que hace el CÓDIGO DEL CLIENTE, entre una conexión SSE multiplexada bajo HTTP/1.1 y la misma conexión bajo HTTP/2?"
+
+Al final, genera un resumen de exactamente 5 puntos sobre:
+  - Las 3 constantes que decidí y por qué
+  - El trade-off principal de conexión única vs. múltiple desde el cliente
+  - Una limitación del diseño que aún no resolví
+
+Formato: párrafo corto por punto. Redacta como si lo escribiera yo (primera persona).
+No incluyas recomendaciones de servidor ni de infraestructura.</div>
+                    <div class="context-box info" style="margin: 0.8rem 0;">
+                        <div class="box-title">💡 Tip AETL — Si la IA responde todas las preguntas de golpe</div>
+                        El modo socrático funciona solo si la IA pregunta y espera. Si te da las cinco preguntas con respuestas incluidas, escríbele: <em>"Para. Borra lo que escribiste. Hazme solo la primera pregunta, sin responderla. Espera mi respuesta antes de continuar."</em> El valor está en tu proceso de razonamiento, no en las respuestas de la IA.
+                    </div>
+                    <div class="entregable-box">
+                        <p><strong>No hay documento separado.</strong> Lee el resumen de la IA críticamente y luego incorpóralo como docstring en el encabezado de tu archivo principal. Formato mínimo:</p>
+                        <div class="context-box tip" style="margin: 0.6rem 0 0.8rem;">
+                            <div class="box-title">🌐 Nota de sintaxis — adapta al lenguaje que elegiste</div>
+                            El ejemplo usa <code>"""..."""</code> de Python. Si trabajas en JS/TS usa un bloque <code>/** ... */</code> al inicio del archivo; en Java/Kotlin, un Javadoc <code>/** ... */</code>; en cualquier otro lenguaje, el comentario de bloque nativo. Lo importante es que las decisiones queden en el encabezado del archivo principal, junto a las constantes que justifican.
+                        </div>
+                        <pre style="background: #0d1117; color: #c9d1d9; padding: 1rem; border-radius: 8px; font-size: 0.85rem; white-space: pre-wrap; margin-top: 0.5rem;">
+"""
+DECISIONES DE DISEÑO — ClienteSSEMultiplex para EcoMarket
+==========================================================
+MODULOS_ACTIVOS = ["precios", "inventario", "pedidos"]
+  → Trade-off: más módulos = más volumen de eventos en el cliente, pero
+    sin conexiones adicionales. Decisión: los tres módulos operacionales
+    prioritarios de EcoMarket; 'devoluciones' queda fuera hasta activación.
+
+TIMEOUT = 30  # segundos
+  → Trade-off: timeout corto detecta cuelgues más rápido, pero puede
+    reconectar innecesariamente en redes con jitter alto.
+    Decisión: 30s equilibra detección de fallos con tolerancia de red corporativa.
+
+MAX_REINTENTOS = 5
+  → Trade-off: más reintentos = más resiliencia ante caídas breves,
+    pero el cliente puede esperar hasta ~31s total antes de rendirse.
+    Decisión: 5 reintentos con backoff cubre interrupciones de hasta 30s.
+
+Trade-off principal (una conexión vs. múltiples):
+  → [Tu análisis aquí]
+
+Limitación pendiente:
+  → [Lo que tu cliente aún no maneja bien]
+
+[Corrección al resumen de la IA, si aplica:]
+  La IA dijo que [X] — esto es incorrecto porque [razón desde el cliente].
+"""
+                        </pre>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--gray);">El campo de corrección es obligatorio solo si detectaste algo incorrecto. Si el resumen fue correcto: <code># Resumen de la IA validado sin correcciones.</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — REFLEXIONA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-R1:</strong> El docstring de decisiones de diseño vive en el archivo de código, no en un documento separado. Cada constante de configuración del cliente debe tener su trade-off documentado junto a ella.</li>
+                    <li><strong>INV-R2:</strong> Si el resumen de la IA menciona carga del servidor, peticiones por segundo del backend, o escalabilidad de infraestructura — esas afirmaciones deben ser marcadas como fuera de alcance en el campo "Corrección al resumen de la IA". Esta materia analiza el comportamiento del cliente, no del servidor.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint metacognitivo — REFLEXIONA</h4>
+                <div class="pregunta">¿El resumen de la IA dice algo del estilo "esta arquitectura permite al servidor escalar mejor"? Si es así, ¿eso es una decisión del cliente o del servidor? ¿Deberías corregirlo?</div>
+                <div class="pregunta">¿Las tres constantes de tu cliente (<code>TIMEOUT</code>, <code>MAX_REINTENTOS</code>, módulos activos) tienen cada una su trade-off documentado? Si una no lo tiene, ¿por qué elegiste ese valor?</div>
+                <div class="pregunta">Compara tu docstring con el de un compañero. ¿Los trade-offs son iguales? Si son diferentes, ¿cuál decisión de diseño es mejor para el contexto de EcoMarket y por qué?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FASE 4: VALIDA ========== -->
+    <section id="valida" class="fase-section">
+        <div class="fase-header valida">
+            <div class="fase-icon">✔</div>
+            <div class="fase-info">
+                <h2>Fase 4: VALIDA</h2>
+                <div class="bloom-tag">🧠 Bloom: Evaluar — Auditar el cliente con escenarios de fallo y datos inesperados</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de aprendizaje</h4>
+                <ul>
+                    <li><strong>Verificar</strong> que el cliente pasa todos los escenarios del happy path (eventos normales de los tres módulos).</li>
+                    <li><strong>Probar</strong> que el cliente se recupera correctamente ante errores de red, datos malformados y handlers que fallan.</li>
+                    <li><strong>Auditar</strong> el código generado con la IA para detectar casos frontera que la IA puede haber pasado por alto.</li>
+                    <li><strong>Evaluar</strong> si el cliente respeta todos los invariantes definidos en las fases anteriores.</li>
+                </ul>
+            </div>
+
+            <!-- CHECKLIST ANTES DE CASOS DE PRUEBA -->
+            <div class="checklist-box">
+                <h4>✅ Checklist de Autoevaluación Rápida — Verifica antes de entregar</h4>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿Tu cliente no abre una segunda conexión si ya tiene una activa?</strong>
+                        <div class="diagnostico">→ Si falla: revisa que <code>iniciar()</code> verifique <code>estado == "DESCONECTADO"</code> antes de proceder. Prueba llamando a <code>iniciar()</code> dos veces seguidas.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿Tu cliente maneja un bloque SSE sin campo <code>event:</code> sin lanzar excepción?</strong>
+                        <div class="diagnostico">→ Si falla: revisa que el tipo por defecto sea <code>"message"</code> cuando el campo <code>event:</code> no aparece en el bloque.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿Un handler que lanza excepción no interrumpe la recepción de los siguientes eventos?</strong>
+                        <div class="diagnostico">→ Si falla: el EventRouter debe tener un try-except por cada llamada a handler. Si modificaste el EventRouter, verifica que siga teniendo ese bloque.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿Tu cliente reconecta correctamente y envía <code>Last-Event-ID</code> al volver?</strong>
+                        <div class="diagnostico">→ Si falla: verifica que <code>self.ultimo_id</code> se actualiza con cada evento que tiene campo <code>id:</code> y que se incluye en el header al reconectar.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿El cliente maneja <code>data:</code> que no es JSON válido sin crashear?</strong>
+                        <div class="diagnostico">→ Si falla: revisa el handler — el parseo JSON debe estar en un try-except. El EventRouter despachará el dato en bruto (string); es responsabilidad del handler parsearlo con protección.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿El cliente para limpiamente con <code>detener()</code> sin dejar streams colgados?</strong>
+                        <div class="diagnostico">→ Si falla: revisa que la bandera <code>self._parar</code> se verifique en el bucle de lectura del stream y que se cierre la conexión HTTP cuando se activa.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>¿La URL construida con la lista de módulos es válida y contiene todos los módulos activos?</strong>
+                        <div class="diagnostico">→ Si falla: imprime la URL antes de conectar y verifica manualmente que el parámetro <code>modulos</code> tiene los valores correctos separados por coma.</div>
+                    </div>
+                </div>
+                <div class="context-box tip" style="margin-top: 1rem;">
+                    <div class="box-title">💡 Tip para probar sin servidor real</div>
+                    <p>Si encuentras un error con este checklist, reproduce el escenario con un mock del stream: crea una función que genere una cadena con los bloques SSE del escenario de fallo (datos malformados, tipo desconocido, bloque incompleto) y pásala directamente al método <code>_leer_stream()</code>. No necesitas el servidor real para validar la lógica del cliente.</p>
+                </div>
+            </div>
+
+            <!-- Reto 4 — VALIDA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">4</span>
+                    <h4>Auditoría del cliente: los 4 escenarios que la IA no prueba sola <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> QA Engineer especialista en clientes distribuidos. Identifica escenarios de fallo que el código actual podría no manejar correctamente y propone casos de prueba específicos.</div>
+                    <div class="prompt-box">Explica usando analogías (como un auditor de calidad que prueba qué pasa cuando el repartidor de correo recibe un sobre sin destinatario, o cuando la dirección no existe) antes de los detalles técnicos.
+
+Actúa como QA Engineer de clientes distribuidos. Voy a darte mi código del ClienteSSEMultiplex y quiero que me ayudes a auditarlo.
+
+[PEGA AQUÍ tu código actual de cliente_sse_multiplex.py]
+
+Necesito verificar exactamente estos 4 escenarios de fallo en el cliente. Para cada uno:
+  1. Muéstrame el input de prueba exacto (stream SSE simulado o condición de red)
+  2. Dime qué debería hacer mi cliente (comportamiento correcto)
+  3. Ayúdame a escribir el test mínimo que verifica ese comportamiento
+
+═══ ESCENARIO 1: Datos malformados en medio del stream ═══
+El servidor envía un evento cuyo campo data: contiene texto que no es JSON:
+  event: precio-actualizado
+  data: ERROR_INTERNO_SERVIDOR_PARSE_FAILED
+
+¿Qué hace mi cliente con ese evento? ¿Crashea? ¿El error se propaga?
+
+═══ ESCENARIO 2: Reconexión con Last-Event-ID ═══
+El cliente ha recibido eventos con id del 1 al 5, luego la conexión se corta.
+Al reconectar, ¿el cliente envía el header Last-Event-ID: 5?
+¿O ese campo se perdió porque el cliente reinició su estado?
+
+═══ ESCENARIO 3: Tipo de evento desconocido ═══
+El servidor envía un evento de tipo "alerta-fraude" que mi cliente no tiene registrado.
+¿El cliente lanza excepción? ¿Corta la conexión? ¿Lo ignora silenciosamente?
+
+═══ ESCENARIO 4: Llamar a iniciar() con conexión ya activa ═══
+Mi cliente está en estado CONECTADO y alguien llama a iniciar() de nuevo.
+¿Abre una segunda conexión? ¿Lanza excepción? ¿Ignora la llamada?
+
+Para cada escenario, señala si tu revisión encuentra que mi código lo maneja
+CORRECTAMENTE, INCORRECTAMENTE, o NO LO MANEJA (caso no contemplado).
+
+Sé honesto. Si el código tiene un bug, señálalo directamente.</div>
+                    <div class="entregable-box">
+                        <p>Actualiza tu <code>validacion.log</code> con:</p>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>Salida de los 4 escenarios de fallo (puede ser print/console con los resultados)</li>
+                            <li>Al final del log, un comentario de 2-3 líneas: "Escenario X fallido → corrección aplicada: [descripción]" o "Los 4 escenarios pasaron sin modificaciones"</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Si la auditoría reveló un bug, actualiza el docstring de REFLEXIONA con la corrección.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — VALIDA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-V1:</strong> El cliente nunca crashea silenciosamente ante un evento con datos malformados. Todo error de parseo de datos debe loguearse, pero la conexión SSE debe continuar.</li>
+                    <li><strong>INV-V2:</strong> El cliente nunca pierde el <code>Last-Event-ID</code> durante una reconexión automática. Ese ID es la memoria del cliente sobre qué eventos ya procesó.</li>
+                    <li><strong>INV-V3:</strong> Una llamada a <code>iniciar()</code> con la conexión ya activa no abre una segunda conexión. El cliente debe detectar el estado y rechazar o ignorar la llamada con un mensaje claro.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint metacognitivo — VALIDA</h4>
+                <div class="pregunta">¿Alguno de los 4 escenarios de auditoría reveló un bug que la IA no detectó en el Reto 2? ¿Qué tipo de error era — lógico, de manejo de excepciones, o de estado?</div>
+                <div class="pregunta">¿Puedes ahora apagar el servidor (o hacer que el mock no devuelva respuesta) y verificar que tu cliente no se queda bloqueado? ¿Cuánto tiempo tarda en detectar el timeout?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FASE 5: PROFUNDIZA ========== -->
+    <section id="profundiza" class="fase-section">
+        <div class="fase-header profundiza">
+            <div class="fase-icon">🚀</div>
+            <div class="fase-info">
+                <h2>Fase 5: PROFUNDIZA</h2>
+                <div class="bloom-tag">🌟 Bloom: Crear — Extensiones opcionales y conexión con el proyecto integrador</div>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de aprendizaje</h4>
+                <ul>
+                    <li><strong>Anticipar</strong> qué cambia en el código del cliente cuando se migra de HTTP/1.1 a HTTP/2.</li>
+                    <li><strong>Crear</strong> un sistema de routing con prioridades que no bloquea eventos críticos por la cola de handlers lentos.</li>
+                    <li><strong>Conectar</strong> el ClienteSSEMultiplex con el proyecto integrador TechNova/EcoMarket.</li>
+                    <li><strong>Prepararse</strong> para el Circuit Breaker del lado del cliente (Semana 8).</li>
+                </ul>
+            </div>
+
+            <h3 class="mb-2">🌐 HTTP/2 y el cliente SSE: ¿qué cambia en tu código?</h3>
+            <p>HTTP/2 introduce multiplexación de streams a nivel de transporte: múltiples peticiones y respuestas viajan en paralelo sobre una única conexión TCP, identificadas por su <em>stream ID</em>. Esto significa que en teoría el límite de 6 conexiones por origen que resolviste esta semana con un solo SSE deja de ser el cuello de botella bajo HTTP/2.</p>
+            <p class="mt-2">Pero desde la perspectiva del <strong>código del cliente</strong>, ¿cuánto cambia realmente?</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>✅ <strong>Lo que NO cambia:</strong> el parseo del stream <code>text/event-stream</code>, el manejo del campo <code>event:</code>, el EventRouter, los handlers. Todo eso es lógica de aplicación, independiente del transporte.</li>
+                <li>⚠️ <strong>Lo que cambia para el cliente:</strong> en Python con <code>httpx</code> (que soporta HTTP/2), el cliente puede abrir múltiples streams concurrentes sobre la misma conexión TCP; no necesitas la multiplexación manual a nivel de URL que implementaste esta semana.</li>
+                <li>🔍 <strong>Lo que el cliente debe decidir:</strong> ¿tres streams HTTP/2 separados (un EventSource por módulo) o un solo stream multiplexado a nivel de aplicación? Con HTTP/2, ambas opciones son igualmente eficientes en transporte. La elección depende de otros factores: ¿el servidor envía eventos correlacionados entre módulos? ¿Es más fácil para el cliente manejar streams independientes o el routing centralizado?</li>
+            </ul>
+
+            <div class="context-box info">
+                <div class="box-title">ℹ️ Tip AETL — Contexto de sesión nueva en Profundiza</div>
+                <p>Si abres una nueva sesión de chat para el Reto 5, la IA no recuerda las restricciones del Reto 2. Usa este <strong>Prompt de Anclaje</strong> al inicio:</p>
+                <pre style="background: #0d1117; color: #c9d1d9; padding: 0.8rem; border-radius: 8px; font-size: 0.85rem; white-space: pre-wrap; margin-top: 0.5rem;">Contexto de mi proyecto EcoMarket — Semana 7:
+- Ya tengo ClienteSSEMultiplex funcional con EventRouter integrado
+- Módulos activos: precios, inventario, pedidos
+- Restricciones: EventRouter dado (no reimplementar), timeout 30s, max 5 reintentos, bandera de parada limpia
+- Los 4 invariantes de VALIDA pasan correctamente
+- Soy el Arquitecto — guíame con preguntas, no me des el código completo
+
+[PEGA AQUÍ tu código actual]
+
+Ahora necesito: [describe el siguiente paso del Reto 5]</pre>
+            </div>
+
+            <!-- Reto 5 — PROFUNDIZA avanzado -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">5</span>
+                    <h4>Extensión: Routing con prioridades — eventos críticos primero <span class="reto-badge avanzado">Avanzado</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de sistemas distribuidos que explora extensiones del patrón. Te guía para añadir prioridades al EventRouter sin romper su interfaz actual.</div>
+                    <div class="prompt-box">Explica usando analogías (como una sala de urgencias que atiende primero a pacientes críticos independientemente del orden de llegada, o un conmutador que pone primero las llamadas de emergencia) antes de los detalles técnicos.
+
+Actúa como Arquitecto de sistemas distribuidos.
+
+Mi EventRouter actual despacha eventos en el orden en que llegan al stream SSE.
+El problema: si hay 50 eventos de "precio-actualizado" en cola y uno de "stock-critico"
+entra al final, el handler de stock-critico se ejecuta al último.
+En EcoMarket, "stock-critico" es urgente — queremos que sus handlers se ejecuten
+PRIMERO, incluso si llegaron después en el stream.
+
+(Nota: ya tengo EventRouter funcional del material de la semana;
+ no reimplementes EventRouter desde cero — extiéndelo o decora su comportamiento)
+
+Quiero explorar un EventRouterPrioritizado que:
+  - Asigna prioridades numéricas a tipos de evento al momento de registrar:
+      router.registrar("stock-critico", handler, prioridad=10)   # alta
+      router.registrar("precio-actualizado", handler, prioridad=5)  # media
+      router.registrar("sistema-ping", handler, prioridad=1)  # baja
+  - Cuando despacha, ejecuta SIEMPRE los handlers de mayor prioridad primero
+  - Si dos tipos tienen la misma prioridad, los despacha en orden de llegada (FIFO)
+
+Guíame para:
+1. Decidir: ¿heredar de EventRouter o crear una clase decoradora (wrapper)?
+   Pídeme que argumente mi decisión antes de responder.
+2. Modificar la interfaz de registrar() para aceptar el parámetro de prioridad.
+3. Modificar despachar() para ordenar por prioridad antes de ejecutar.
+4. Demostración con 15 eventos mixtos de EcoMarket donde "stock-critico"
+   llega en la posición #10 pero se despacha antes de los "precio-actualizado"
+   acumulados.
+
+RESTRICCIÓN: La interfaz original (registrar sin prioridad) debe seguir
+funcionando con prioridad por defecto = 5, para que el resto del código
+no necesite cambios.
+
+NO me des el código completo. Pídeme predicciones antes de cada pieza.</div>
+                    <div class="entregable-box">
+                        <p><em>(Entregable opcional — no requerido para la calificación base)</em></p>
+                        <p>Si completas el Reto 5, agrega <code>event_router_prioritizado.py</code> a tu carpeta de proyecto y una sección en el README: "Por qué elegí herencia/decorador para EventRouterPrioritizado".</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="mt-4 mb-2">🔗 Conexión con el proyecto integrador TechNova/EcoMarket</h3>
+            <p>El <strong>ClienteSSEMultiplex</strong> que construiste esta semana es la capa de recepción de eventos en tiempo real del cliente distribuido de EcoMarket. En la arquitectura del proyecto integrador, este componente encaja en la <strong>Capa de Comunicación</strong>:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>Semana 4 aportó el patrón Observer (ahora incrustado en el EventRouter)</li>
+                <li>Semana 6 aportó el stream SSE básico (ahora extendido a múltiples tipos)</li>
+                <li>Esta semana: el ClienteSSEMultiplex es el único punto de entrada de eventos push en el panel de control</li>
+                <li>Próximas semanas: el circuit breaker (Semana 8) protegerá este cliente cuando el servidor de eventos sea inestable</li>
+            </ul>
+
+            <div class="context-box tip" style="margin-top: 1.5rem;">
+                <div class="box-title">👀 Preview: Semana 8 — Circuit Breaker del Lado del Cliente</div>
+                <p>La semana que viene introducimos el patrón <strong>Circuit Breaker</strong> implementado en el cliente. Imagina que el servidor de eventos de EcoMarket falla 5 veces en 2 minutos: ¿tu cliente debería seguir intentando reconectar con backoff, o en algún momento es mejor que el panel muestre "modo sin conexión" y deje de presionar al servidor hasta que sepa que está disponible de nuevo?</p>
+                <p class="mt-2">El Circuit Breaker del cliente tiene tres estados: <strong>Cerrado</strong> (operando normalmente), <strong>Abierto</strong> (rechaza intentos de conexión y regresa inmediatamente con error) y <strong>Semiabierto</strong> (permite un intento de prueba). <strong>Sin el ClienteSSEMultiplex de esta semana, no tendrías dónde insertar ese circuit breaker</strong> — él es el punto de inyección natural del patrón.</p>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — PROFUNDIZA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-P1:</strong> El EventRouterPrioritizado (si lo implementas) mantiene la interfaz del EventRouter original. El código que ya usa <code>registrar(tipo, fn)</code> sin prioridad debe seguir funcionando sin modificaciones.</li>
+                    <li><strong>INV-P2:</strong> El ClienteSSEMultiplex no debe cambiar al agregar prioridades al router. El cliente no sabe nada sobre prioridades — solo llama a <code>router.despachar(tipo, datos)</code>. El router se encarga del resto.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint metacognitivo — PROFUNDIZA</h4>
+                <div class="pregunta">¿Puedes explicar en una oración por qué el Circuit Breaker de Semana 8 se insertará "alrededor" del ClienteSSEMultiplex y no dentro del EventRouter?</div>
+                <div class="pregunta">Si el semestre terminara hoy y tuvieras que entregar el cliente distribuido de EcoMarket incompleto, ¿qué componentes están listos y cuáles faltan? ¿Qué patrón de las semanas que vienen parece más crítico para el proyecto?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== EVALUACIÓN ========== -->
+    <section id="evaluacion" class="evaluacion-section">
+        <div class="evaluacion-header">
+            <h2>📊 Evaluación — Semana 7</h2>
+        </div>
+
+        <div style="padding: 1.5rem; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;">
+            <div class="entregable-unico-box">
+                <h4>📁 Entregable único de la semana</h4>
+                <div class="archivo-item">📄 <code>cliente_sse_multiplex.py</code> — ClienteSSEMultiplex con EventRouter integrado y 4 handlers de EcoMarket. Incluye docstring de decisiones al inicio del archivo.</div>
+                <div class="archivo-item">📋 <code>README.md</code> — Decisiones de diseño entendidas antes de codificar (Reto 1) + decisión herencia/composición si completaste el Reto 5.</div>
+                <div class="archivo-item">📊 <code>validacion.log</code> — Salida de la demo de 10 eventos mixtos + evidencia de los 4 escenarios de auditoría con comentario de correcciones aplicadas.</div>
+                <span class="tiempo-badge">⏱ Tiempo estimado: 4–6.5 horas</span>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem; opacity: 0.85;">No son tres tareas separadas — es un proyecto con tres archivos de evidencia. El <code>validacion.log</code> lo generas ejecutando <code>python cliente_sse_multiplex.py &gt; validacion.log 2&gt;&amp;1</code>.</p>
+            </div>
+        </div>
+
+        <div class="criterio-item">
+            <span class="fase-badge">COMPRENDE</span>
+            <div>
+                <strong>Comprensión del problema de conexiones (Reto 1)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Sección "Decisiones de diseño entendidas antes de codificar" en el README con las 4 preguntas respondidas y síntesis correctiva. Las respuestas deben reflejar entendimiento del cliente, no del servidor.</span>
+            </div>
+            <span class="puntos">15 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">APLICA</span>
+            <div>
+                <strong>ClienteSSEMultiplex funcional con 4 handlers (Reto 2)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Todos los métodos implementados (no vacíos). Los 4 handlers registrados y funcionales. La demo de 10 eventos mixtos corre sin excepciones no manejadas. El escenario de handler-que-falla está incluido y los demás eventos siguen llegando.</span>
+            </div>
+            <span class="puntos">35 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">REFLEXIONA</span>
+            <div>
+                <strong>Docstring de decisiones de diseño (Reto 3)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Las 3 constantes documentadas con trade-off explícito. Trade-off de conexión única vs. múltiple. Si se detectó algo incorrecto en el resumen de la IA, corrección documentada. Todo desde perspectiva del cliente.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">VALIDA</span>
+            <div>
+                <strong>Auditoría de los 4 escenarios de fallo (Reto 4)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Los 4 escenarios probados con evidencia en validacion.log. Comentario final: qué pasó en cada escenario y si hubo correcciones. El cliente pasa el checklist de 7 ítems completo.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">IA + META</span>
+            <div>
+                <strong>Calidad del uso de IA (todos los retos)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">El estudiante muestra que diseñó antes de preguntar (se nota en el docstring y en las predicciones del Reto 2). El resumen de la IA fue leído críticamente: hay corrección o confirmación explícita. No hay signos de copia sin comprensión (el código tiene comentarios propios, no solo los del starter).</span>
+            </div>
+            <span class="puntos">10 pts</span>
+        </div>
+        <div style="padding: 1rem 1.5rem; background: #f8f9fa; border-top: 2px solid var(--accent);">
+            <strong>Total: 100 pts · Entrega máxima:</strong> Carpeta <code>semana7_ecomarket/</code> con los 3 archivos requeridos subida antes de la siguiente sesión presencial.
+        </div>
+    </section>
+
+    <!-- ========== GLOSARIO ========== -->
+    <section id="glosario" class="glosario-section">
+        <div class="glosario-header">
+            <h2>📖 Glosario — Semana 7</h2>
+        </div>
+        <dl class="glosario-grid">
+            <div class="termino-card">
+                <dt>Multiplexación de eventos (cliente)</dt>
+                <dd>Técnica en la que un único stream SSE transporta mensajes de múltiples tipos de eventos, y el cliente los enruta al handler correcto usando el campo <code>event:</code>. Reduce las conexiones abiertas por el cliente a una sola.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Pool de conexiones HTTP/1.1</dt>
+                <dd>Conjunto limitado de conexiones TCP que el cliente (tipicamente el navegador, máximo 6 por origen) puede mantener simultáneamente hacia el mismo servidor. Cada SSE persistente ocupa una ranura de ese pool indefinidamente.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>EventRouter (Dispatcher de eventos)</dt>
+                <dd>Componente del cliente que mantiene una tabla de <code>tipo_evento → lista de handlers</code> y ejecuta los handlers correspondientes cuando llega un evento. Un handler que falla no interrumpe los demás. En producción lo implementan librerías como EventEmitter (Node.js) o RxJS.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Suscripción filtrada</dt>
+                <dd>Mecanismo por el que el cliente indica al servidor, en la URL de la petición inicial, qué tipos de eventos quiere recibir (<code>?modulos=precios,inventario</code>). Reduce el volumen de datos que el cliente procesa sin necesidad de filtrar en el código cliente.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Máquina de estados del cliente</dt>
+                <dd>Modelo formal de los estados posibles del cliente SSE (DESCONECTADO, CONECTANDO, CONECTADO, RECONECTANDO) y las transiciones válidas. Evita condiciones de carrera como abrir conexiones duplicadas.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Last-Event-ID</dt>
+                <dd>Header HTTP que el cliente envía al reconectarse tras una interrupción. Contiene el ID del último evento recibido, permitiendo al servidor reanudar el stream sin reenviar eventos ya procesados. Es la "memoria de progreso" del cliente.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>HTTP/2 multiplexación (impacto en cliente)</dt>
+                <dd>HTTP/2 multiplexa múltiples streams de petición/respuesta sobre una sola conexión TCP. Para el cliente SSE esto significa que el límite de 6 conexiones HTTP/1.1 desaparece a nivel de transporte, pero la lógica de EventRouter y handlers permanece igual.</dd>
+            </div>
+            <div class="termino-card">
+                <dt>Handler de evento</dt>
+                <dd>Función registrada en el EventRouter que el cliente ejecuta cuando llega un evento de un tipo específico. Cada tipo puede tener múltiples handlers. Un handler es independiente de los demás — su fallo no los afecta.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Andamiaje cognitivo (AETL)</dt>
+                <dd>Soporte temporal que el material o la IA proporciona para que el estudiante alcance comprensiones más allá de lo que lograría solo. En esta semana: el EventRouter pre-dado es andamiaje que libera carga cognitiva para enfocarse en la multiplexación.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Arquitecto del Cliente (AETL)</dt>
+                <dd>Rol que el estudiante mantiene durante la interacción con la IA: diseña antes de preguntar, toma las decisiones de configuración del cliente, y valida críticamente el código propuesto. La IA propone opciones y detecta casos frontera, pero no decide.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Caso frontera (AETL)</dt>
+                <dd>Condición de entrada o de red que el diseño inicial no contempla explícitamente: evento con datos no-JSON, tipo de evento desconocido, llamada a iniciar() con conexión activa. Validar casos frontera es el núcleo de la fase VALIDA.</dd>
+            </div>
+            <div class="termino-card aetl">
+                <dt>Deslizamiento de contexto (AETL)</dt>
+                <dd>Fenómeno en el que la IA, al iniciar una nueva sesión de chat, olvida las restricciones establecidas en sesiones anteriores y propone soluciones genéricas que contradicen lo ya construido. Se contrarresta con el Prompt de Anclaje.</dd>
+            </div>
+        </dl>
+    </section>
+
+    <!-- ========== REFERENCIAS ========== -->
+    <section id="referencias" class="referencias-section">
+        <h3>📚 Referencias</h3>
+
+        <h4 style="color: var(--primary); margin: 1rem 0 0.5rem; font-size: 1rem;">📡 Contenido Disciplinar</h4>
+        <div class="referencia-item">Fielding, R. (2000). <em>Architectural styles and the design of network-based software architectures</em> (Doctoral dissertation). University of California, Irvine. (Cap. 5: REST y limitaciones cliente-servidor.)</div>
+        <div class="referencia-item">Grigorik, I. (2013). <em>High performance browser networking.</em> O'Reilly Media. (Cap. 12: HTTP/1.1 connection management y límites por origen; Cap. 13: HTTP/2 multiplexing.)</div>
+        <div class="referencia-item">Kleppmann, M. (2017). <em>Designing data-intensive applications.</em> O'Reilly Media. (Cap. 11: Stream processing y patrones de eventos.)</div>
+        <div class="referencia-item">Nygard, M. T. (2018). <em>Release it! Design and deploy production-ready software</em> (2nd ed.). Pragmatic Bookshelf. (Cap. 5: Timeouts y stability patterns en clientes.)</div>
+
+        <h4 style="color: var(--primary); margin: 1rem 0 0.5rem; font-size: 1rem;">🔧 Documentación Técnica</h4>
+        <div class="referencia-item">WHATWG. (2024). <em>Server-Sent Events — Living Standard.</em> <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html" target="_blank" style="color: var(--secondary);">html.spec.whatwg.org</a></div>
+        <div class="referencia-item">MDN Web Docs. (2024). <em>Using server-sent events.</em> <a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events" target="_blank" style="color: var(--secondary);">developer.mozilla.org</a></div>
+        <div class="referencia-item">Python Software Foundation. (2024). <em>aiohttp — Async HTTP Client/Server.</em> <a href="https://docs.aiohttp.org/" target="_blank" style="color: var(--secondary);">docs.aiohttp.org</a></div>
+        <div class="referencia-item">Fette, I., &amp; Melnikov, A. (2011). <em>RFC 6455 — The WebSocket Protocol.</em> IETF. (Para comparación del modelo de conexión con SSE.)</div>
+        <div class="referencia-item">Bishop, M. (2022). <em>RFC 9113 — HTTP/2.</em> IETF. (Sección 5: multiplexación de streams y su impacto en el cliente.)</div>
+
+        <h4 style="color: var(--primary); margin: 1rem 0 0.5rem; font-size: 1rem;">🧠 Fundamentos Pedagógicos</h4>
+        <div class="referencia-item">Anderson, L. W., et al. (2001). <em>A taxonomy for learning, teaching, and assessing: A revision of Bloom's educational objectives.</em> Longman.</div>
+        <div class="referencia-item">Bandura, A. (2001). Social cognitive theory: An agentic perspective. <em>Annual Review of Psychology, 52</em>(1), 1–26.</div>
+        <div class="referencia-item">Bognár, M. (2024). AI as scaffolding in the zone of proximal development. <em>Educational Technology Research and Development.</em></div>
+        <div class="referencia-item">Brod, G., et al. (2023). Agency in learning: Metacognition and self-determination in AI-assisted environments. <em>Computers &amp; Education, 195.</em></div>
+        <div class="referencia-item">Chiu, T. K. F. (2024). Self-regulated learning with generative AI tools. <em>Computers in Human Behavior, 152.</em></div>
+        <div class="referencia-item">Mahdi, H., et al. (2025). Cognitive load in AI-mediated programming tasks. <em>Journal of Educational Computing Research.</em></div>
+        <div class="referencia-item">Sari, D., et al. (2025). Self-regulated learning strategies for AI-assisted development. <em>Computers &amp; Education, 198.</em></div>
+        <div class="referencia-item">Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science, 12</em>(2), 257–285. Actualización: Sweller, J. (2020). <em>Educational Psychology Review, 32.</em></div>
+        <div class="referencia-item">Vygotsky, L. S. (1978). <em>Mind in society: The development of higher psychological processes.</em> Harvard University Press.</div>
+        <div class="referencia-item">Zimmerman, B. J. (2000). Self-efficacy: An essential motive to learn. <em>Contemporary Educational Psychology, 25</em>(1), 82–91.</div>
+
+        <h4 style="color: var(--primary); margin: 1rem 0 0.5rem; font-size: 1rem;">📐 Estándares Curriculares</h4>
+        <div class="referencia-item">ACM/IEEE-CS/AAAI. (2023). <em>Computer Science Curricula 2023 (CS2023).</em> (Área: Networked Systems; Sub-área: Client-side communication patterns, event-driven architectures.)</div>
+    </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+    <div class="modelo-badge">🤖 Modelo AETL — Aprendizaje Técnico Aumentado por IA</div>
+    <p>Universidad Autónoma de Nayarit · Licenciatura en Sistemas Computacionales</p>
+    <p style="margin-top: 0.5rem; opacity: 0.8;">Programación Distribuida del Lado del Cliente · Semana 7 de 15</p>
+    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">
+        Escenarios: TechNova / EcoMarket · Fases: Comprende → Aplica → Reflexiona → Valida → Profundiza<br>
+        Próxima semana: Semana 8 · Circuit Breaker del Lado del Cliente — cuándo el cliente debe dejar de reintentar
+    </p>
+    <p>Dr. Eligardo Cruz Sánchez</p>
+</footer>
+
+<!-- ========== SCRIPT ========== -->
+<script>
+(function () {
+    const steps = document.querySelectorAll('.progress-step');
+    const sections = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+
+    function updateProgress() {
+        const scrollY = window.scrollY + window.innerHeight * 0.4;
+        let activeIdx = 0;
+
+        sections.forEach((id, i) => {
+            const el = document.getElementById(id);
+            if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+                activeIdx = i;
+            }
+        });
+
+        steps.forEach((step, i) => {
+            step.classList.remove('active', 'completed');
+            if (i < activeIdx) step.classList.add('completed');
+            else if (i === activeIdx) step.classList.add('active');
+        });
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+2026-05-21 15:30:00 ============================================================
+2026-05-21 15:30:00   RECEPTOR ALERTAS ECOMARKET — RetoIA_2 · Semana 6
+2026-05-21 15:30:00   Programación Distribuida del Lado del Cliente · UAN
+2026-05-21 15:30:00 ============================================================
+2026-05-21 15:30:00   Endpoint: https://sse.dev/test
+2026-05-21 15:30:00   Timeout:  30.0s
+2026-05-21 15:30:00   Max reintentos: 5 (backoff exponencial)
+2026-05-21 15:30:00   Presiona Ctrl+C para detener limpiamente
+2026-05-21 15:30:00 ============================================================
+
+2026-05-21 15:30:00 🔌 Conectando a https://sse.dev/test ...
+2026-05-21 15:30:01 ✅ [15:30:01] Conexión establecida. Leyendo stream...
+2026-05-21 15:30:01   📥 [15:30:01] RAW: 'retry: 3000'
+2026-05-21 15:30:01   📥 [15:30:01] RAW: ''
+2026-05-21 15:30:04   📥 [15:30:04] RAW: 'id: 1'
+2026-05-21 15:30:04   📥 [15:30:04] RAW: 'event: precio-actualizado'
+2026-05-21 15:30:04   📥 [15:30:04] RAW: 'data: {"producto":"A01","precio":47,"moneda":"MXN"}'
+2026-05-21 15:30:04   📥 [15:30:04] RAW: ''
+
+2026-05-21 15:30:04   📣 [15:30:04] EVENTO id=1 | tipo=precio-actualizado
+2026-05-21 15:30:04   💰 Precio actualizado: A01 = 47 MXN
+
+2026-05-21 15:30:07   📥 [15:30:07] RAW: 'id: 2'
+2026-05-21 15:30:07   📥 [15:30:07] RAW: 'event: stock-critico'
+2026-05-21 15:30:07   📥 [15:30:07] RAW: 'data: {"producto":"B07","stock":1,"umbral":5}'
+2026-05-21 15:30:07   📥 [15:30:07] RAW: ''
+
+2026-05-21 15:30:07   📣 [15:30:07] EVENTO id=2 | tipo=stock-critico
+2026-05-21 15:30:07   ⚠️  ALERTA STOCK CRÍTICO: B07 | stock=1 (umbral=5) [id=2]
+
+2026-05-21 15:30:17   📥 [15:30:17] RAW: ': ping'
+2026-05-21 15:30:17   🔔 [15:30:17] keep-alive recibido (ignorado como dato)
+
+2026-05-21 15:30:20   📥 [15:30:20] RAW: 'id: 3'
+2026-05-21 15:30:20   📥 [15:30:20] RAW: 'event: precio-actualizado'
+2026-05-21 15:30:20   📥 [15:30:20] RAW: 'data: {"producto":"A01","precio":45,"moneda":"MXN"}'
+2026-05-21 15:30:20   📥 [15:30:20] RAW: ''
+
+2026-05-21 15:30:20   📣 [15:30:20] EVENTO id=3 | tipo=precio-actualizado
+2026-05-21 15:30:20   💰 Precio actualizado: A01 = 45 MXN
+
+2026-05-21 15:30:25   📥 [15:30:25] RAW: 'id: 4'
+2026-05-21 15:30:25   📥 [15:30:25] RAW: 'event: nuevo-pedido'
+2026-05-21 15:30:25   📥 [15:30:25] RAW: 'data: {"pedido":"PED-0042","cliente":"C001"}'
+2026-05-21 15:30:25   📥 [15:30:25] RAW: ''
+
+2026-05-21 15:30:25   📣 [15:30:25] EVENTO id=4 | tipo=nuevo-pedido
+2026-05-21 15:30:25   ⚡ [15:30:25] ADVERTENCIA: Evento de tipo desconocido 'nuevo-pedido' recibido (id=4) — ignorado.
+
+--- [SIMULACIÓN DE CORTE DE RED A LOS t=27s] ---
+
+2026-05-21 15:30:27 ❌ Error de conexión: [Errno 104] Connection reset by peer. Intento 1/5
+2026-05-21 15:30:27 ⏳ Esperando 3.0s antes de reconectar (backoff exponencial)...
+
+2026-05-21 15:30:30 🔌 Conectando a https://sse.dev/test ...
+2026-05-21 15:30:30    Last-Event-ID: 4
+2026-05-21 15:30:31 ✅ [15:30:31] Conexión establecida. Leyendo stream...
+[Los headers de reconexión incluyen Last-Event-ID: 4 — el servidor reanuda desde id=5]
+
+2026-05-21 15:30:31   📥 [15:30:31] RAW: 'id: 5'
+2026-05-21 15:30:31   📥 [15:30:31] RAW: 'event: precio-actualizado'
+2026-05-21 15:30:31   📥 [15:30:31] RAW: 'data: {"producto":"C03","precio":120,"moneda":"MXN"}'
+2026-05-21 15:30:31   📥 [15:30:31] RAW: ''
+
+2026-05-21 15:30:31   📣 [15:30:31] EVENTO id=5 | tipo=precio-actualizado
+2026-05-21 15:30:31   💰 Precio actualizado: C03 = 120 MXN
+
+--- [Ctrl+C recibido] ---
+2026-05-21 15:30:35 🛑 Deteniendo ReceptorAlertas...
+2026-05-21 15:30:35 🏁 ReceptorAlertas detenido limpiamente.
+
+📊 Estado final de la tabla de precios:
+  A01: 45 MXN (última actualización: 2026-05-21T15:30:20)
+  C03: 120 MXN (última actualización: 2026-05-21T15:30:31)
+
+--- EVIDENCIA CHECKLIST VALIDA ---
+✅ Buffer reseteado: Los 5 eventos se parsearon correctamente; el evento 5
+   no contiene datos del evento 1, 2 o 3.
+✅ Timeout 30s: Configurado en httpx.Timeout(connect=30.0)
+✅ Last-Event-ID en reconexión: El log muestra "Last-Event-ID: 4" en la segunda conexión.
+✅ Máximo 5 reintentos: Solo 1 reintento exitoso en esta ejecución. Si el servidor
+   permanece caído, el cliente se detiene tras el intento 5.
+✅ Excepción en handler: El evento 'nuevo-pedido' generó una advertencia pero
+   el stream continuó procesando el evento 5.
+✅ Detención limpia: Ctrl+C → _activo=False → "ReceptorAlertas detenido limpiamente."
+   No quedaron tareas en asyncio.all_tasks() después de la detención.
+
+--- FIN DE VALIDACION.LOG ---

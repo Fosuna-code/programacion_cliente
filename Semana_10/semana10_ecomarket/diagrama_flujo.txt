@@ -1,0 +1,23 @@
+PETICIÓN: ClienteRobusto.get_inventario()
+│
+├─ [?1] ClienteRobusto pide al TokenManager verificar si el token expira pronto (token_manager.py:69 is_expiring_soon).
+│        └─ Si expira: se llama refresh_access_token() antes del CircuitBreaker, vía _asegurar_token_vigente() (cliente_robusto.py:216, token_manager.py:136).
+│
+├─ [?2] ClienteRobusto llama a circuit_breaker.ejecutar(lambda).
+│        El estado actual es SEMIABIERTO.
+│        Escribe las 3 salidas posibles:
+│           Salida A (peticiones concurrentes adicionales): CircuitOpenError inmediato (el lock ya está tomado, circuit_breaker.py:296)
+│           Salida B (la petición de prueba pasa): la lambda se ejecuta y la petición HTTP sale al servidor (circuit_breaker.py:302-303)
+│           Salida C (resultado de la petición de prueba): éxito → SEMIABIERTO→CERRADO; fallo de servidor → SEMIABIERTO→ABIERTO (circuit_breaker.py:208-228, 233-259)
+│
+├─ [?3] La petición de prueba tiene ÉXITO (HTTP 200).
+│        Transición: SEMIABIERTO → CERRADO
+│        Método que la ejecuta: _registrar_exito() (circuit_breaker.py:208)
+│        Atributo que se resetea: _fallos_consecutivos = 0 (circuit_breaker.py:211)
+│
+├─ [?4] Simultáneamente, el ClienteSSEMultiplex tiene una conexión SSE activa.
+│        ¿La apertura del Circuit Breaker HTTP interrumpe ese stream SSE?
+│        No. La conexión SSE no pasa por el Circuit Breaker — son dos canales distintos. El CB aplica solo a peticiones HTTP del ClienteRobusto (cliente_robusto.py:26), no a la conexión TCP/SSE del ClienteSSEMultiplex (cliente_sse_multiplex.py:179-242).
+│
+└─ [?5] El TokenManager sabe que el Circuit Breaker acaba de cerrarse?
+     No. INV-B1: el TokenManager no consulta ni almacena el estado del CircuitBreaker (token_manager.py:27, cliente_robusto.py:29).

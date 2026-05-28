@@ -1,0 +1,7 @@
+Traza SSE: 
+![TRAZA SSE](traza.jpg)
+
+SSE reduce la cantidad de peticiones en comparacion
+con polling porque solo crea nuevas conecciones cuando falla la red, 
+de resto, es solo una peticion que se actualiza cada que el servidor envia los cambios. 
+

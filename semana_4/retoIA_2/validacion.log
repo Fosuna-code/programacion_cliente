@@ -1,0 +1,1 @@
+2026-03-05 16:23:27,398 - INFO - Validación: [{'nombre': 'Miel Orgánica', 'descripcion': 'Miel 100% pura.', 'precio': 150.5, 'categoria': 'frutas', 'productor_id': 7, 'disponible': True, 'id': 101, 'creado_en': '2019-08-24T14:15:22Z'}]

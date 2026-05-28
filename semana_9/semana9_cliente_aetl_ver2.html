@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 9: Resiliencia del Cliente — Circuit Breaker y Tolerancia a Fallos | AETL</title>
+    <style>
+:root {
+    --primary: #003a63;
+    --secondary: #005b96;
+    --accent: #f2a900;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --gray: #6c757d;
+    --border-radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7; color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+}
+/* ── HEADER ───────────────────────────────────────── */
+.header-institucional {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 2rem; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,58,99,0.3);
+}
+.header-institucional .logo-container {
+    display: flex; justify-content: center; align-items: center;
+    gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.header-institucional .escudo {
+    width: 80px; height: 80px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--primary); font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.header-institucional h1 { font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.header-institucional .subtitulo { font-size: 1.1rem; opacity: 0.9; }
+.header-institucional .badge-semana {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold;
+    margin-top: 1rem; font-size: 1rem;
+}
+/* ── PROGRESS BAR ─────────────────────────────────── */
+.progress-container {
+    background: white; padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+.progress-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin: 0 auto; position: relative;
+}
+.progress-bar::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: #e0e0e0; transform: translateY(-50%); z-index: 1;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2; cursor: pointer;
+    transition: transform 0.3s; text-decoration: none;
+}
+.progress-step:hover { transform: scale(1.1); }
+.progress-step .step-icon {
+    width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; background: white; border: 3px solid #e0e0e0;
+    transition: all 0.3s;
+}
+.progress-step.active .step-icon {
+    background: var(--secondary); border-color: var(--secondary);
+    color: white; box-shadow: 0 4px 15px rgba(0,91,150,0.4);
+}
+.progress-step.completed .step-icon {
+    background: var(--success); border-color: var(--success); color: white;
+}
+.progress-step .step-label {
+    font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray);
+    font-weight: 600; text-transform: uppercase;
+}
+.progress-step.active .step-label { color: var(--secondary); }
+/* ── NAV ──────────────────────────────────────────── */
+.nav-container {
+    background: var(--primary); padding: 0.8rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-links {
+    display: flex; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; max-width: 1200px; margin: 0 auto;
+}
+.nav-links a {
+    color: white; text-decoration: none; padding: 0.5rem 1rem;
+    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s;
+    border: 1px solid transparent;
+}
+.nav-links a:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
+/* ── LAYOUT ───────────────────────────────────────── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+/* ── FASE SECTIONS ────────────────────────────────── */
+.fase-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden; animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fase-header { padding: 1.5rem 2rem; color: white; display: flex; align-items: center; gap: 1rem; }
+.fase-header.comprende { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.fase-header.aplica    { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.fase-header.reflexiona{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.fase-header.valida    { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.fase-header.profundiza{ background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.fase-header .fase-icon {
+    font-size: 2rem; width: 60px; height: 60px;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.fase-header h2 { font-size: 1.5rem; margin: 0; }
+.bloom-tag {
+    background: rgba(255,255,255,0.25); padding: 0.3rem 0.8rem;
+    border-radius: 15px; font-size: 0.85rem; margin-top: 0.3rem; display: inline-block;
+}
+.fase-content { padding: 2rem; }
+/* ── BOXES ────────────────────────────────────────── */
+.context-box {
+    padding: 1.2rem 1.5rem; border-radius: var(--border-radius);
+    margin: 1.5rem 0; border-left: 4px solid;
+}
+.context-box.info    { background: #e3f2fd; border-color: var(--info);    color: #1a5276; }
+.context-box.warning { background: #fff8e1; border-color: var(--warning);  color: #856404; }
+.context-box.success { background: #e8f5e9; border-color: var(--success);  color: #1b5e20; }
+.context-box.tip     { background: #f3e5f5; border-color: #8e44ad;         color: #4a235a; }
+.context-box.danger  { background: #fce4ec; border-color: var(--danger);   color: #7b1a25; }
+.context-box.purple  { background: #ede7f6; border-color: #7b1fa2;         color: #4a148c; }
+.box-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 1rem; }
+/* ── RETO IA ─────────────────────────────────────── */
+.reto-ia {
+    border: 2px solid var(--secondary); border-radius: var(--border-radius);
+    margin: 1.5rem 0; overflow: hidden;
+}
+.reto-ia-header {
+    background: var(--secondary); color: white;
+    padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem;
+}
+.reto-ia-header h4 { margin: 0; font-size: 1rem; }
+.reto-numero {
+    background: var(--accent); color: var(--primary);
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem; flex-shrink: 0;
+}
+.reto-badge {
+    font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 12px;
+    margin-left: 0.5rem; font-weight: 600;
+}
+.reto-badge.esencial { background: #e8f5e9; color: #1b5e20; }
+.reto-badge.avanzado { background: #fff3cd; color: #856404; }
+.reto-ia-body {
+    padding: 1.5rem;
+    background: rgba(0, 58, 99, 0.03);
+}
+.rol-ia {
+    background: rgba(0, 58, 99, 0.08);
+    padding: 0.6rem 1rem; border-radius: var(--border-radius);
+    margin-bottom: 1rem; font-size: 0.9rem;
+}
+.prompt-box {
+    background: #1e1e1e; color: #d4d4d4;
+    padding: 1rem 1.5rem; border-radius: var(--border-radius);
+    font-family: 'Consolas', monospace; font-size: 0.85rem;
+    white-space: pre-wrap; line-height: 1.6; margin: 1rem 0;
+}
+.entregable-box {
+    background: #fff8e1; border-left: 4px solid var(--accent);
+    padding: 0.8rem 1.2rem; border-radius: var(--border-radius);
+    margin-top: 1rem; font-size: 0.9rem;
+}
+/* ── CHECKPOINT ───────────────────────────────────── */
+.checkpoint {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 2px solid var(--info); border-radius: var(--border-radius);
+    padding: 1.5rem; margin: 2rem 0;
+}
+.checkpoint h4 { color: var(--primary); margin-bottom: 1rem; }
+.pregunta {
+    background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    margin: 0.6rem 0; font-style: italic; border-left: 3px solid var(--secondary);
+}
+/* ── INVARIANTES ──────────────────────────────────── */
+.invariantes-box {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border: 2px solid var(--danger); border-radius: var(--border-radius);
+    padding: 1.5rem; margin: 1.5rem 0;
+}
+.invariantes-box h4 { color: #7b1a25; margin-bottom: 1rem; }
+/* ── CÓDIGO ───────────────────────────────────────── */
+pre { margin: 0; }
+code { background: #f1f3f4; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d63384; }
+pre code { display: block; padding: 1.2rem; background: #1e1e1e; color: #d4d4d4; overflow-x: auto; font-size: 0.85rem; line-height: 1.6; }
+/* ── TABS RUTA ────────────────────────────────────── */
+.ruta-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.ruta-tab {
+    padding: 0.5rem 1.2rem; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600; transition: all 0.3s;
+}
+.ruta-tab.python { background: #3776ab; color: white; }
+.ruta-tab.python:hover, .ruta-tab.python.active { background: #2a5f8a; box-shadow: 0 2px 8px rgba(55,118,171,0.4); }
+.ruta-tab.browser { background: #f7df1e; color: #333; }
+.ruta-tab.browser:hover, .ruta-tab.browser.active { background: #e0c900; box-shadow: 0 2px 8px rgba(247,223,30,0.4); }
+.ruta-content { display: none; }
+.ruta-content.active { display: block; }
+/* ── PRERREQUISITOS ───────────────────────────────── */
+.prerrequisitos-box {
+    background: white; border-radius: var(--border-radius);
+    padding: 1.5rem 2rem; margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-top: 4px solid var(--accent);
+}
+.prerrequisitos-box h4 { color: var(--primary); margin-bottom: 1rem; }
+.prerrequisitos-box li { margin-bottom: 0.6rem; }
+/* ── CONEXIÓN ANTERIOR ────────────────────────────── */
+.conexion-semana-anterior {
+    background: linear-gradient(135deg, #fff3cd, #ffe69c);
+    border: 2px solid var(--accent); border-radius: var(--border-radius);
+    padding: 1.5rem 2rem; margin-bottom: 2rem;
+}
+.conexion-semana-anterior h4 { color: var(--primary); margin-bottom: 0.8rem; }
+/* ── ESCENARIO ────────────────────────────────────── */
+.escenario-inmersivo {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; border-radius: var(--border-radius);
+    padding: 2rem; margin-bottom: 2rem;
+}
+.escenario-inmersivo h3 { color: var(--accent); margin-bottom: 1rem; }
+.personaje { margin: 1rem 0; }
+.personaje strong { opacity: 0.85; font-size: 0.9rem; }
+.dialogo {
+    background: rgba(255,255,255,0.12); padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius); margin-top: 0.4rem;
+    border-left: 3px solid var(--accent); font-style: italic;
+}
+/* ── FUNDAMENTOS ──────────────────────────────────── */
+.fundamentos-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
+}
+.fundamentos-header {
+    background: linear-gradient(135deg, var(--dark) 0%, #495057 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.constructo-card {
+    background: #f8f9fa; border-radius: var(--border-radius);
+    overflow: hidden; border: 1px solid #e0e0e0;
+}
+.card-header {
+    background: var(--primary); color: white;
+    padding: 0.8rem 1rem; font-weight: bold; font-size: 0.95rem;
+}
+.card-body { padding: 1rem; font-size: 0.9rem; }
+.referencia { font-size: 0.8rem; color: var(--gray); font-style: italic; margin-bottom: 0.5rem; }
+.operacional { background: #e3f2fd; padding: 0.6rem 0.8rem; border-radius: 4px; margin-top: 0.8rem; font-size: 0.85rem; }
+/* ── CHECKLIST ────────────────────────────────────── */
+.checklist-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid var(--success); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.checklist-box h4 { color: #1b5e20; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-item { background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius); margin: 0.6rem 0; display: flex; align-items: flex-start; gap: 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.checklist-item .check-icon { font-size: 1.1rem; min-width: 24px; }
+.checklist-item .diagnostico { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; font-style: italic; }
+/* ── ENTREGABLE ÚNICO ─────────────────────────────── */
+.entregable-unico-box {
+    background: linear-gradient(135deg, #003a63 0%, #005b96 100%);
+    color: white; border-radius: var(--border-radius); padding: 1.5rem 2rem;
+    margin: 1.5rem 0; box-shadow: 0 4px 20px rgba(0,58,99,0.25);
+}
+.entregable-unico-box h4 { color: var(--accent); margin-bottom: 1rem; }
+.entregable-unico-box .archivo-item { padding: 0.4rem 0; opacity: 0.92; }
+.tiempo-badge { background: var(--accent); color: var(--primary); padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-top: 0.8rem; }
+/* ── EVALUACIÓN ───────────────────────────────────── */
+.evaluacion-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.evaluacion-header { background: linear-gradient(135deg, var(--success) 0%, #20c997 100%); color: white; padding: 1.5rem 2rem; }
+.criterio-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+.criterio-item:last-child { border-bottom: none; }
+.criterio-item .fase-badge { background: var(--secondary); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; margin-right: 1rem; min-width: 100px; text-align: center; }
+.criterio-item .puntos { background: var(--accent); color: var(--primary); padding: 0.5rem 1rem; border-radius: var(--border-radius); font-weight: bold; margin-left: auto; }
+/* ── GLOSARIO ─────────────────────────────────────── */
+.glosario-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem; }
+.glosario-header { background: var(--dark); color: white; padding: 1.5rem 2rem; }
+.glosario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1.5rem; }
+.termino-card { background: #f8f9fa; padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--secondary); }
+.termino-card.aetl { border-left-color: var(--accent); }
+.termino-card dt { font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+.termino-card dd { font-size: 0.9rem; color: var(--gray); }
+/* ── DIAGRAMA ASCII ───────────────────────────────── */
+.diagrama-ascii-box {
+    background: #1e1e1e; color: #d4d4d4;
+    padding: 1.5rem; border-radius: var(--border-radius);
+    font-family: 'Consolas', monospace; font-size: 0.82rem;
+    line-height: 1.5; overflow-x: auto; margin: 1.5rem 0;
+    white-space: pre;
+}
+.diagrama-descripcion {
+    background: #f8f9fa; padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    font-size: 0.9rem; margin-top: 0.5rem; border-left: 3px solid var(--secondary);
+}
+/* ── ESTADO CIRCUIT BREAKER ───────────────────────── */
+.cb-estados {
+    display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0;
+}
+.cb-estado {
+    flex: 1; min-width: 160px; padding: 1.2rem; border-radius: var(--border-radius);
+    text-align: center; font-weight: bold;
+}
+.cb-estado.cerrado  { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; }
+.cb-estado.abierto  { background: linear-gradient(135deg, #dc3545, #a71d2a); color: white; }
+.cb-estado.semiabierto { background: linear-gradient(135deg, #ffc107, #d39e00); color: #333; }
+.cb-estado .estado-nombre { font-size: 1.1rem; margin-bottom: 0.4rem; }
+.cb-estado .estado-desc { font-size: 0.8rem; opacity: 0.85; font-weight: normal; }
+/* ── TABLA COMPARATIVA ────────────────────────────── */
+.tabla-comparativa { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+.tabla-comparativa th { background: var(--primary); color: white; padding: 0.8rem 1rem; text-align: left; }
+.tabla-comparativa td { padding: 0.8rem 1rem; border-bottom: 1px solid #e0e0e0; }
+.tabla-comparativa tr:last-child td { border-bottom: none; }
+.tabla-comparativa tr:hover { background: #f8f9fa; }
+/* ── OBJETIVOS ────────────────────────────────────── */
+.objetivos-box {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border: 2px solid var(--info); border-radius: var(--border-radius);
+    padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.objetivos-box h4 { color: var(--primary); margin-bottom: 1rem; }
+.objetivos-box li { margin-bottom: 0.5rem; }
+/* ── CONTENIDO SECTION ────────────────────────────── */
+.contenido-section h3 { color: var(--primary); margin: 1.5rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+.contenido-section p { margin-bottom: 1rem; }
+.contenido-section ul, .contenido-section ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+.contenido-section li { margin-bottom: 0.4rem; }
+/* ── REFERENCIAS ──────────────────────────────────── */
+.referencias-section { background: white; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 2rem; }
+.referencias-section h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); }
+.referencia-item { padding: 0.8rem 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+.referencia-item:last-child { border-bottom: none; }
+/* ── FOOTER ───────────────────────────────────────── */
+.footer { background: var(--primary); color: white; text-align: center; padding: 2rem; margin-top: 2rem; }
+.footer .modelo-badge { display: inline-block; background: var(--accent); color: var(--primary); padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold; margin-bottom: 1rem; }
+@media print { .progress-container, .nav-container { position: static; } .fase-section { break-inside: avoid; } }
+    </style>
+</head>
+<body>
+
+<!-- ========== HEADER INSTITUCIONAL ========== -->
+<header class="header-institucional">
+    <div class="logo-container">
+        <div class="escudo">UAN</div>
+        <div>
+            <h1>Programación Distribuida del Lado del Cliente</h1>
+            <p class="subtitulo">Licenciatura en Sistemas Computacionales</p>
+        </div>
+        <div class="escudo">LSC</div>
+    </div>
+    <span class="badge-semana">📅 Semana 9 de 15 · Unidad IV: Resiliencia del Cliente · Circuit Breaker y Tolerancia a Fallos</span>
+</header>
+
+<!-- ========== BARRA DE PROGRESO ========== -->
+<div class="progress-container">
+    <div class="progress-bar">
+        <a href="#comprende"  class="progress-step">
+            <div class="step-icon">🧠</div>
+            <div class="step-label">Comprende</div>
+        </a>
+        <a href="#aplica"     class="progress-step">
+            <div class="step-icon">⚙️</div>
+            <div class="step-label">Aplica</div>
+        </a>
+        <a href="#reflexiona" class="progress-step">
+            <div class="step-icon">🔍</div>
+            <div class="step-label">Reflexiona</div>
+        </a>
+        <a href="#valida"     class="progress-step">
+            <div class="step-icon">✔</div>
+            <div class="step-label">Valida</div>
+        </a>
+        <a href="#profundiza" class="progress-step">
+            <div class="step-icon">🚀</div>
+            <div class="step-label">Profundiza</div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== NAVEGACIÓN ========== -->
+<nav class="nav-container">
+    <div class="nav-links">
+        <a href="#prereq">📋 Prerrequisitos</a>
+        <a href="#escenario">🏢 Escenario</a>
+        <a href="#fundamentos">🧠 Fundamentos</a>
+        <a href="#comprende">💡 Comprende</a>
+        <a href="#aplica">⚙️ Aplica</a>
+        <a href="#reflexiona">🔍 Reflexiona</a>
+        <a href="#valida">✔ Valida</a>
+        <a href="#profundiza">🚀 Profundiza</a>
+        <a href="#evaluacion">📊 Evaluación</a>
+        <a href="#glosario">📖 Glosario</a>
+        <a href="#referencias">📚 Referencias</a>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- ========== PRERREQUISITOS ========== -->
+    <section id="prereq" class="prerrequisitos-box">
+        <h4>📋 Para tener éxito esta semana, asegúrate de dominar...</h4>
+        <ul>
+            <li><strong>Retry con backoff exponencial (Semana 2):</strong> ya implementaste reintentos básicos. Esta semana el retry se convierte en un componente coordinado con el Circuit Breaker — el breaker decide si el retry tiene permitido ejecutarse.</li>
+            <li><strong>async/await y manejo de excepciones (Semana 3):</strong> el Circuit Breaker intercepta llamadas asíncronas y puede lanzar <code>CircuitOpenError</code> sin llegar al servidor. Tu código cliente debe distinguir esa excepción de un error de red real.</li>
+            <li><strong>TokenManager y refresh singleton (Semana 8):</strong> cuando el Circuit Breaker está abierto, el cliente no debe intentar renovar el token porque tampoco puede llegar al servidor de autenticación. El estado del breaker afecta el comportamiento del TokenManager.</li>
+            <li><strong>ClienteSSEMultiplex y EventRouter (Semana 7):</strong> el Circuit Breaker se insertará como capa envolvente alrededor del cliente SSE. Necesitas recordar su interfaz (<code>conectar()</code>, <code>detener()</code>) para entender dónde se coloca el breaker.</li>
+            <li><strong>Manejo de códigos HTTP de error (Semana 2):</strong> el Circuit Breaker solo debe abrirse ante fallos específicos — <code>5xx</code> (errores del servidor), timeouts y errores de red. Los <code>4xx</code> (errores del cliente, incluyendo <code>401</code>) no deben contar como fallo del servidor.</li>
+        </ul>
+        <div class="context-box warning" style="margin-top: 1rem; margin-bottom: 0;">
+            <div class="box-title">⚠️ Perspectiva cliente — el Circuit Breaker vive en tu código, no en el servidor</div>
+            <p>El Circuit Breaker es un patrón que el <strong>cliente</strong> implementa para protegerse a sí mismo. El servidor no sabe que existe. No implementarás un proxy, un API gateway ni ningún componente de infraestructura — implementarás una clase Python o JS que envuelve tus llamadas HTTP y decide si ejecutarlas o no.</p>
+        </div>
+
+        <!-- ── ÁREA A: TokenManager Dummy ─────────────────────────────── -->
+        <div class="context-box success" style="margin-top: 1.2rem; margin-bottom: 0; border-color: #28a745;">
+            <div class="box-title">🛡️ ¿Tu TokenManager de la Semana 8 tiene bugs sin resolver? Usa el Dummy</div>
+            <p>Si no pudiste completar o corregir el <code>TokenManager</code> de la semana pasada, <strong>no dejes que ese bloqueo impida que aprendas el Circuit Breaker esta semana</strong>. Usa el <code>TokenManagerDummy</code> de abajo — tiene exactamente la misma interfaz que el real (mismos nombres de método, mismas firmas) para que tu <code>ClienteRobusto</code> no cambie ni una línea cuando lo reemplaces con tu implementación real.</p>
+            <p style="margin-top: 0.6rem; font-size: 0.9rem; opacity: 0.85;"><strong>Regla de uso:</strong> el dummy está permitido <em>exclusivamente</em> para desbloquear esta semana. El Hito 2 (Semana 10) requiere tu TokenManager real funcionando. Documenta en tu README si usaste el dummy y por qué.</p>
+
+            <div class="ruta-tabs" style="margin-top: 1rem;">
+                <button class="ruta-tab python active" data-tab-grupo="dummy-tm" data-tab-id="dummy-python" onclick="showRuta('dummy-tm', 'dummy-python')">🐍 Python</button>
+                <button class="ruta-tab browser" data-tab-grupo="dummy-tm" data-tab-id="dummy-browser" onclick="showRuta('dummy-tm', 'dummy-browser')">🌐 JS</button>
+            </div>
+
+            <div id="dummy-python" class="ruta-content active" data-ruta-grupo="dummy-tm">
+<pre><code># token_manager_dummy.py — Reemplaza el TokenManager de Semana 8 si tiene bugs
+# INTERFAZ IDÉNTICA al TokenManager real — el ClienteRobusto no distingue cuál usa.
+# Solo retorna un token ficticio que el mock servidor acepta sin verificar.
+
+class TokenManagerDummy:
+    """
+    Dummy de TokenManager para desbloquear la Semana 9.
+    Sustituye tu TokenManager real si tiene bugs pendientes de corrección.
+    Interfaz idéntica: mismos métodos, mismas firmas.
+    """
+    def __init__(self):
+        self._access_token  = "dummy.access.token"
+        self._refresh_token = "dummy.refresh.token"
+
+    def decode_payload(self, token: str) -> dict:
+        # Retorna un payload ficticio con exp muy lejano (nunca expira en pruebas)
+        import time
+        return {"sub": "operador_1", "exp": int(time.time()) + 86400, "rol": "admin"}
+
+    def is_expiring_soon(self, margen_segundos: int = 60) -> bool:
+        return False  # El dummy nunca expira
+
+    def store_tokens(self, access_token: str, refresh_token: str) -> None:
+        self._access_token  = access_token
+        self._refresh_token = refresh_token
+
+    def get_auth_header(self) -> dict:
+        return {"Authorization": f"Bearer {self._access_token}"}
+
+    async def refresh_access_token(self) -> str:
+        # Simula un refresh exitoso sin tocar la red
+        self._access_token = "dummy.refreshed.token"
+        return self._access_token
+
+    def logout(self) -> None:
+        self._access_token  = None
+        self._refresh_token = None</code></pre>
+            </div>
+
+            <div id="dummy-browser" class="ruta-content" data-ruta-grupo="dummy-tm">
+<pre><code>// token-manager-dummy.js — Reemplaza el TokenManager de Semana 8 si tiene bugs
+// INTERFAZ IDÉNTICA al TokenManager real — el ClienteRobusto no distingue cuál usa.
+
+class TokenManagerDummy {
+    constructor() {
+        this._accessToken  = 'dummy.access.token';
+        this._refreshToken = 'dummy.refresh.token';
+    }
+
+    decodePayload(token) {
+        // Payload ficticio — exp muy lejano, nunca expira en pruebas
+        return { sub: 'operador_1', exp: Math.floor(Date.now() / 1000) + 86400, rol: 'admin' };
+    }
+
+    isExpiringSoon(margenSegundos = 60) {
+        return false; // El dummy nunca expira
+    }
+
+    storeTokens(accessToken, refreshToken) {
+        this._accessToken  = accessToken;
+        this._refreshToken = refreshToken;
+    }
+
+    getAuthHeader() {
+        return { Authorization: `Bearer ${this._accessToken}` };
+    }
+
+    async refreshAccessToken() {
+        // Simula refresh exitoso sin red
+        this._accessToken = 'dummy.refreshed.token';
+        return this._accessToken;
+    }
+
+    logout() {
+        this._accessToken  = null;
+        this._refreshToken = null;
+    }
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+    <div class="conexion-semana-anterior">
+        <h4>🔗 Semana 8 → Semana 9: ¿Qué extiende este documento?</h4>
+        <p>La semana pasada construiste el <strong>TokenManager</strong>: tu cliente ahora puede autenticarse, renovar tokens silenciosamente y adjuntar el <code>Authorization: Bearer</code> a cada petición. Pero hay un problema que el TokenManager no resuelve: ¿qué pasa cuando el servidor de EcoMarket está caído? Cada petición espera su timeout completo (30s), el refresh singleton falla, y el panel de control congela la experiencia del operador durante minutos. Esta semana agregas una capa de inteligencia: el <strong>ClienteRobusto</strong> con Circuit Breaker que detecta cuándo el servidor está caído, falla rápidamente en lugar de esperar timeouts, y permite que la UI muestre "modo degradado" en lugar de congelar.</p>
+    </div>
+
+    <!-- ========== ESCENARIO INMERSIVO ========== -->
+    <section id="escenario">
+        <div class="escenario-inmersivo">
+            <h3>🏢 Escenario: EcoMarket — El Servidor que Llora a las 3am</h3>
+            <p>El panel de control de EcoMarket lleva tres semanas funcionando impecablemente. Hasta que el lunes a las 3:47am el servidor de inventarios sufre una falla de base de datos. El servidor no está "caído" — responde, pero tarda 45 segundos en hacerlo antes de retornar <code>503 Service Unavailable</code>.</p>
+            <p style="margin-top: 0.8rem; opacity: 0.9;">El cliente de TechNova, fiel a su diseño, reintenta cada petición. Hay 12 operadores conectados. Cada uno tiene el panel abierto, que hace polling y peticiones de actualización. En 5 minutos, el servidor recibe 2,400 peticiones — todas esperando 45 segundos cada una — justo cuando el equipo de infraestructura intenta recuperarlo. El cliente <em>impide</em> la recuperación del servidor al que intenta conectarse.</p>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior (equipo TechNova):</strong>
+                <div class="dialogo">"¿No es suficiente con el timeout de 30 segundos? Al menos no espera para siempre."</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior (TechNova):</strong>
+                <div class="dialogo">"30 segundos por petición × 12 operadores × peticiones de polling = el servidor recibe una avalancha constante precisamente cuando está intentando recuperarse. Necesitamos que el cliente <em>aprenda</em> que el servidor está fallando y deje de presionarlo. El Circuit Breaker es esa inteligencia: después de 5 fallos consecutivos, el cliente declara el circuito 'abierto' y falla inmediatamente durante 60 segundos — sin tocar el servidor. Cuando abre, la UI lo sabe y muestra datos del caché o un mensaje de 'servicio no disponible'. Protegemos al servidor y al operador al mismo tiempo."</div>
+            </div>
+            <div class="personaje">
+                <strong>🧑‍💻 Dev Junior:</strong>
+                <div class="dialogo">"Pero, ¿cómo sabe el cliente que el servidor se recuperó si ya dejó de llamarlo?"</div>
+            </div>
+            <div class="personaje">
+                <strong>👩‍🏫 Arquitecta Senior:</strong>
+                <div class="dialogo">"Ese es el estado 'Semiabierto': después de 60 segundos, el breaker permite <em>una sola petición de prueba</em>. Si tiene éxito, el circuito se cierra y todo vuelve a la normalidad. Si falla, vuelve a abrirse 60 segundos más. El cliente sabe que el servidor se recuperó porque lo dejó intentar — de forma controlada, sin abrir las compuertas de golpe."</div>
+            </div>
+            <p style="margin-top: 1rem; opacity: 0.85;"><em>Tu misión esta semana: construir el <strong>ClienteRobusto</strong> con Circuit Breaker que protege al servidor, falla rápidamente ante el operador, e integra el estado del breaker con el TokenManager de la semana pasada.</em></p>
+        </div>
+    </section>
+
+    <!-- ========== FUNDAMENTOS TEÓRICOS ========== -->
+    <section id="fundamentos" class="fundamentos-section">
+        <div class="fundamentos-header">
+            <h2>🧠 Fundamentos Teóricos — Marco Pedagógico AETL</h2>
+            <p style="opacity: 0.9; margin-top: 0.5rem;">Constructos que guían cómo aprendes esta semana</p>
+        </div>
+        <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div class="constructo-card">
+                <div class="card-header">🏗️ Constructivismo y ZDP</div>
+                <div class="card-body">
+                    <div class="referencia">Vygotsky (1978); Bognár (2024)</div>
+                    <p>El Circuit Breaker es conceptualmente simple pero tiene muchos casos borde (¿qué errores cuentan como fallo? ¿cómo se resetea el contador?). La IA puede generar una implementación básica rápidamente — tu zona de desarrollo próximo está en <em>decidir los umbrales, clasificar los errores y razonar sobre cada transición de estado</em>.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Antes de usar la IA para generar código, dibuja el diagrama de estados del breaker con las tres transiciones. La IA que genera sin que puedas explicar el diagrama produce código que no puedes mantener ni defender.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">📋 Aprendizaje Autorregulado (SRL)</div>
+                <div class="card-body">
+                    <div class="referencia">Zimmerman (2000); Chiu (2024)</div>
+                    <p>La resiliencia es un tema donde los estudiantes tienden a sobreestimar su comprensión — el código "parece" correcto. El SRL requiere que <em>pruebes</em> tu Circuit Breaker con escenarios adversos reales, no solo con el happy path. La autorreflexión incluye preguntarte: "¿qué pasa si el servidor falla exactamente durante el estado semiabierto?"</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Antes de entregar, ejecuta al menos 3 escenarios adversos con el mock servidor. Documenta cuál fue el comportamiento esperado vs. el observado.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">⚙️ Teoría de Carga Cognitiva</div>
+                <div class="card-body">
+                    <div class="referencia">Sweller (1988/2020); Mahdi et al. (2025)</div>
+                    <p>El Circuit Breaker tiene tres componentes que interactúan: el contador de fallos, el temporizador de apertura y la lógica de clasificación de errores. Construirlos simultáneamente produce sobrecarga intrínseca. Esta semana provee scaffolding explícito: primero el estado, luego las transiciones, luego la integración.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Si en la fase APLICA te trabas, implementa primero solo el estado <em>Cerrado → Abierto</em>. Agrega el estado Semiabierto en una segunda iteración.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🤝 Agencia Compartida</div>
+                <div class="card-body">
+                    <div class="referencia">Bandura (2001); Brod et al. (2023)</div>
+                    <p>El Circuit Breaker es un patrón donde la IA genera implementaciones plausibles pero con decisiones de diseño arbitrarias (¿5 fallos o 3? ¿60 segundos o 30?). Esas decisiones tienen consecuencias reales en producción. Tú eres el arquitecto que <em>justifica</em> cada umbral con base en los requisitos del sistema — no en los valores que la IA eligió por defecto.</p>
+                    <div class="operacional">🔧 <strong>Operacional:</strong> Cuando la IA genere el código con umbrales hardcodeados, pregúntale: "¿Por qué elegiste esos valores? ¿Qué criterio de diseño los justifica?" Evalúa críticamente la respuesta antes de aceptarlos.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 1: COMPRENDE                                          -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="comprende" class="fase-section">
+        <div class="fase-header comprende">
+            <div class="fase-icon">🧠</div>
+            <div class="fase-info">
+                <h2>FASE 1: COMPRENDE</h2>
+                <span class="bloom-tag">Nivel Bloom: Recordar / Comprender</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Identificar</strong> los tres estados del Circuit Breaker (Cerrado, Abierto, Semiabierto) y sus transiciones</li>
+                    <li><strong>Explicar</strong> por qué los errores <code>4xx</code> no deben contar como fallo del servidor para el Circuit Breaker</li>
+                    <li><strong>Reconocer</strong> la diferencia entre "fallo rápido" y "timeout" desde la perspectiva del código cliente</li>
+                    <li><strong>Distinguir</strong> cuándo usar retry, cuándo usar Circuit Breaker, y cuándo usar ambos en conjunto</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>El problema que resuelve el Circuit Breaker</h3>
+                <p>Cuando tu cliente hace retry automático ante fallos, está asumiendo que el servidor fallará <em>ocasionalmente</em> y que el reintento tendrá éxito. Esa suposición es correcta para fallos transitorios (sobrecarga momentánea, restart del servidor). Pero cuando el servidor está completamente caído, el retry se convierte en un problema: cada cliente sigue intentando, cada intento tarda el tiempo del timeout completo, y el servidor recibe una avalancha de peticiones justo cuando intenta recuperarse.</p>
+                <p>El Circuit Breaker resuelve esto con una idea de la ingeniería eléctrica: cuando hay un cortocircuito, el fusible "abre" el circuito para proteger el sistema. Cuando el fallo se resuelve, el circuito se "cierra" de nuevo. Traducido al software: cuando el servidor falla repetidamente, el cliente <em>abre</em> el circuito — falla inmediatamente sin contactar al servidor — y solo lo cierra cuando evidencia que el servidor se recuperó.</p>
+
+                <h3>Los tres estados y sus transiciones</h3>
+
+                <div class="cb-estados">
+                    <div class="cb-estado cerrado">
+                        <div class="estado-nombre">🟢 CERRADO</div>
+                        <div class="estado-desc">Operación normal. Peticiones fluyen al servidor. El cliente cuenta los fallos consecutivos.</div>
+                    </div>
+                    <div class="cb-estado abierto">
+                        <div class="estado-nombre">🔴 ABIERTO</div>
+                        <div class="estado-desc">Circuito cortado. Las peticiones fallan inmediatamente con CircuitOpenError. No se contacta al servidor.</div>
+                    </div>
+                    <div class="cb-estado semiabierto">
+                        <div class="estado-nombre">🟡 SEMIABIERTO</div>
+                        <div class="estado-desc">Prueba de recuperación. Una sola petición pasa. Éxito → Cerrado. Fallo → Abierto.</div>
+                    </div>
+                </div>
+
+                <div class="diagrama-ascii-box" role="img" aria-label="Diagrama de transiciones del Circuit Breaker">
+┌─────────────────────────────────────────────────────────────────────┐
+│  DIAGRAMA DE TRANSICIONES DEL CIRCUIT BREAKER (perspectiva cliente) │
+└─────────────────────────────────────────────────────────────────────┘
+
+                      [Inicio]
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │       CERRADO         │ ◄──────────────────────┐
+              │  fallo_count = 0      │                        │
+              │  Peticiones: ✅ pasan │                        │
+              └───────────┬───────────┘                        │
+                          │                                    │
+               N fallos consecutivos                   1 petición: ✅ éxito
+               (ej. N = 5, errores 5xx                         │
+                o timeouts de red)                             │
+                          │                                    │
+                          ▼                                    │
+              ┌───────────────────────┐              ┌─────────────────────┐
+              │       ABIERTO         │              │     SEMIABIERTO     │
+              │  Falla inmediatamente │              │  1 petición de      │
+              │  CircuitOpenError     │              │  prueba permitida   │
+              │  Peticiones: ❌ block │              └─────────┬───────────┘
+              └───────────┬───────────┘                        │
+                          │                          1 petición: ❌ fallo
+               timeout_apertura expira             (servidor sigue caído)
+               (ej. 60 segundos)                              │
+                          │                                   │
+                          └──────────► SEMIABIERTO ◄──────────┘
+                                            │
+                                            └── vuelve a ABIERTO si falla
+
+NOTA CLAVE PARA EL CLIENTE:
+  - Errores 5xx / timeout / ConnectionError  →  cuentan como FALLO
+  - Errores 4xx (incluyendo 401, 403, 404)   →  NO cuentan como fallo del servidor
+  - Un 401 significa que el TOKEN es inválido, no que el servidor esté caído
+  - Un CircuitOpenError nunca debe confundirse con un error de red real
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Qué representa:</strong> las transiciones entre los tres estados del Circuit Breaker vistas desde el código del cliente — qué condiciones disparan cada cambio. <strong>Simplifica:</strong> omite estados de error dentro de SEMIABIERTO y el contador de peticiones paralelas. <strong>Aspecto clave:</strong> el Circuit Breaker <em>protege al servidor</em> fallando rápido en el cliente — la experiencia del operador mejora porque sabe de inmediato que hay un problema, en lugar de esperar 30 segundos de timeout.
+                </div>
+
+                <h3>Retry vs. Circuit Breaker — ¿cuándo usar cada uno?</h3>
+                <table class="tabla-comparativa">
+                    <thead>
+                        <tr>
+                            <th>Criterio</th>
+                            <th>Solo Retry</th>
+                            <th>Solo Circuit Breaker</th>
+                            <th>Retry + Circuit Breaker</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Tipo de fallo</strong></td>
+                            <td>Transitorios ocasionales (network blip, 503 momentáneo)</td>
+                            <td>Fallos sostenidos del servidor</td>
+                            <td>Ambos tipos en el mismo sistema</td>
+                        </tr>
+                        <tr>
+                            <td><strong>¿Presiona al servidor?</strong></td>
+                            <td>Sí — cada reintento es una petición nueva</td>
+                            <td>No — el breaker abierto bloquea antes de llegar al servidor</td>
+                            <td>Limitado — el breaker corta cuando el retry no funciona</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Velocidad de detección</strong></td>
+                            <td>Lenta — espera todos los intentos + timeouts</td>
+                            <td>Inmediata — una vez que el breaker se abre</td>
+                            <td>Rápida — el breaker aprende de los reintentos fallidos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recuperación automática</strong></td>
+                            <td>No — sigue reintentando para siempre</td>
+                            <td>Sí — estado Semiabierto prueba la recuperación</td>
+                            <td>Sí — más sofisticado con ambos mecanismos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Uso en EcoMarket</strong></td>
+                            <td>Semana 2 (operaciones individuales)</td>
+                            <td>—</td>
+                            <td>✅ Esta semana — ClienteRobusto</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="context-box warning">
+                    <div class="box-title">⚠️ Error común: contar 4xx como fallos del servidor</div>
+                    <p>Si el Circuit Breaker cuenta los <code>401 Unauthorized</code> como fallos del servidor, puede abrirse después de que el token expire — precisamente cuando el cliente más necesita comunicarse para renovarlo. Un <code>401</code> significa "tu token no es válido", no "el servidor está caído". La regla es clara: solo los errores de infraestructura (<code>5xx</code>, timeouts, errores de conexión) abren el circuito. Los errores de lógica del cliente (<code>4xx</code>) los maneja el interceptor HTTP y el TokenManager, no el Circuit Breaker.</p>
+                </div>
+
+                <div class="context-box tip">
+                    <div class="box-title">💡 Degradación elegante — la UI no debe congelar</div>
+                    <p>Cuando el Circuit Breaker está abierto, el cliente tiene tres opciones para la UI: (1) mostrar datos del <strong>caché local</strong> (si el ClienteSSEMultiplex tiene datos recientes), (2) mostrar un <strong>mensaje de "servicio no disponible"</strong> con el tiempo estimado de recuperación, o (3) <strong>deshabilitar las acciones de escritura</strong> (editar precio, ajustar stock) mientras permite ver los últimos datos conocidos. Las tres son mejores que congelar el panel esperando timeouts.</p>
+                </div>
+            </div>
+
+            <!-- RETO 1 - COMPRENDE -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">1</span>
+                    <h4>Diagrama de estados antes de codificar <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Instructor socrático que evalúa tu comprensión del diagrama de estados antes de permitirte codificar — nunca te da el diagrama completo de entrada.</div>
+                    <div class="prompt-box">Actúa como instructor socrático de patrones de diseño. NO me des el diagrama completo ni el código todavía.
+
+Voy a describir el Circuit Breaker del lado del cliente con mis propias palabras. Evalúa mi descripción identificando:
+1. Una transición que describí correctamente
+2. Una transición que describí de forma incompleta o incorrecta
+3. Una pregunta de seguimiento para que yo corrija la descripción
+
+Mi descripción: [escribe aquí tu descripción del diagrama con las tres transiciones antes de continuar]
+
+Reglas para tu evaluación:
+- No me digas la respuesta correcta directamente — formula preguntas que me lleven a descubrirla
+- Si mi descripción está completamente correcta, plantea el caso borde: "¿Qué pasa si el servidor falla exactamente durante el estado Semiabierto?"
+- Limita tu respuesta a máximo 150 palabras</div>
+                    <div class="entregable-box">
+                        <strong>Entregable (Comprende):</strong> Captura de pantalla o transcripción del diálogo con la IA donde se vea (1) tu descripción inicial, (2) la evaluación de la IA, (3) tu corrección. Incluye en tu README la versión final del diagrama de estados en texto o ASCII. Este artefacto es el punto de partida obligatorio de la fase APLICA.
+                    </div>
+                    <div class="context-box success" style="margin-top: 1rem; border-color: #1b5e20; background: #f1f8f2;">
+                        <div class="box-title">✅ Comprobación mínima antes de pasar a APLICA</div>
+                        <p>Antes de abrir el scaffold de código, verifica manualmente que tu diagrama cumple <strong>las tres condiciones siguientes</strong>. Si alguna falla, corrige el diagrama — no avances:</p>
+                        <ol style="margin-left: 1.4rem; margin-top: 0.6rem;">
+                            <li style="margin-bottom: 0.4rem;">Mi diagrama tiene <strong>exactamente 3 estados</strong> y <strong>exactamente 4 transiciones</strong>: CERRADO→ABIERTO, ABIERTO→SEMIABIERTO, SEMIABIERTO→CERRADO, SEMIABIERTO→ABIERTO.</li>
+                            <li style="margin-bottom: 0.4rem;">Cada transición tiene una <strong>condición concreta</strong> anotada (ej. "N fallos consecutivos", "timeout_apertura expiró", "petición de prueba exitosa", "petición de prueba fallida").</li>
+                            <li>He marcado en el diagrama cuál tipo de errores <strong>no deben</strong> disparar la transición CERRADO→ABIERTO — con al menos un código HTTP de ejemplo.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 2 - COMPRENDE -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">2</span>
+                    <h4>Clasificación de errores — ¿qué cuenta como fallo del servidor? <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Consultor técnico que te presenta casos de error y te pide clasificarlos — tú decides cuáles deben abrir el circuito.</div>
+                    <div class="prompt-box">Actúa como consultor de sistemas distribuidos cliente-servidor.
+
+Tengo un Circuit Breaker en el cliente del panel de EcoMarket. Para cada uno de los siguientes escenarios, dime si debo contar ese evento como FALLO (abre el circuito) o IGNORAR (el breaker no se entera):
+
+1. El servidor responde con 503 Service Unavailable
+2. El servidor responde con 401 Unauthorized (token expirado)
+3. La petición no recibe respuesta después de 30 segundos (timeout)
+4. El servidor responde con 404 Not Found (el producto no existe)
+5. La conexión TCP se rechaza (Connection Refused) — el servidor no está en ese puerto
+6. El servidor responde con 500 Internal Server Error
+7. El servidor responde con 429 Too Many Requests (rate limiting)
+8. El servidor responde con 403 Forbidden (sin permisos para ese recurso)
+
+PRIMERO dame tu clasificación para cada caso con una justificación de una oración.
+DESPUÉS dime cuáles acerté, cuáles fallé, y por qué — explicando el razonamiento desde la perspectiva de qué le dice cada código al CLIENTE sobre el estado del SERVIDOR.</div>
+                    <div class="entregable-box">
+                        <strong>Entregable (Comprende):</strong> Tu tabla de clasificación inicial + la corrección de la IA como comentario en el código del CircuitBreaker. La función <code>_es_fallo_servidor(error)</code> que implementarás en la fase APLICA debe reflejar estas decisiones.
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase COMPRENDE</h4>
+                <div class="pregunta">¿Puedo explicar el diagrama de tres estados con mis propias palabras sin consultar el documento?</div>
+                <div class="pregunta">¿Entiendo por qué un 401 no debe abrir el circuito pero un 503 sí? ¿Puedo explicarlo en una oración?</div>
+                <div class="pregunta">¿Puedo describir cómo interactúa el Circuit Breaker con el TokenManager de la semana pasada?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 2: APLICA                                             -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="aplica" class="fase-section">
+        <div class="fase-header aplica">
+            <div class="fase-icon">⚙️</div>
+            <div class="fase-info">
+                <h2>FASE 2: APLICA</h2>
+                <span class="bloom-tag">Nivel Bloom: Aplicar / Analizar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Implementar</strong> la clase <code>CircuitBreaker</code> con los tres estados y sus transiciones</li>
+                    <li><strong>Integrar</strong> el CircuitBreaker como capa envolvente del cliente HTTP existente</li>
+                    <li><strong>Construir</strong> el <code>ClienteRobusto</code> que combina CircuitBreaker + retry + TokenManager</li>
+                    <li><strong>Verificar</strong> que los invariantes de la clase se mantienen en cada transición de estado</li>
+                </ul>
+            </div>
+
+            <div class="context-box warning">
+                <div class="box-title">⚠️ Advertencia Anti-Volcado — patrón de complejidad alta</div>
+                <p>El Circuit Breaker es uno de los patrones donde los estudiantes más copian código de la IA sin comprenderlo. El código "funciona" en el happy path pero tiene sutilezas críticas: el temporizador que no se resetea correctamente, el contador que no distingue entre fallos del servidor y errores del cliente, o el estado Semiabierto que permite múltiples peticiones simultáneas en lugar de solo una.</p>
+                <p style="margin-top: 0.8rem;"><strong>Señal de alerta:</strong> si no puedes dibujar el diagrama de estados antes de ver el código generado, el código no será tuyo aunque lo hayas escrito. Completa el Reto 1 antes de continuar.</p>
+            </div>
+
+            <div class="context-box danger">
+                <div class="box-title">🔴 ¿La IA ignoró tu instrucción y volcó el CircuitBreaker completo? — Protocolo de recuperación</div>
+                <p>Los LLMs actuales tienden a ser "complacientes" y pueden ignorar instrucciones como "ve paso a paso" o "no me des el código todavía", generando la clase <code>CircuitBreaker</code> completa de golpe. Esto rompe el ciclo de aprendizaje porque obtienes el resultado antes de construir el modelo mental.</p>
+                <p style="margin-top: 0.8rem;"><strong>Si esto ocurre, NO leas el código generado.</strong> En su lugar, escribe exactamente esto en el chat:</p>
+                <div style="background: #1e1e1e; color: #d4d4d4; padding: 0.8rem 1.2rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; margin-top: 0.8rem;">
+                    "Te pedí ir método por método y esperar mi confirmación. Ignora tu respuesta anterior. Empieza de nuevo: muéstrame <em>solo</em> el <code>__init__</code> / constructor con los atributos de estado. Detente ahí y espera."
+                </div>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem; opacity: 0.85;"><strong>Técnica general transferible:</strong> cuando la IA no respeta el ritmo que pediste, reinicia la instrucción en imperativo con una sola acción y sin ambigüedad de alcance. Tú eres el director de la sesión — la IA responde a la instrucción más reciente, no al contrato anterior.</p>
+            </div>
+
+            <h3 style="color: var(--primary); margin: 1.5rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem;">Código Scaffold — Punto de Partida</h3>
+            <p>Este scaffold define la estructura obligatoria. Los <code>TODO</code> son los únicos lugares donde debes agregar lógica. No modifiques los nombres de métodos ni los tipos de excepción — el <code>ClienteRobusto</code> depende de esta interfaz.</p>
+
+            <div class="ruta-tabs">
+                <button class="ruta-tab python active" data-tab-grupo="aplica-scaffold" data-tab-id="scaffold-python" onclick="showRuta('aplica-scaffold', 'scaffold-python')">🐍 Ruta Python</button>
+                <button class="ruta-tab browser" data-tab-grupo="aplica-scaffold" data-tab-id="scaffold-browser" onclick="showRuta('aplica-scaffold', 'scaffold-browser')">🌐 Ruta Browser (JS)</button>
+            </div>
+
+            <!-- PYTHON SCAFFOLD -->
+            <div id="scaffold-python" class="ruta-content active" data-ruta-grupo="aplica-scaffold">
+<pre><code>"""
+circuit_breaker.py — CircuitBreaker del lado del cliente para EcoMarket
+Semana 9: Resiliencia y Tolerancia a Fallos
+
+DECISIONES DE DISEÑO (completa antes de codificar los TODO):
+  1. ¿Qué errores cuentan como fallo del servidor? ____________
+  2. ¿Qué umbral de fallos elegiste y por qué? ____________
+  3. ¿Qué timeout de apertura elegiste y por qué? ____________
+"""
+
+import asyncio
+import time
+from enum import Enum, auto
+
+
+class EstadoCircuito(Enum):
+    CERRADO    = auto()   # Operación normal
+    ABIERTO    = auto()   # Falla inmediatamente, no contacta al servidor
+    SEMIABIERTO = auto()  # Una petición de prueba permitida
+
+
+class CircuitOpenError(Exception):
+    """El circuito está abierto — no se intentó la petición."""
+    def __init__(self, tiempo_restante: float):
+        self.tiempo_restante = tiempo_restante
+        super().__init__(
+            f"Circuit breaker abierto. Reintenta en {tiempo_restante:.1f}s"
+        )
+
+
+class CircuitBreaker:
+    """
+    Implementa el patrón Circuit Breaker del lado del cliente.
+    
+    El cliente llama a cb.ejecutar(coro) en lugar de await coro directamente.
+    Si el circuito está abierto, lanza CircuitOpenError inmediatamente.
+    """
+
+    def __init__(
+        self,
+        umbral_fallos: int = 5,
+        timeout_apertura: float = 60.0,
+        nombre: str = "EcoMarketAPI"
+    ):
+        # TODO: Inicializa los atributos de estado:
+        #   - self._estado: EstadoCircuito (inicia en CERRADO)
+        #   - self._fallos_consecutivos: int (inicia en 0)
+        #   - self._tiempo_apertura: float | None (timestamp del momento en que abrió)
+        #   - self._lock: asyncio.Lock() (para serializar el estado Semiabierto)
+        raise NotImplementedError
+
+    @property
+    def estado(self) -> EstadoCircuito:
+        """Retorna el estado actual. Lee _revisar_timeout() antes de retornar."""
+        # TODO: llama a self._revisar_timeout() y retorna self._estado
+        raise NotImplementedError
+
+    @property
+    def esta_abierto(self) -> bool:
+        return self.estado == EstadoCircuito.ABIERTO
+
+    def _revisar_timeout(self) -> None:
+        """
+        Si el circuito está ABIERTO y el timeout_apertura expiró,
+        transiciona a SEMIABIERTO para permitir una petición de prueba.
+        """
+        # TODO: implementa la transición ABIERTO → SEMIABIERTO por timeout
+        raise NotImplementedError
+
+    def _es_fallo_servidor(self, excepcion: Exception) -> bool:
+        """
+        Decide si una excepción debe contar como fallo del servidor.
+        
+        CUENTA como fallo: asyncio.TimeoutError, aiohttp.ServerConnectionError,
+            respuestas 5xx (cuando la excepción lleva el código HTTP),
+            ConnectionRefusedError, OSError de red.
+        NO cuenta: ValueError, errores de parseo JSON, 4xx en general.
+        """
+        # TODO: implementa la lógica de clasificación (Reto 2 de COMPRENDE)
+        raise NotImplementedError
+
+    def _registrar_exito(self) -> None:
+        """Registra éxito: resetea contador y cierra el circuito."""
+        # TODO: implementa la transición SEMIABIERTO → CERRADO
+        #       y el reset del contador en estado CERRADO
+        raise NotImplementedError
+
+    def _registrar_fallo(self) -> None:
+        """Registra fallo del servidor: incrementa contador o abre el circuito."""
+        # TODO: implementa la transición CERRADO → ABIERTO cuando
+        #       self._fallos_consecutivos >= self._umbral_fallos
+        #       Registra self._tiempo_apertura = time.monotonic()
+        raise NotImplementedError
+
+    async def ejecutar(self, coro):
+        """
+        Punto de entrada principal. Uso:
+            resultado = await cb.ejecutar(cliente.get("/inventario"))
+        
+        Flujo:
+          1. Verifica el estado del circuito
+          2. Si ABIERTO → lanza CircuitOpenError con tiempo restante
+          3. Si SEMIABIERTO → adquiere lock (solo una petición de prueba)
+          4. Ejecuta el coro
+          5. En éxito → _registrar_exito()
+          6. En fallo de servidor → _registrar_fallo(), re-lanza la excepción
+          7. En fallo de cliente (4xx) → re-lanza SIN registrar fallo
+        """
+        # Pseudocódigo estructurado — convierte cada comentario en código Python:
+        #
+        # 1. estado_actual = self.estado   (llama a _revisar_timeout internamente)
+        #
+        # 2. if estado_actual == ABIERTO:
+        #        tiempo_restante = timeout_apertura - (time.monotonic() - _tiempo_apertura)
+        #        raise CircuitOpenError(tiempo_restante)
+        #
+        # 3. if estado_actual == SEMIABIERTO:
+        #        if not await self._lock.acquire():  # acquire() siempre retorna True
+        #            ...                             # pero usamos try/finally abajo
+        #        # Si el lock ya está adquirido, esta segunda llamada bloqueará
+        #        # hasta que la primera petición de prueba termine — eso es lo que queremos
+        #
+        # 4. try:
+        #        resultado = await coro
+        #
+        # 5.     self._registrar_exito()
+        #        return resultado
+        #
+        # 6. except <excepciones de servidor> as e:
+        #        if self._es_fallo_servidor(e):
+        #            self._registrar_fallo()
+        #        raise   # siempre re-lanza — el caller decide cómo manejar
+        #
+        # 7.     # Los 4xx llegan como excepción o como valor de retorno según tu cliente.
+        #        # Si llegan como excepción con código HTTP, _es_fallo_servidor retorna False
+        #        # y no se registra el fallo — solo se re-lanza.
+        #
+        # finally:  (solo si adquiriste el lock en SEMIABIERTO)
+        #        self._lock.release()
+        #
+        # TODO: implementa el flujo anterior — 15-25 líneas son suficientes
+        raise NotImplementedError</code></pre>
+            </div>
+
+            <!-- BROWSER SCAFFOLD -->
+            <div id="scaffold-browser" class="ruta-content" data-ruta-grupo="aplica-scaffold">
+<pre><code>/**
+ * circuit-breaker.js — CircuitBreaker del lado del cliente para EcoMarket
+ * Semana 9: Resiliencia y Tolerancia a Fallos
+ *
+ * DECISIONES DE DISEÑO (completa antes de codificar los TODO):
+ *   1. ¿Qué errores cuentan como fallo del servidor? ____________
+ *   2. ¿Qué umbral de fallos elegiste y por qué? ____________
+ *   3. ¿Qué timeout de apertura elegiste y por qué? ____________
+ */
+
+const EstadoCircuito = Object.freeze({
+    CERRADO:     'CERRADO',
+    ABIERTO:     'ABIERTO',
+    SEMIABIERTO: 'SEMIABIERTO'
+});
+
+class CircuitOpenError extends Error {
+    constructor(tiempoRestante) {
+        super(`Circuit breaker abierto. Reintenta en ${tiempoRestante.toFixed(1)}s`);
+        this.tiempoRestante = tiempoRestante;
+        this.name = 'CircuitOpenError';
+    }
+}
+
+class CircuitBreaker {
+    /**
+     * @param {number} umbralFallos - Fallos consecutivos para abrir (default: 5)
+     * @param {number} timeoutApertura - Segundos antes de pasar a SEMIABIERTO (default: 60)
+     * @param {string} nombre - Identificador para logging
+     */
+    constructor(umbralFallos = 5, timeoutApertura = 60, nombre = 'EcoMarketAPI') {
+        // TODO: Inicializa los atributos de estado:
+        //   - this._estado = EstadoCircuito.CERRADO
+        //   - this._fallosConsecutivos = 0
+        //   - this._tiempoApertura = null  (Date.now() cuando abrió)
+        //   - this._pruebaPendiente = false (flag para SEMIABIERTO — solo 1 petición)
+        throw new Error('NotImplemented');
+    }
+
+    get estado() {
+        // TODO: llama a this._revisarTimeout() y retorna this._estado
+        throw new Error('NotImplemented');
+    }
+
+    get estaAbierto() {
+        return this.estado === EstadoCircuito.ABIERTO;
+    }
+
+    _revisarTimeout() {
+        // TODO: Si ABIERTO y (Date.now() - this._tiempoApertura) > timeoutApertura * 1000
+        //       → transiciona a SEMIABIERTO, resetea _pruebaPendiente = false
+        throw new Error('NotImplemented');
+    }
+
+    _esFalloServidor(error) {
+        /**
+         * Retorna true si el error debe contar como fallo del servidor.
+         * Usa error.status (si viene de fetch con respuesta) o error.name/message.
+         * 5xx → fallo. TypeError de red (fetch sin respuesta) → fallo.
+         * 4xx → NO fallo. CircuitOpenError → NO fallo.
+         */
+        // TODO: implementa la clasificación (Reto 2 de COMPRENDE)
+        throw new Error('NotImplemented');
+    }
+
+    _registrarExito() {
+        // TODO: resetea contador, cierra circuito, libera pruebaPendiente
+        throw new Error('NotImplemented');
+    }
+
+    _registrarFallo() {
+        // TODO: incrementa contador. Si >= umbral → ABIERTO, guarda tiempoApertura
+        throw new Error('NotImplemented');
+    }
+
+    async ejecutar(fn) {
+        /**
+         * Punto de entrada. Uso:
+         *   const data = await cb.ejecutar(() => fetch('/api/inventario'));
+         *
+         * fn es una función que retorna una Promise (para poder re-llamarla).
+         * Si la fn retorna un Response de fetch, verifica response.ok y response.status.
+         */
+        // Pseudocódigo estructurado — convierte cada comentario en código JS:
+        //
+        // 1. const estadoActual = this.estado;  // llama _revisarTimeout() internamente
+        //
+        // 2. if (estadoActual === EstadoCircuito.ABIERTO) {
+        //        const restante = this._timeoutApertura - (Date.now() - this._tiempoApertura) / 1000;
+        //        throw new CircuitOpenError(Math.max(0, restante));
+        //    }
+        //
+        // 3. if (estadoActual === EstadoCircuito.SEMIABIERTO) {
+        //        if (this._pruebaPendiente) throw new CircuitOpenError(0);
+        //        this._pruebaPendiente = true;
+        //    }
+        //
+        // 4. try {
+        //        const response = await fn();
+        //
+        // 5.     if (response.ok) {
+        //            this._registrarExito();
+        //            return response;
+        //        }
+        //
+        // 6.     if (response.status >= 500) {
+        //            this._registrarFallo();
+        //            throw new Error(`Error del servidor: ${response.status}`);
+        //        }
+        //
+        // 7.     // status 4xx — no es fallo del servidor, re-lanza sin registrar
+        //        throw new Error(`Error del cliente: ${response.status}`);
+        //
+        //    } catch (error) {
+        //        // TypeError de red (fetch sin respuesta) → fallo del servidor
+        //        if (this._esFalloServidor(error)) this._registrarFallo();
+        //        throw error;
+        //    } finally {
+        //        // Si estabas en SEMIABIERTO, libera el flag para la próxima ventana
+        //        if (estadoActual === EstadoCircuito.SEMIABIERTO) {
+        //            this._pruebaPendiente = false;
+        //        }
+        //    }
+        //
+        // TODO: implementa el flujo anterior — 25-35 líneas son suficientes
+        throw new Error('NotImplemented');
+    }
+}</code></pre>
+            </div>
+
+            <!-- RETO 3 - APLICA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">3</span>
+                    <h4>Implementación del CircuitBreaker — construcción guiada <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Pair programmer que completa los TODO uno por uno, esperando que el estudiante valide cada sección antes de continuar.</div>
+                    <div class="prompt-box">Actúa como pair programmer experto en patrones de resiliencia para clientes distribuidos.
+
+Tengo el scaffold del CircuitBreaker para el cliente EcoMarket (incluyo el código aquí). Mis decisiones de diseño (tomadas en el Reto 1):
+- Umbral de fallos: [el que elegiste con justificación]
+- Timeout de apertura: [el que elegiste con justificación]
+- Errores que cuentan como fallo: [tu lista del Reto 2]
+
+Completa los TODO del scaffold en este orden ESTRICTO. Después de cada método, detente y espera mi confirmación:
+
+ORDEN:
+1. __init__ / constructor
+2. _revisarTimeout()
+3. _esFalloServidor() / _es_fallo_servidor()
+4. _registrarExito() + _registrarFallo()
+5. ejecutar() — este es el más complejo, pide mi diagrama de flujo antes de codificarlo
+
+RESTRICCIONES:
+- Solo código del CLIENTE — ninguna lógica del servidor
+- El método ejecutar() en Python debe manejar el asyncio.Lock() correctamente en estado SEMIABIERTO
+- Los umbrales deben ser parámetros del constructor, no constantes hardcodeadas
+- Incluye logging (print o logger) en cada transición de estado
+
+Empieza por __init__.</div>
+                    <div class="entregable-box">
+                        <strong>Entregable APLICA — Parte 1:</strong> Archivo <code>circuit_breaker.py</code> o <code>circuit-breaker.js</code> con todos los TODO implementados. Incluye en un docstring/comentario al inicio las decisiones de diseño del Reto 1 y la tabla de clasificación del Reto 2.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 4 - APLICA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">4</span>
+                    <h4>ClienteRobusto — integrando CircuitBreaker + TokenManager <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de integración que guía cómo combinar los tres componentes de las semanas 7, 8 y 9 en una sola clase cohesiva.</div>
+                    <div class="prompt-box">Actúa como arquitecto de integración de sistemas cliente distribuidos.
+
+Tengo tres componentes de semanas anteriores:
+- ClienteSSEMultiplex (Semana 7): abre y mantiene conexión SSE
+- TokenManager (Semana 8): gestiona JWT, refresh singleton, adjunta Bearer token
+- CircuitBreaker (esta semana): detecta fallos sostenidos, falla rápido
+
+Necesito construir un ClienteRobusto que los combine. Guíame en:
+
+1. ORDEN DE CAPAS: ¿En qué orden se aplican? ¿El CircuitBreaker envuelve al TokenManager o viceversa? ¿Qué componente llama a cuál? Dibuja el orden en pseudocódigo antes de codificarlo.
+
+2. CASO BORDE CRÍTICO: Si el circuito está ABIERTO, ¿debe el ClienteRobusto intentar renovar el token con TokenManager.refresh_access_token()? Justifica por qué sí o por qué no.
+
+3. NOTIFICACIÓN A LA UI: Cuando el circuito pasa de CERRADO a ABIERTO, ¿cómo notifica el ClienteRobusto a la interfaz de usuario? (Hint: ¿recuerdas el patrón Observer de la Semana 4?)
+
+Para el punto 1, espera mi propuesta del orden de capas antes de dar la tuya. Evalúa si mi propuesta tiene sentido arquitectónicamente y señala si hay un error de dependencia circular.</div>
+
+                    <h4 style="margin-top: 1.5rem; color: var(--primary);">Mock Server para pruebas locales</h4>
+                    <p>Para probar el CircuitBreaker sin un servidor real, usa este mock que simula fallos controlados:</p>
+
+                    <div class="ruta-tabs" style="margin-top: 1rem;">
+                        <button class="ruta-tab python active" data-tab-grupo="aplica-mock" data-tab-id="mock-python" onclick="showRuta('aplica-mock', 'mock-python')">🐍 Ruta Python</button>
+                        <button class="ruta-tab browser" data-tab-grupo="aplica-mock" data-tab-id="mock-browser" onclick="showRuta('aplica-mock', 'mock-browser')">🌐 Ruta Browser (JS)</button>
+                    </div>
+
+                    <div id="mock-python" class="ruta-content active" data-ruta-grupo="aplica-mock">
+<pre><code># mock_servidor.py — Simula fallos del servidor para probar el CircuitBreaker
+import asyncio
+import aiohttp
+from aiohttp import web
+
+class ServidorMockEcoMarket:
+    """
+    Servidor mock que simula modos de fallo configurables.
+    
+    Uso:
+        mock = ServidorMockEcoMarket()
+        mock.modo = 'normal'     # Responde 200
+        mock.modo = 'fallo_503'  # Responde 503
+        mock.modo = 'timeout'    # No responde (simula timeout)
+        mock.modo = 'auth'       # Responde 401
+    """
+    def __init__(self):
+        self.modo = 'normal'
+        self._peticiones_recibidas = 0
+        self.app = web.Application()
+        self.app.router.add_get('/api/inventario', self._handler)
+        self.app.router.add_post('/api/auth/token', self._handler_auth)
+
+    async def _handler(self, request):
+        self._peticiones_recibidas += 1
+        print(f"[MOCK] Petición #{self._peticiones_recibidas} | modo={self.modo}")
+
+        if self.modo == 'fallo_503':
+            return web.Response(status=503, text='Service Unavailable')
+        elif self.modo == 'timeout':
+            await asyncio.sleep(60)  # El cliente hará timeout primero
+            return web.Response(status=200, text='tardísimo')
+        elif self.modo == 'auth':
+            return web.Response(status=401, text='Unauthorized')
+        else:  # normal
+            return web.json_response({'productos': 42, 'timestamp': 'ahora'})
+
+    async def _handler_auth(self, request):
+        return web.json_response({
+            'access_token': 'mock.token.aqui',
+            'refresh_token': 'mock.refresh.aqui',
+            'expires_in': 900
+        })
+
+    @property
+    def peticiones_recibidas(self) -> int:
+        return self._peticiones_recibidas
+
+
+# Demo de prueba rápida
+async def demo():
+    mock = ServidorMockEcoMarket()
+    runner = web.AppRunner(mock.app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', 8080)
+    await site.start()
+    print("[MOCK] Servidor activo en http://localhost:8080")
+
+    # Aquí conectas tu ClienteRobusto y cambias mock.modo para simular fallos
+    # mock.modo = 'fallo_503'
+    await asyncio.sleep(3600)  # Servidor activo 1 hora para pruebas
+
+if __name__ == '__main__':
+    asyncio.run(demo())</code></pre>
+                    </div>
+
+                    <div id="mock-browser" class="ruta-content" data-ruta-grupo="aplica-mock">
+<pre><code>/**
+ * mockFetch.js — Intercepta fetch() para simular fallos del servidor
+ * Uso: importa este archivo ANTES que tu circuit-breaker.js
+ */
+
+class MockFetchEcoMarket {
+    constructor() {
+        this.modo = 'normal'; // 'normal' | 'fallo_503' | 'timeout' | 'auth'
+        this._peticionesRecibidas = 0;
+        this._fetchOriginal = window.fetch.bind(window);
+        window.fetch = this._interceptar.bind(this);
+    }
+
+    async _interceptar(url, options = {}) {
+        // Solo intercepta peticiones a EcoMarket
+        if (!url.includes('/api/')) {
+            return this._fetchOriginal(url, options);
+        }
+
+        this._peticionesRecibidas++;
+        console.log(`[MOCK] Petición #${this._peticionesRecibidas} | modo=${this.modo}`);
+
+        if (this.modo === 'fallo_503') {
+            return new Response('Service Unavailable', { status: 503 });
+        } else if (this.modo === 'timeout') {
+            await new Promise(resolve => setTimeout(resolve, 35000)); // Mayor al timeout
+            return new Response('tardísimo', { status: 200 });
+        } else if (this.modo === 'auth') {
+            return new Response('Unauthorized', { status: 401 });
+        } else { // normal
+            const data = { productos: 42, timestamp: new Date().toISOString() };
+            return new Response(JSON.stringify(data), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+    }
+
+    get peticionesRecibidas() { return this._peticionesRecibidas; }
+
+    restaurarFetch() {
+        window.fetch = this._fetchOriginal;
+    }
+}
+
+// Uso en consola del navegador o en tus pruebas:
+// const mock = new MockFetchEcoMarket();
+// mock.modo = 'fallo_503'; // activa fallos
+// ... ejecuta tu ClienteRobusto ...
+// console.log('Peticiones que llegaron al "servidor":', mock.peticionesRecibidas);</code></pre>
+                    </div>
+
+                    <div class="entregable-box">
+                        <strong>Entregable APLICA — Parte 2:</strong> Archivo <code>cliente_robusto.py</code> o <code>cliente-robusto.js</code> con el ClienteRobusto integrado. Incluye un script de demostración que ejecute la secuencia: (1) modo normal → 3 peticiones exitosas, (2) activa modo fallo_503 → observa el circuito abrirse, (3) espera timeout → observa el estado Semiabierto, (4) restaura modo normal → observa la recuperación. La salida del script es tu <code>demo_resiliencia.log</code>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — APLICA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-A1:</strong> Un <code>CircuitOpenError</code> <strong>nunca</strong> incrementa <code>_fallos_consecutivos</code> ni cambia el estado del breaker. El breaker ya está abierto — registrar otro "fallo" es redundante y puede confundir el logging.</li>
+                    <li><strong>INV-A2:</strong> En estado SEMIABIERTO, <strong>exactamente una</strong> petición simultánea puede ejecutarse. Si dos peticiones concurrentes llegan en estado Semiabierto, la segunda debe recibir <code>CircuitOpenError</code> inmediatamente sin esperar el resultado de la primera.</li>
+                    <li><strong>INV-A3:</strong> Los errores <code>4xx</code> (incluyendo <code>401</code>) <strong>nunca</strong> abren el circuito. Si el breaker se abre por un <code>401</code>, el TokenManager no puede alcanzar el servidor de auth para renovar el token — el sistema queda bloqueado indefinidamente.</li>
+                    <li><strong>INV-A4:</strong> El <code>ClienteRobusto</code> <strong>no implementa</strong> la lógica del Circuit Breaker — la delega. El breaker es un componente independiente y testeable por separado.</li>
+                </ul>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase APLICA</h4>
+                <div class="pregunta">¿Mi implementación pasa el INV-A2 (solo una petición en Semiabierto)? ¿Cómo lo probé?</div>
+                <div class="pregunta">Si le muestro el demo_resiliencia.log a alguien que nunca oyó hablar del Circuit Breaker, ¿puede ver claramente cuándo abrió y cuándo se recuperó?</div>
+                <div class="pregunta">¿El CircuitBreaker puede testearse independientemente del ClienteRobusto y del TokenManager?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 3: REFLEXIONA                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="reflexiona" class="fase-section">
+        <div class="fase-header reflexiona">
+            <div class="fase-icon">🔍</div>
+            <div class="fase-info">
+                <h2>FASE 3: REFLEXIONA</h2>
+                <span class="bloom-tag">Nivel Bloom: Analizar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Analizar</strong> los trade-offs de los umbrales del Circuit Breaker (umbral bajo vs. alto, timeout corto vs. largo)</li>
+                    <li><strong>Evaluar</strong> cuándo la degradación elegante es preferible a la disponibilidad parcial</li>
+                    <li><strong>Justificar</strong> la separación de responsabilidades entre CircuitBreaker, TokenManager e interceptor HTTP</li>
+                    <li><strong>Comparar</strong> el comportamiento del cliente con y sin Circuit Breaker ante el mismo escenario de fallo</li>
+                </ul>
+            </div>
+
+            <!-- RETO 5 - REFLEXIONA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">5</span>
+                    <h4>Trade-offs de umbrales — ¿cuánto toleras antes de cortar? <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Consultor de arquitectura que presenta escenarios reales para que el estudiante evalúe las consecuencias de sus decisiones de configuración.</div>
+                    <div class="prompt-box">Actúa como consultor de arquitectura de sistemas distribuidos.
+
+Tengo un Circuit Breaker con estos umbrales (los que implementé):
+- Umbral de fallos: [tu valor]
+- Timeout de apertura: [tu valor]
+
+Analiza las consecuencias de mis umbrales en los siguientes tres escenarios. Para cada uno, dime:
+(a) ¿Mi configuración actual es conservadora, agresiva o equilibrada?
+(b) ¿Qué problema concreto causaría en el panel de EcoMarket?
+(c) ¿Cómo ajustarías los umbrales para este escenario específico?
+
+ESCENARIO 1 — El servidor de EcoMarket tiene un restart controlado que dura exactamente 45 segundos cada madrugada (mantenimiento programado). Los operadores europeos trabajan en ese horario.
+
+ESCENARIO 2 — El servidor EcoMarket empieza a responder lentamente (3 segundos en vez de 200ms) pero no falla — responde eventualmente con 200. ¿El Circuit Breaker se activa? ¿Debería?
+
+ESCENARIO 3 — La red del cliente (los operadores de EcoMarket) pierde conectividad por 10 segundos (WiFi inestable) pero el servidor está perfectamente bien. ¿Cómo distingue el CircuitBreaker un fallo de red del cliente de un fallo del servidor?
+
+Después de tu análisis, recomiéndame si debo ajustar mis umbrales y por qué.</div>
+                    <div class="entregable-box">
+                        <strong>Entregable (Reflexiona):</strong> Documento de decisiones (puede ser el README) con tres secciones: (1) justificación de los umbrales elegidos con referencia a los escenarios, (2) límites del Circuit Breaker — qué problemas no resuelve, (3) decisión sobre si el ESCENARIO 2 (respuestas lentas) debe activar el breaker y cómo implementarlo si así se decide.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 6 - REFLEXIONA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">6</span>
+                    <h4>Separación de responsabilidades — ¿quién sabe qué? <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Revisor de arquitectura que detecta violaciones del principio de responsabilidad única en el diseño del cliente.</div>
+                    <div class="prompt-box">Actúa como revisor de arquitectura de software cliente.
+
+Describe la arquitectura de mi ClienteRobusto según este esquema — dame tu análisis de si cada componente hace SOLO lo que le corresponde:
+
+COMPONENTE 1 — CircuitBreaker:
+  ¿Sabe algo sobre JWT o tokens? ___
+  ¿Sabe algo sobre el formato de la respuesta (JSON)? ___
+  ¿Sabe qué URL está llamando? ___
+  ¿Solo decide: ejecutar o no ejecutar? ___
+
+COMPONENTE 2 — TokenManager:
+  ¿Sabe si el circuito está abierto? ___
+  ¿Decide cuándo reintentar peticiones fallidas? ___
+  ¿Solo gestiona el ciclo de vida del token? ___
+
+COMPONENTE 3 — ClienteRobusto:
+  ¿Orquesta los otros dos sin reimplementar su lógica? ___
+  ¿Tiene lógica de negocio de EcoMarket dentro (precios, productos)? ___
+
+Para cada "___" que respondas "Sí" cuando debería ser "No", identifica qué código específico es el problema y cómo lo refactorizarías para moverlo al componente correcto.
+
+Primero analiza mi implementación real (incluiré el código aquí). Luego evalúa si tengo violaciones de responsabilidad única.</div>
+                </div>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">🔮 Conexión con Semana 10 — Examen Práctico 2</div>
+                <p>La siguiente semana es el <strong>Examen Práctico 2</strong> (Arquitectura y Resiliencia, 12%) y la entrega del <strong>Hito 2: Cliente Seguro y Resiliente</strong> (15%). Las semanas 6–9 son el material evaluable completo. Tu <code>ClienteRobusto</code> de esta semana es el núcleo del Hito 2. Asegúrate de que puedas explicar verbalmente cada decisión de diseño — el examen incluirá preguntas sobre justificación de umbrales y casos de error.</p>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase REFLEXIONA</h4>
+                <div class="pregunta">¿Puedo explicar en una oración por qué el Circuit Breaker no debe saber nada sobre JWT?</div>
+                <div class="pregunta">¿El ESCENARIO 2 (servidor lento, no fallido) activa mi implementación actual? ¿Eso es lo que quiero?</div>
+                <div class="pregunta">Si el equipo de backend de EcoMarket me pregunta "¿cómo afecta el Circuit Breaker a nuestro servidor durante una recuperación?", ¿puedo responderles con datos concretos de mi demo?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 4: VALIDA                                             -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="valida" class="fase-section">
+        <div class="fase-header valida">
+            <div class="fase-icon">✔</div>
+            <div class="fase-info">
+                <h2>FASE 4: VALIDA</h2>
+                <span class="bloom-tag">Nivel Bloom: Evaluar</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Verificar</strong> que el Circuit Breaker transiciona correctamente en los 7 casos de prueba definidos</li>
+                    <li><strong>Detectar</strong> al menos un bug sutil en la implementación generada por la IA</li>
+                    <li><strong>Medir</strong> cuántas peticiones llegan al servidor antes y después de que el circuito abra</li>
+                    <li><strong>Auditar</strong> que los invariantes del ClienteRobusto se mantienen bajo carga concurrente</li>
+                </ul>
+            </div>
+
+            <div class="checklist-box">
+                <h4>✅ Casos de Prueba — CircuitBreaker</h4>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 1: Estado inicial y operación normal</strong>
+                        <div class="diagnostico">El breaker inicia en CERRADO. Las primeras N-1 peticiones exitosas no cambian el estado ni incrementan el contador de fallos. Verifica: <code>cb.estado == CERRADO</code> y <code>cb._fallos_consecutivos == 0</code> después de 10 peticiones exitosas.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 2: Transición CERRADO → ABIERTO</strong>
+                        <div class="diagnostico">Exactamente N fallos consecutivos de servidor deben abrir el circuito. Verifica: el fallo N-1 no lo abre, el fallo N sí. El estado cambia a ABIERTO y se registra el timestamp. La siguiente petición lanza <code>CircuitOpenError</code> inmediatamente (sin timeout).</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 3: Los 4xx no abren el circuito</strong>
+                        <div class="diagnostico">Ejecuta N+5 peticiones que retornan 401. El circuito debe permanecer CERRADO. El contador de fallos no debe incrementarse. Verifica que el TokenManager recibe los 401 correctamente.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 4: Transición ABIERTO → SEMIABIERTO por timeout</strong>
+                        <div class="diagnostico">Con el circuito ABIERTO, espera el timeout_apertura completo. La siguiente petición debe encontrar el estado SEMIABIERTO y ejecutarse. Verifica el timestamp calculado vs. el tiempo real transcurrido.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 5: Recuperación exitosa (SEMIABIERTO → CERRADO)</strong>
+                        <div class="diagnostico">Con el circuito en SEMIABIERTO, la petición de prueba tiene éxito. El estado debe pasar a CERRADO y el contador de fallos debe resetearse a 0. Las siguientes peticiones fluyen normalmente.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 6: Fallo en SEMIABIERTO (SEMIABIERTO → ABIERTO)</strong>
+                        <div class="diagnostico">Con el circuito en SEMIABIERTO, la petición de prueba falla con 503. El estado debe volver a ABIERTO y el timeout_apertura debe resetearse (no es el tiempo restante del anterior — es un timeout completo nuevo).</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span class="check-icon">☐</span>
+                    <div>
+                        <strong>CASO 7: Concurrencia en SEMIABIERTO</strong>
+                        <div class="diagnostico">Lanza 3 peticiones concurrentes cuando el circuito está en SEMIABIERTO. Exactamente 1 debe ejecutarse y 2 deben recibir <code>CircuitOpenError</code> inmediatamente. Verifica con el contador <code>peticiones_recibidas</code> del mock servidor: debe incrementarse exactamente 1 vez.</div>
+                        <div style="margin-top: 0.8rem; background: #f8f9fa; padding: 0.8rem 1rem; border-radius: 6px; font-size: 0.9rem;">
+                            <strong>🔧 Harness de prueba — usa este código directamente:</strong>
+                            <div class="ruta-tabs" style="margin-top: 0.6rem;">
+                                <button class="ruta-tab python active" data-tab-grupo="caso7-harness" data-tab-id="caso7-py" onclick="showRuta('caso7-harness','caso7-py')">🐍 Python</button>
+                                <button class="ruta-tab browser" data-tab-grupo="caso7-harness" data-tab-id="caso7-js" onclick="showRuta('caso7-harness','caso7-js')">🌐 JS</button>
+                            </div>
+                            <div id="caso7-py" class="ruta-content active" data-ruta-grupo="caso7-harness">
+<pre><code>async def test_caso7_concurrencia_semiabierto(cb, mock):
+    """Verifica que solo 1 petición pasa en estado SEMIABIERTO."""
+    # Fuerza estado SEMIABIERTO: N fallos → espera timeout
+    mock.modo = 'fallo_503'
+    for _ in range(cb._umbral_fallos):
+        try:
+            await cb.ejecutar(cliente.get("/api/inventario"))
+        except Exception:
+            pass
+    # Ahora espera a que abra la ventana SEMIABIERTA
+    await asyncio.sleep(cb._timeout_apertura + 0.1)
+    assert cb.estado == EstadoCircuito.SEMIABIERTO, "El breaker no está SEMIABIERTO"
+
+    # Lanza 3 peticiones simultáneas
+    mock.modo = 'normal'
+    mock._peticiones_recibidas = 0  # resetea contador
+    resultados = await asyncio.gather(
+        cb.ejecutar(cliente.get("/api/inventario")),
+        cb.ejecutar(cliente.get("/api/inventario")),
+        cb.ejecutar(cliente.get("/api/inventario")),
+        return_exceptions=True  # ← clave: no cancela el gather al primer error
+    )
+
+    exitos       = sum(1 for r in resultados if not isinstance(r, Exception))
+    circuit_errs = sum(1 for r in resultados if isinstance(r, CircuitOpenError))
+    print(f"Éxitos: {exitos} | CircuitOpenErrors: {circuit_errs} | "
+          f"Peticiones al servidor: {mock.peticiones_recibidas}")
+
+    assert exitos == 1,                   f"Esperaba 1 éxito, obtuve {exitos}"
+    assert circuit_errs == 2,             f"Esperaba 2 CircuitOpenError, obtuve {circuit_errs}"
+    assert mock.peticiones_recibidas == 1, f"El servidor recibió {mock.peticiones_recibidas} peticiones"
+    print("✅ CASO 7 PASADO")</code></pre>
+                            </div>
+                            <div id="caso7-js" class="ruta-content" data-ruta-grupo="caso7-harness">
+<pre><code">async function testCaso7ConcurrenciaSemiabierto(cb, mock) {
+    // Fuerza estado SEMIABIERTO
+    mock.modo = 'fallo_503';
+    for (let i = 0; i < cb._umbralFallos; i++) {
+        try { await cb.ejecutar(() => fetch('/api/inventario')); } catch(e) {}
+    }
+    await new Promise(r => setTimeout(r, (cb._timeoutApertura + 0.1) * 1000));
+    console.assert(cb.estado === EstadoCircuito.SEMIABIERTO, 'No está SEMIABIERTO');
+
+    // Lanza 3 peticiones simultáneas
+    mock.modo = 'normal';
+    mock._peticionesRecibidas = 0;
+    const resultados = await Promise.allSettled([
+        cb.ejecutar(() => fetch('/api/inventario')),
+        cb.ejecutar(() => fetch('/api/inventario')),
+        cb.ejecutar(() => fetch('/api/inventario'))
+    ]); // allSettled — nunca rechaza aunque haya errores
+
+    const exitos       = resultados.filter(r => r.status === 'fulfilled').length;
+    const circuitErrs  = resultados.filter(r =>
+        r.status === 'rejected' && r.reason instanceof CircuitOpenError).length;
+
+    console.log(`Éxitos: ${exitos} | CircuitOpenErrors: ${circuitErrs} | ` +
+                `Peticiones al servidor: ${mock.peticionesRecibidas}`);
+
+    console.assert(exitos === 1,                   `Esperaba 1 éxito`);
+    console.assert(circuitErrs === 2,              `Esperaba 2 CircuitOpenError`);
+    console.assert(mock.peticionesRecibidas === 1, `Servidor recibió más de 1 petición`);
+    console.log('✅ CASO 7 PASADO');
+}</code></pre>
+                            </div>
+                        </div>
+                        <div class="context-box warning" style="margin-top: 0.8rem; padding: 0.8rem 1rem;">
+                            <div class="box-title" style="font-size: 0.9rem;">⏱ Válvula de escape — si llevas más de 45 min en el Caso 7</div>
+                            <p style="font-size: 0.88rem; margin: 0;">Si el Caso 7 no pasa después de 45 minutos de depuración, usa la <strong>versión simplificada</strong>: ejecuta las 3 peticiones en secuencia (<code>await</code> explícito una por una) y verifica que la segunda retorna <code>CircuitOpenError</code>. Documenta en tu reporte que el Caso 7 completo (concurrencia real) está pendiente. El Caso 7 simplificado otorga crédito parcial; el Caso 7 completo es Avanzado para esta semana.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 7 - VALIDA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">7</span>
+                    <h4>Auditoría IA — bugs comunes en Circuit Breakers generados <span class="reto-badge esencial">Esencial</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Auditor de seguridad y correctitud que busca activamente errores sutiles en el código del Circuit Breaker — no te dice si está "bien", te dice qué podría fallar.</div>
+                    <div class="prompt-box">Actúa como auditor de patrones de resiliencia en código cliente.
+
+Revisa mi implementación del CircuitBreaker (incluyo el código completo aquí) buscando específicamente estos 5 bugs comunes:
+
+BUG 1 — "Timer fantasma": el timeout_apertura se calcula con time.time() en Python o Date.now() en JS, pero hay un caso borde donde el reloj del sistema cambia (NTP sync, cambio de zona horaria en el host). ¿Mi implementación es vulnerable? ¿Usé time.monotonic() o performance.now()?
+
+BUG 2 — "Contador que no resetea": después de que el circuito cierra (recuperación exitosa), el contador de fallos debe ser 0. Un éxito en estado CERRADO después de 4 fallos debe resetear el contador — no mantenerlo en 4 esperando un quinto.
+
+BUG 3 — "Lock que nunca libera": en Python, si el coro dentro del lock lanza una excepción inesperada, el asyncio.Lock puede quedar adquirido para siempre. ¿Mi try/finally libera el lock correctamente?
+
+BUG 4 — "Race condition en SEMIABIERTO": si dos coroutines llegan exactamente al mismo microsegundo en estado SEMIABIERTO, ¿el lock garantiza que solo una ejecuta? ¿O hay una ventana entre verificar el flag y adquirir el lock?
+
+BUG 5 — "CircuitOpenError que infla el contador": si el código que llama a cb.ejecutar() tiene su propio retry, y cada reintento lanza CircuitOpenError, ¿esas excepciones son capturadas como "fallos del servidor" por algún código externo? Verifica que CircuitOpenError sea una excepción distinguible que el retry externo no atache como fallo del servidor.
+
+Para cada bug: (a) dime si existe en mi código, (b) muestra la línea específica si existe, (c) proporciona el fix mínimo.</div>
+                    <div class="entregable-box">
+                        <strong>Entregable (Valida):</strong> <code>reporte_validacion.md</code> con: tabla de los 7 casos de prueba (estado esperado vs. observado), al menos 1 bug documentado con causa raíz y fix aplicado, y el contador de peticiones que llegaron al mock servidor antes vs. después de que el circuito abrió (evidencia de la protección al servidor).
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-box danger">
+                <div class="box-title">🔴 Condición frecuente de error — el Circuit Breaker que bloquea la renovación de tokens</div>
+                <p>El bug más común encontrado en implementaciones estudiantiles: el <code>ClienteRobusto</code> pasa todas las peticiones por el CircuitBreaker, incluyendo la llamada a <code>POST /api/auth/token</code> (el endpoint de refresh). Cuando el circuito está abierto, el TokenManager tampoco puede renovar el token — el sistema queda en un deadlock silencioso: no puede hacer peticiones porque el circuito está abierto, y no puede renovar el token por la misma razón.</p>
+                <p style="margin-top: 0.8rem;"><strong>Decisión de diseño:</strong> ¿las peticiones de autenticación deben pasar por el Circuit Breaker o tener su propio breaker separado con umbrales más tolerantes? No hay una respuesta única — pero debes haber tomado la decisión explícitamente, no por omisión. Documenta tu elección en el README.</p>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase VALIDA</h4>
+                <div class="pregunta">¿Pasaron los 7 casos de prueba? Si alguno falló, ¿entiendo por qué falló antes de corregirlo?</div>
+                <div class="pregunta">¿El reporte muestra concretamente que menos peticiones llegaron al servidor cuando el circuito estaba abierto?</div>
+                <div class="pregunta">¿Decidí explícitamente si las peticiones de refresh de token pasan o no por el Circuit Breaker?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FASE 5: PROFUNDIZA                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section id="profundiza" class="fase-section">
+        <div class="fase-header profundiza">
+            <div class="fase-icon">🚀</div>
+            <div class="fase-info">
+                <h2>FASE 5: PROFUNDIZA</h2>
+                <span class="bloom-tag">Nivel Bloom: Crear</span>
+            </div>
+        </div>
+        <div class="fase-content">
+
+            <div class="objetivos-box">
+                <h4>🎯 Objetivos de Aprendizaje</h4>
+                <ul>
+                    <li><strong>Diseñar</strong> un Circuit Breaker por endpoint — ¿por qué un breaker global es insuficiente en sistemas reales?</li>
+                    <li><strong>Crear</strong> una estrategia de fallback con datos del caché SSE para el estado ABIERTO</li>
+                    <li><strong>Anticipar</strong> cómo el Circuit Breaker se conecta con la conexión SSE de la Semana 7 cuando el servidor de eventos falla</li>
+                    <li><strong>Evaluar</strong> el impacto del Circuit Breaker en la experiencia del operador del panel EcoMarket</li>
+                </ul>
+            </div>
+
+            <!-- RETO 8 - PROFUNDIZA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">8</span>
+                    <h4>Circuit Breaker por endpoint — ¿uno o muchos? <span class="reto-badge avanzado">Avanzado</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Arquitecto de sistemas de alta disponibilidad que plantea el problema de granularidad — sin resolver todo de entrada.</div>
+                    <div class="prompt-box">Actúa como arquitecto de sistemas distribuidos de alta disponibilidad. Trabaja un punto a la vez, esperando mi respuesta.
+
+EcoMarket tiene tres APIs independientes:
+- /api/inventario   → base de datos de productos (falla frecuente)
+- /api/precios      → servicio externo de precios (muy estable)
+- /api/eventos/sse  → servidor de eventos en tiempo real (falla ocasionalmente)
+
+1. PROBLEMA DEL BREAKER GLOBAL: Con un solo CircuitBreaker para todas las peticiones, describe un escenario concreto donde /api/inventario falla y bloquea /api/precios aunque el servidor de precios esté perfectamente bien. ¿Qué experimenta el operador del panel?
+
+   → Después de mi análisis, explícame cómo implementarías múltiples breakers en el ClienteRobusto (uno por API) sin duplicar la lógica de la clase CircuitBreaker.
+
+2. CIRCUIT BREAKER PARA SSE: La conexión SSE es diferente — no es request/response sino una conexión persistente. ¿Cómo adaptas el patrón? ¿Cuándo "cuenta" un fallo para el breaker de SSE? ¿Cuándo "cierra" el circuito?
+   (Hint: el ClienteSSEMultiplex de la Semana 7 ya tiene reconexión con backoff — ¿el breaker reemplaza eso o lo complementa?)
+
+3. FALLBACK CON CACHÉ SSE: Cuando el breaker de /api/inventario está ABIERTO, el ClienteRobusto podría devolver los últimos datos recibidos por el stream SSE en vez de lanzar un error. Describe el contrato: ¿qué tipo de datos puede dar el fallback? ¿Qué datos no puede dar porque son demasiado volátiles?</div>
+                    <div class="entregable-box">
+                        <strong>Entregable (Profundiza, opcional +10%):</strong> Pseudocódigo o diagrama ASCII de la arquitectura del <code>ClienteRobusto</code> con múltiples Circuit Breakers (uno por API). Incluye: (1) dónde se crean los breakers, (2) cómo el ClienteRobusto los selecciona para cada petición, (3) decisión documentada sobre si las peticiones de auth tienen su propio breaker y con qué umbrales.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETO 9 - PROFUNDIZA -->
+            <div class="reto-ia">
+                <div class="reto-ia-header">
+                    <span class="reto-numero">9</span>
+                    <h4>Bulkhead Pattern — aislamiento de recursos del cliente <span class="reto-badge avanzado">Avanzado</span></h4>
+                </div>
+                <div class="reto-ia-body">
+                    <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Profesor de patrones de resiliencia que presenta el Bulkhead como complemento natural del Circuit Breaker — sin implementarlo, para explorar el concepto.</div>
+                    <div class="prompt-box">Actúa como profesor de patrones de resiliencia en sistemas distribuidos.
+
+Explícame el patrón Bulkhead (mamparo de barco) como complemento al Circuit Breaker. Usa una analogía cotidiana simple antes de entrar en términos técnicos — nivel segundo-tercer semestre.
+
+Después de la analogía, responde estas tres preguntas del lado del CLIENTE:
+
+1. Si mi ClienteRobusto tiene un semáforo/límite de 3 conexiones concurrentes a /api/inventario, ¿cómo interactúa ese límite con el Circuit Breaker? ¿Qué pasa primero cuando hay 5 peticiones simultáneas?
+
+2. ¿El patrón Bulkhead es más útil en un cliente con polling frecuente (como en la Semana 4) o en un cliente con conexión SSE persistente (Semana 7)? ¿Por qué?
+
+3. ¿Qué información del cliente necesitaría monitorear el equipo de EcoMarket para saber si su cliente tiene configurado un Bulkhead adecuado? (Sin acceso al código del cliente — solo observando métricas externas.)
+
+No me expliques la implementación del Bulkhead en Python/JS todavía — solo el concepto y su interacción con el Circuit Breaker.</div>
+                </div>
+            </div>
+
+            <div class="context-box info">
+                <div class="box-title">🔮 Preview: Semana 11 — WebSocket y resiliencia bidireccional</div>
+                <p>En la Semana 11 introduciremos WebSocket — una conexión persistente <em>bidireccional</em>. El Circuit Breaker que construiste esta semana necesitará adaptarse: en WebSocket, un "fallo" puede ser la desconexión inesperada del socket, un mensaje malformado, o un ping sin respuesta. Los tres estados del breaker aplican, pero las <em>condiciones de transición</em> cambian. La semana 11 presentará estas diferencias — el Circuit Breaker de esta semana es la base conceptual que necesitarás.</p>
+            </div>
+
+            <div class="context-box purple">
+                <div class="box-title">📐 Concepto arquitectónico: Jitter en el timeout de apertura</div>
+                <p>El <code>timeout_apertura</code> que elegiste (ej. 60s) es idéntico para todas las instancias del cliente. Si EcoMarket tiene 12 operadores con el panel abierto y el circuito se abre en todos al mismo tiempo, <strong>todos intentarán su petición de prueba al segundo 60 simultáneamente</strong> — una mini-avalancha sobre un servidor que acaba de recuperarse.</p>
+                <p style="margin-top: 0.8rem;">La solución es agregar <strong>jitter</strong>: un componente aleatorio al timeout para que cada instancia espere un tiempo ligeramente diferente.</p>
+                <div style="background: #1e1e1e; color: #d4d4d4; padding: 0.8rem 1.2rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; margin-top: 0.8rem;">
+                    <span style="color: #6a9955;"># Python — timeout con jitter ±10%</span><br>
+                    import random<br>
+                    jitter = random.uniform(-0.1, 0.1) * timeout_apertura<br>
+                    timeout_efectivo = timeout_apertura + jitter  <span style="color: #6a9955;"># ej: 54s–66s</span>
+                    <br><br>
+                    <span style="color: #6a9955;">// JS — equivalente</span><br>
+                    const jitter = (Math.random() - 0.5) * 0.2 * timeoutApertura;<br>
+                    const timeoutEfectivo = timeoutApertura + jitter;
+                </div>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem;"><strong>No se requiere implementarlo esta semana</strong> — pero un arquitecto de sistemas distribuidos debe saber que un <code>timeout_apertura</code> fijo sin jitter puede generar el "thundering herd problem" en sistemas multi-cliente. Si llegaste al Reto 8 (breaker por endpoint), pregúntale a la IA cómo combinar jitter con backoff exponencial para el estado de recuperación.</p>
+            </div>
+
+            <div class="invariantes-box">
+                <h4>🔒 Invariantes que no deben romperse — PROFUNDIZA</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>INV-P1:</strong> Si el CircuitBreaker se extiende a múltiples instancias (una por API), <strong>cada instancia es independiente</strong>. El fallo de /api/inventario no debe afectar el estado del breaker de /api/precios.</li>
+                    <li><strong>INV-P2:</strong> Los datos de fallback del caché SSE <strong>deben marcarse como "no actualizados"</strong> antes de entregarse a la UI. La interfaz debe saber que está mostrando datos del caché — no datos frescos — para que el operador tome decisiones informadas.</li>
+                </ul>
+            </div>
+
+            <div class="contenido-section">
+                <h3>Mapa de conexiones hacia adelante</h3>
+                <div class="diagrama-ascii-box" role="img" aria-label="Diagrama de la arquitectura acumulada del cliente EcoMarket hasta la semana 9">
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  ARQUITECTURA ACUMULADA DEL CLIENTE EcoMarket — Semana 9                     │
+│  (perspectiva del código cliente — el servidor no aparece en este diagrama)  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌─── UI / Panel de Control ───────────────────────────────────────────────────┐
+│  Muestra: estado del circuito 🟢🔴🟡 · datos frescos vs. caché · alertas   │
+│  Notificada por: Observer pattern (Semana 4)                                │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+┌─── ClienteRobusto (Semana 9) ▼ ─────────────────────────────────────────────┐
+│  Orquesta los componentes — no implementa lógica propia                     │
+│                                                                             │
+│  ┌─── CircuitBreaker ─────────┐    ┌─── TokenManager (Semana 8) ──────────┐ │
+│  │ Estado: CERRADO/ABIERTO/   │    │ decode_payload()                     │ │
+│  │         SEMIABIERTO        │    │ is_expiring_soon()                   │ │
+│  │ _es_fallo_servidor()       │    │ refresh_access_token() [singleton]   │ │
+│  │ ejecutar(coro)             │    │ get_auth_header()                    │ │
+│  └──────────┬─────────────────┘    └──────────────┬───────────────────────┘ │
+│             │                                      │                        │
+│             └──────────────┬───────────────────────┘                        │
+│                            ▼                                                │
+│                    Interceptor HTTP                                         │
+│            (adjunta Bearer token · maneja 401 → refresh · retry)            │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+┌─── Capa de Comunicación ─────▼──────────────────────────────────────────────┐
+│  HTTP/REST (Sems. 1–3)       │       SSE (Sems. 6–7)                        │
+│  ┌─────────────────────┐     │  ┌──────────────────────────────────────┐    │
+│  │ GET /api/inventario │     │  │ ClienteSSEMultiplex + EventRouter    │    │
+│  │ PUT /api/precios    │     │  │ (eventos en tiempo real de EcoMarket)│    │
+│  │ POST /api/auth/token│     │  └──────────────────────────────────────┘    │
+│  └─────────────────────┘     │                                              │
+└──────────────────────────────┴──────────────────────────────────────────────┘
+
+Semana 10 → Examen Práctico 2 + Hito 2 (evalúa todo lo anterior)
+Semana 11 → WebSocket: conexión bidireccional — el Circuit Breaker se adapta
+
+─────────────────────────────────────────────────────────────────────────────
+ESTADO DE TU PROYECTO HOY:
+  ✅ Construido:   Semanas 1–8 (HTTP, async, polling, Observer, SSE, JWT)
+  🔨 Esta semana: CircuitBreaker + ClienteRobusto (la capa que une todo)
+  ⏭  Semana 10:   Examen Práctico 2 + entrega Hito 2 — evalúa Sems. 6–9
+  ⏭  Semana 11:   WebSocket — conexión bidireccional sobre esta arquitectura
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Qué representa:</strong> la arquitectura completa del cliente EcoMarket construida semana a semana. <strong>Aspecto clave:</strong> el ClienteRobusto orquesta sin duplicar — el CircuitBreaker no sabe de tokens, el TokenManager no sabe del estado del circuito. La separación permite probar y escalar cada componente independientemente.
+                </div>
+            </div>
+
+            <div class="checkpoint">
+                <h4>🪞 Checkpoint Metacognitivo — Fase PROFUNDIZA</h4>
+                <div class="pregunta">¿Puedo dibujar de memoria el diagrama de arquitectura acumulada y explicar la responsabilidad de cada capa?</div>
+                <div class="pregunta">Si alguien me pregunta "¿por qué no usas un breaker global?", ¿tengo un escenario concreto de EcoMarket para responder?</div>
+                <div class="pregunta">¿Estoy listo para el Hito 2? ¿Mis componentes de las semanas 6–9 funcionan integrados?</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== EVALUACIÓN ========== -->
+    <section id="evaluacion" class="evaluacion-section">
+        <div class="evaluacion-header">
+            <h2>📊 Sistema de Evaluación — Semana 9</h2>
+            <p style="opacity: 0.9; margin-top: 0.5rem;">Alineado al ciclo AETL · Parte del Hito 2 (entrega Semana 10)</p>
+        </div>
+
+        <div style="padding: 1.5rem; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;">
+            <div class="entregable-unico-box">
+                <h4>📁 Entregable único de la semana</h4>
+                <div class="archivo-item">📄 <code>circuit_breaker.py</code> / <code>circuit-breaker.js</code> — CircuitBreaker completo con todos los métodos implementados y decisiones de diseño en docstring/comentario al inicio.</div>
+                <div class="archivo-item">📄 <code>cliente_robusto.py</code> / <code>cliente-robusto.js</code> — ClienteRobusto que integra CircuitBreaker + TokenManager. Incluye script de demostración ejecutable.</div>
+                <div class="archivo-item">📋 <code>README.md</code> — Sección "Decisiones de resiliencia": justificación de umbrales, clasificación de errores, decisión sobre peticiones de auth y breaker, y límites conocidos de la implementación.</div>
+                <div class="archivo-item">📊 <code>demo_resiliencia.log</code> — Salida del script de demostración que muestra las 4 fases (normal → fallo → apertura → recuperación) con timestamps y contador de peticiones al servidor.</div>
+                <div class="archivo-item">📊 <code>reporte_validacion.md</code> — Tabla con los 7 casos de prueba, bugs encontrados con causa raíz y fix aplicado.</div>
+                <span class="tiempo-badge">⏱ Tiempo estimado: 4.5–7 horas</span>
+                <div style="margin-top: 1rem; font-size: 0.88rem; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 0.8rem;">
+                    <strong>Distribución orientativa por fase:</strong>
+                    <ul style="margin-left: 1.4rem; margin-top: 0.4rem;">
+                        <li>COMPRENDE (Retos 1 y 2): ~45 min — diagrama + clasificación de errores</li>
+                        <li>APLICA (Retos 3 y 4): ~2–3 h — implementación del CircuitBreaker + ClienteRobusto</li>
+                        <li>REFLEXIONA (Retos 5 y 6): ~45 min — análisis de umbrales + separación de responsabilidades</li>
+                        <li>VALIDA (Reto 7 + Casos 1–7): ~1–1.5 h — pruebas + auditoría de bugs</li>
+                    </ul>
+                    <p style="margin-top: 0.6rem;"><strong>Señal de redistribución:</strong> si llevas más de 3 horas en APLICA, congela el estado actual y pasa a REFLEXIONA. REFLEXIONA y VALIDA tienen más peso pedagógico que lograr el Caso 7 perfecto desde el inicio.</p>
+                </div>
+                <p style="margin-top: 0.8rem; font-size: 0.9rem; opacity: 0.85;">No son cinco tareas separadas — es un proyecto integrado con cinco archivos de evidencia. El <code>demo_resiliencia.log</code> lo generas con <code>python cliente_robusto.py &gt; demo_resiliencia.log 2&gt;&amp;1</code> (Python) o redirigiendo <code>console.log</code> en JS.</p>
+            </div>
+        </div>
+
+        <div class="criterio-item">
+            <span class="fase-badge">COMPRENDE</span>
+            <div>
+                <strong>Diagrama de estados + clasificación de errores (Retos 1 y 2)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Diagrama de tres estados con transiciones correctas en el README. Tabla de clasificación de los 8 escenarios con justificación. La función <code>_es_fallo_servidor()</code> refleja las decisiones documentadas.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">APLICA</span>
+            <div>
+                <strong>CircuitBreaker + ClienteRobusto funcional (Retos 3 y 4)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Todos los métodos implementados (no vacíos). Script de demostración ejecutable sin errores. El <code>demo_resiliencia.log</code> muestra las 4 fases con evidencia del contador de peticiones.</span>
+            </div>
+            <span class="puntos">35 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">REFLEXIONA</span>
+            <div>
+                <strong>Documento de decisiones de resiliencia (Retos 5 y 6)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Justificación de umbrales con referencia a los 3 escenarios. Identificación de al menos un límite del Circuit Breaker. Decisión explícita y documentada sobre peticiones de auth y el breaker.</span>
+            </div>
+            <span class="puntos">20 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">VALIDA</span>
+            <div>
+                <strong>Reporte de validación con 7 casos de prueba (Reto 7)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Tabla completa de los 7 casos con estado esperado vs. observado. Al menos 1 bug documentado con causa raíz y fix. Evidencia del contador de peticiones antes/después de apertura del circuito.</span>
+            </div>
+            <span class="puntos">25 pts</span>
+        </div>
+        <div class="criterio-item">
+            <span class="fase-badge">PROFUNDIZA</span>
+            <div>
+                <strong>Circuit Breaker por endpoint o Bulkhead (Retos 8 y 9)</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray);">Pseudocódigo o diagrama de la arquitectura multi-breaker con responsabilidades claras. Opcional — suma crédito adicional al Hito 2.</span>
+            </div>
+            <span class="puntos">+10 pts extra</span>
+        </div>
+        <div style="padding: 1rem 1.5rem; background: #f8f9fa; border-top: 2px solid #e0e0e0;">
+            <p><strong>Criterio de entrega mínima:</strong> CircuitBreaker con al menos <code>_es_fallo_servidor()</code>, <code>_registrar_fallo()</code> y <code>ejecutar()</code> implementados correctamente, con los casos de prueba 1–4 del checklist verificados.</p>
+            <p style="margin-top: 0.8rem;"><strong>⚠️ Condición Zero Tolerance — verificación conductual:</strong> Al calificar, se ejecutará el <strong>Caso 3 del checklist</strong> con exactamente N+5 peticiones al endpoint que retorna <code>401 Unauthorized</code>. Si al terminar la prueba <code>cb._fallos_consecutivos &gt; 0</code> <strong>o</strong> <code>cb.estado != CERRADO</code>, la condición se activa — independientemente de dónde esté el bug en el código (puede estar en <code>_es_fallo_servidor()</code>, en un <code>except</code> demasiado amplio, o en cualquier otro lugar). El entregable completo de la semana se anula y requiere reentrega. Esta verificación es conductual: no importa si la función <code>_es_fallo_servidor()</code> está correcta si algún otro código intercepta el error antes y llama a <code>_registrar_fallo()</code> de todas formas. La consecuencia arquitectónica de este error es el deadlock Auth-Breaker descrito arriba — un sistema que no puede autenticarse ni hacer peticiones simultáneamente. Esta condición es consistente con el principio establecido en todas las semanas del curso.</p>
+        </div>
+    </section>
+
+    <!-- ========== GLOSARIO ========== -->
+    <section id="glosario" class="glosario-section">
+        <div class="glosario-header">
+            <h2>📖 Glosario — Semana 9</h2>
+        </div>
+        <div class="glosario-grid">
+            <dl class="termino-card">
+                <dt>Circuit Breaker Pattern</dt>
+                <dd>Patrón de resiliencia del cliente que monitorea el éxito/fallo de las llamadas remotas y, ante fallo sostenido, "abre el circuito" rechazando peticiones temporalmente para proteger al servidor y al cliente de esperas indefinidas.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Estado Cerrado (Closed)</dt>
+                <dd>Estado normal del Circuit Breaker. Las peticiones fluyen al servidor. El breaker lleva conteo de fallos consecutivos pero no interviene hasta alcanzar el umbral.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Estado Abierto (Open)</dt>
+                <dd>El breaker rechaza peticiones inmediatamente con CircuitOpenError sin contactar al servidor. El servidor recibe cero presión mientras el cliente falla rápido.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Estado Semiabierto (Half-Open)</dt>
+                <dd>Transición controlada: una sola petición de prueba pasa al servidor. Éxito → circuito cerrado. Fallo → circuito abierto de nuevo con timeout completo reiniciado.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Fallo Rápido (Fail Fast)</dt>
+                <dd>Principio de diseño: es mejor fallar inmediatamente con un error claro que esperar el timeout completo. Mejora la experiencia del usuario y evita acumulación de peticiones pendientes en el cliente.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Degradación Elegante (Graceful Degradation)</dt>
+                <dd>Capacidad del cliente de ofrecer funcionalidad reducida (ej: datos del caché) en lugar de fallo total cuando el servidor no está disponible. El operador ve algo útil en lugar de una pantalla de error.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Retry con Backoff Exponencial</dt>
+                <dd>Estrategia donde el tiempo entre reintentos crece exponencialmente (1s, 2s, 4s, 8s...). Reduce la presión sobre servidores temporalmente saturados. Visto en Semana 2; esta semana se coordina con el Circuit Breaker.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Timeout de Apertura</dt>
+                <dd>Tiempo en segundos que el Circuit Breaker permanece ABIERTO antes de permitir una petición de prueba (estado SEMIABIERTO). Configurar demasiado corto impide la recuperación real del servidor.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Umbral de Fallos</dt>
+                <dd>Número de fallos consecutivos del servidor necesarios para que el Circuit Breaker transite a estado ABIERTO. Configurar demasiado bajo produce falsos positivos; demasiado alto permite que el servidor sufra demasiado antes de cortar.</dd>
+            </dl>
+            <dl class="termino-card">
+                <dt>Bulkhead Pattern</dt>
+                <dd>Patrón complementario al Circuit Breaker: limita el número de recursos concurrentes (conexiones, threads) dedicados a un servicio, evitando que un servicio lento consuma todos los recursos del cliente.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>ClienteRobusto (AETL)</dt>
+                <dd>Denominación del componente cliente integrador de esta semana que combina CircuitBreaker + TokenManager + interceptor HTTP. Su principio rector: orquesta sin duplicar lógica de sus componentes.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>Clasificación de Errores del Breaker (AETL)</dt>
+                <dd>Decisión de diseño explícita que determina qué errores abren el circuito (5xx, timeouts, errores de red) y cuáles no (4xx). Esta clasificación debe documentarse — no tomarse por omisión al codificar.</dd>
+            </dl>
+            <dl class="termino-card aetl">
+                <dt>Deadlock de Auth-Breaker (AETL)</dt>
+                <dd>Anti-patrón: el Circuit Breaker abierto bloquea también las peticiones de refresh de token, dejando el sistema incapaz de autenticarse y de hacer peticiones simultáneamente. Se evita con un breaker separado para el endpoint de auth.</dd>
+            </dl>
+        </div>
+    </section>
+
+    <!-- ========== REFERENCIAS ========== -->
+    <section id="referencias" class="referencias-section">
+        <h3>📚 Referencias</h3>
+
+        <p style="color: var(--primary); font-weight: bold; margin-bottom: 1rem;">Patrones de Resiliencia — Libros Fundamentales</p>
+        <div class="referencia-item">Nygard, M. T. (2018). <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. [Capítulo 5: Stability Patterns — origen del Circuit Breaker como patrón de software; Capítulo 4: Stability Antipatterns — cascading failures y slow responses]</div>
+        <div class="referencia-item">Richardson, C. (2018). <em>Microservices Patterns: With Examples in Java.</em> Manning Publications. [Capítulo 3: Interprocess communication — Circuit Breaker en clientes de microservicios; Capítulo 8: External API patterns]</div>
+        <div class="referencia-item">Kleppmann, M. (2017). <em>Designing Data-Intensive Applications.</em> O'Reilly Media. [Capítulo 8: The Trouble with Distributed Systems — timeouts, fallos de red y por qué los sistemas distribuidos fallan de formas inesperadas]</div>
+        <div class="referencia-item">Hohpe, G., &amp; Woolf, B. (2004). <em>Enterprise Integration Patterns.</em> Addison-Wesley. [Patrones de mensajería que fundamentan el diseño de clientes resilientes]</div>
+
+        <p style="color: var(--primary); font-weight: bold; margin: 1.5rem 0 1rem;">Artículos y Recursos de Referencia Técnica</p>
+        <div class="referencia-item">Fowler, M. (2014). CircuitBreaker. <em>martinfowler.com.</em> https://martinfowler.com/bliki/CircuitBreaker.html [Artículo original que popularizó el patrón Circuit Breaker en la comunidad de software]</div>
+        <div class="referencia-item">Fowler, M. (2012). Tolerant Reader. <em>martinfowler.com.</em> https://martinfowler.com/bliki/TolerantReader.html [Principio de diseño cliente: ser tolerante a cambios en la respuesta del servidor]</div>
+        <div class="referencia-item">Microsoft Azure Architecture Center. (2023). Circuit Breaker pattern. https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker [Implementación de referencia con diagramas de estado y consideraciones de producción]</div>
+        <div class="referencia-item">Microsoft Azure Architecture Center. (2023). Bulkhead pattern. https://learn.microsoft.com/en-us/azure/architecture/patterns/bulkhead [Patrón complementario al Circuit Breaker introducido en PROFUNDIZA]</div>
+        <div class="referencia-item">Amazon Web Services. (2022). Exponential Backoff and Jitter. <em>AWS Architecture Blog.</em> https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/ [Análisis cuantitativo del jitter — por qué un timeout fijo sin aleatorización causa thundering herd]</div>
+        <div class="referencia-item">Google Cloud. (2023). Retry design pattern. <em>Cloud Architecture Center.</em> https://cloud.google.com/architecture/retry-on-external-calls-design-pattern [Integración de retry + Circuit Breaker desde la perspectiva del cliente]</div>
+
+        <p style="color: var(--primary); font-weight: bold; margin: 1.5rem 0 1rem;">Estándares y Especificaciones de Protocolos</p>
+        <div class="referencia-item">Fielding, R., &amp; Reschke, J. (2014). <em>RFC 7231: Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content.</em> IETF. https://datatracker.ietf.org/doc/html/rfc7231 [Semántica de los códigos de estado 4xx y 5xx — base de la clasificación de errores del Circuit Breaker]</div>
+        <div class="referencia-item">Nottingham, M. (2022). <em>RFC 9110: HTTP Semantics.</em> IETF. https://datatracker.ietf.org/doc/html/rfc9110 [Versión actualizada — define con precisión cuándo un servidor debe retornar 503 vs 429 vs 500]</div>
+        <div class="referencia-item">ACM, IEEE-CS, &amp; AAAI. (2024). <em>Computer Science Curricula 2023 (CS2023).</em> DOI: 10.1145/3664191</div>
+    </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+    <div class="modelo-badge">AETL — Aprendizaje Técnico Aumentado por IA</div>
+    <p>Semana 9 · Unidad IV: Resiliencia del Cliente · Circuit Breaker y Tolerancia a Fallos</p>
+    <p style="opacity: 0.7; margin-top: 0.5rem; font-size: 0.9rem;">
+        Programación Distribuida del Lado del Cliente · Licenciatura en Sistemas Computacionales · UAN
+    </p>
+    <p style="opacity: 0.5; margin-top: 0.5rem; font-size: 0.8rem;">
+        Dr. Eligardo Cruz Sánchez
+    </p>
+</footer>
+
+<script>
+// ── Tab switching para rutas Python / Browser ──────────────────────
+function showRuta(grupo, id) {
+    document.querySelectorAll('[data-ruta-grupo="' + grupo + '"]').forEach(el => {
+        el.classList.remove('active');
+    });
+    document.querySelectorAll('[data-tab-grupo="' + grupo + '"]').forEach(el => {
+        el.classList.remove('active');
+    });
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('[data-tab-grupo="' + grupo + '"][data-tab-id="' + id + '"]').forEach(el => {
+        el.classList.add('active');
+    });
+}
+
+// ── Progress bar — marca la fase visible ──────────────────────────
+const phases = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
+            const idx = phases.indexOf(id);
+            phases.forEach((p, i) => {
+                const el = document.querySelector(`.progress-step[href="#${p}"]`);
+                if (!el) return;
+                if (i < idx) el.classList.add('completed');
+                else if (i === idx) el.classList.add('active');
+            });
+        }
+    });
+}, { threshold: 0.2 });
+
+phases.forEach(p => {
+    const el = document.getElementById(p);
+    if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>

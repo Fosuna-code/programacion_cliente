@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 4: Patrones de Comunicación — Polling y Suscripción a Eventos | AETL</title>
+    <style>
+:root {
+    --primary: #003a63;
+    --secondary: #005b96;
+    --accent: #f2a900;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --gray: #6c757d;
+    --border-radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7; color: var(--dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+}
+.header-institucional {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 2rem; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,58,99,0.3);
+}
+.header-institucional .logo-container {
+    display: flex; justify-content: center; align-items: center;
+    gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.header-institucional .escudo {
+    width: 80px; height: 80px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: var(--primary); font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.header-institucional h1 { font-size: 1.8rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.header-institucional .subtitulo { font-size: 1.1rem; opacity: 0.9; }
+.header-institucional .badge-semana {
+    display: inline-block; background: var(--accent); color: var(--primary);
+    padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold;
+    margin-top: 1rem; font-size: 1rem;
+}
+.progress-container {
+    background: white; padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+.progress-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 900px; margin: 0 auto; position: relative;
+}
+.progress-bar::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: #e0e0e0; transform: translateY(-50%); z-index: 1;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 2; cursor: pointer;
+    transition: transform 0.3s; text-decoration: none;
+}
+.progress-step:hover { transform: scale(1.1); }
+.progress-step .step-icon {
+    width: 45px; height: 45px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; background: white; border: 3px solid #e0e0e0;
+    transition: all 0.3s;
+}
+.progress-step.active .step-icon {
+    background: var(--secondary); border-color: var(--secondary);
+    color: white; box-shadow: 0 4px 15px rgba(0,91,150,0.4);
+}
+.progress-step.completed .step-icon {
+    background: var(--success); border-color: var(--success); color: white;
+}
+.progress-step .step-label {
+    font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray);
+    font-weight: 600; text-transform: uppercase;
+}
+.progress-step.active .step-label { color: var(--secondary); }
+.nav-container {
+    background: var(--primary); padding: 0.8rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.nav-links {
+    display: flex; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; max-width: 1200px; margin: 0 auto;
+}
+.nav-links a {
+    color: white; text-decoration: none; padding: 0.5rem 1rem;
+    border-radius: 20px; font-size: 0.9rem; transition: all 0.3s;
+    border: 1px solid transparent;
+}
+.nav-links a:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+.fase-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden; animation: fadeIn 0.5s ease-out;
+}
+.fase-header {
+    padding: 1.5rem 2rem; color: white;
+    display: flex; align-items: center; gap: 1rem;
+}
+.fase-header.comprende { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.fase-header.aplica { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.fase-header.reflexiona { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.fase-header.valida { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.fase-header.profundiza { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.fase-header .fase-icon {
+    font-size: 2rem; width: 60px; height: 60px;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.fase-header .fase-info h2 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.fase-header .fase-info .bloom-tag { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+.fase-content { padding: 2rem; }
+.objetivos-box {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1e8fa 100%);
+    border-left: 4px solid var(--secondary); padding: 1.5rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    margin-bottom: 1.5rem;
+}
+.objetivos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.objetivos-box ul { list-style: none; padding-left: 0; }
+.objetivos-box li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+.objetivos-box li::before { content: '🎯'; position: absolute; left: 0; }
+.context-box { padding: 1.2rem 1.5rem; border-radius: var(--border-radius); margin: 1.5rem 0; border-left: 4px solid; }
+.context-box.tip { background: linear-gradient(135deg, #e3f9e5 0%, #c8f7dc 100%); border-color: var(--success); }
+.context-box.warning { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-color: var(--warning); }
+.context-box.danger { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-color: var(--danger); }
+.context-box.success { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-color: var(--success); }
+.context-box.info { background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-color: var(--info); }
+.context-box .box-title { font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.reto-ia {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; border-radius: var(--border-radius); margin: 1.5rem 0;
+    overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.reto-ia-header {
+    background: linear-gradient(90deg, var(--accent) 0%, #e89900 100%);
+    color: var(--primary); padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+}
+.reto-ia-header .reto-numero {
+    background: var(--primary); color: var(--accent);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem;
+}
+.reto-ia-header h4 { flex: 1; font-size: 1.1rem; }
+.reto-ia-body { padding: 1.5rem; }
+.reto-ia .rol-ia {
+    background: rgba(242,169,0,0.15); border: 1px solid var(--accent);
+    padding: 0.8rem 1rem; border-radius: var(--border-radius);
+    margin-bottom: 1rem; font-size: 0.9rem;
+}
+.reto-ia .rol-ia strong { color: var(--accent); }
+.prompt-box {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: var(--border-radius); padding: 1.2rem; margin: 1rem 0;
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem;
+    line-height: 1.6; white-space: pre-wrap; color: #c9d1d9;
+}
+.prompt-box::before {
+    content: '📝 PROMPT'; display: block; color: var(--accent);
+    font-weight: bold; margin-bottom: 0.8rem; font-family: 'Segoe UI', sans-serif;
+}
+.entregable-box {
+    background: rgba(40,167,69,0.15); border: 1px dashed var(--success);
+    padding: 1rem; border-radius: var(--border-radius); margin-top: 1rem;
+}
+.entregable-box::before {
+    content: '📦 ENTREGABLE ESPERADO'; display: block; color: var(--success);
+    font-weight: bold; margin-bottom: 0.5rem;
+}
+.checkpoint {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0;
+}
+.checkpoint h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checkpoint .pregunta {
+    background: white; padding: 1rem; border-radius: var(--border-radius);
+    margin: 0.8rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative; padding-left: 3rem;
+}
+.checkpoint .pregunta::before { content: '❓'; position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.ascii-diagram {
+    background: #1e1e1e; color: #00ff00;
+    font-family: 'Consolas', 'Monaco', monospace; padding: 1.5rem;
+    border-radius: var(--border-radius); overflow-x: auto;
+    margin: 1.5rem 0; font-size: 0.85rem; line-height: 1.4; white-space: pre;
+}
+.diagrama-descripcion {
+    background: #f8f9fa; border-left: 4px solid var(--info);
+    padding: 1rem; margin-top: -1rem; margin-bottom: 1.5rem;
+    font-size: 0.9rem; color: var(--dark);
+}
+.escenario-inmersivo {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; padding: 2rem; border-radius: var(--border-radius);
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+}
+.escenario-inmersivo::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.1;
+}
+.escenario-inmersivo h3 { color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.escenario-inmersivo .personaje {
+    background: rgba(255,255,255,0.1); padding: 1rem;
+    border-radius: var(--border-radius); margin: 1rem 0;
+    border-left: 3px solid var(--accent);
+}
+.escenario-inmersivo .dialogo {
+    font-style: italic; margin: 1rem 0; padding-left: 1rem;
+    border-left: 2px solid rgba(255,255,255,0.3);
+}
+.fundamentos-section {
+    background: white; border-radius: var(--border-radius);
+    margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
+}
+.fundamentos-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.constructo-card {
+    border: 1px solid #e0e0e0; border-radius: var(--border-radius);
+    margin: 1rem; overflow: hidden; transition: all 0.3s;
+}
+.constructo-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.constructo-card .card-header { padding: 1rem 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.8rem; }
+.constructo-card:nth-child(1) .card-header { background: #e8f4fd; color: var(--primary); }
+.constructo-card:nth-child(2) .card-header { background: #fff3e0; color: #e65100; }
+.constructo-card:nth-child(3) .card-header { background: #e8f5e9; color: #2e7d32; }
+.constructo-card:nth-child(4) .card-header { background: #f3e5f5; color: #7b1fa2; }
+.constructo-card:nth-child(5) .card-header { background: #fce4ec; color: #c2185b; }
+.constructo-card .card-body { padding: 1.5rem; font-size: 0.95rem; }
+.constructo-card .referencia { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.8rem; }
+.constructo-card .operacional {
+    background: #f8f9fa; padding: 0.8rem; border-radius: var(--border-radius);
+    margin-top: 1rem; font-size: 0.9rem; border-left: 3px solid var(--accent);
+}
+.glosario-section {
+    background: white; border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem;
+}
+.glosario-header { background: var(--dark); color: white; padding: 1.5rem 2rem; }
+.glosario-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem; padding: 1.5rem;
+}
+.termino-card { background: #f8f9fa; padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--secondary); }
+.termino-card.aetl { border-left-color: var(--accent); }
+.termino-card dt { font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+.termino-card dd { font-size: 0.9rem; color: var(--gray); }
+.evaluacion-section {
+    background: white; border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 2rem;
+}
+.evaluacion-header {
+    background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);
+    color: white; padding: 1.5rem 2rem;
+}
+.criterio-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e0e0e0; }
+.criterio-item:last-child { border-bottom: none; }
+.criterio-item .fase-badge {
+    background: var(--secondary); color: white; padding: 0.3rem 0.8rem;
+    border-radius: 15px; font-size: 0.8rem; margin-right: 1rem;
+    min-width: 100px; text-align: center;
+}
+.criterio-item .puntos {
+    background: var(--accent); color: var(--primary); padding: 0.5rem 1rem;
+    border-radius: var(--border-radius); font-weight: bold; margin-left: auto;
+}
+.referencias-section {
+    background: white; border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2rem; margin-bottom: 2rem;
+}
+.referencias-section h3 { color: var(--primary); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); }
+.referencia-item { padding: 0.8rem 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+.referencia-item:last-child { border-bottom: none; }
+code { background: #f1f3f4; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; color: #d63384; }
+pre code { display: block; padding: 1rem; background: #1e1e1e; color: #d4d4d4; overflow-x: auto; }
+.footer { background: var(--primary); color: white; text-align: center; padding: 2rem; margin-top: 2rem; }
+.footer .modelo-badge { display: inline-block; background: var(--accent); color: var(--primary); padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: bold; margin-bottom: 1rem; }
+.tabla-comparativa { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.tabla-comparativa th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+.tabla-comparativa td { padding: 0.8rem 1rem; border-bottom: 1px solid #e0e0e0; }
+.tabla-comparativa tr:last-child td { border-bottom: none; }
+.tabla-comparativa tr:hover { background: #f8f9fa; }
+.prerrequisitos-box { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid var(--accent); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; }
+.prerrequisitos-box h4 { color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.prerrequisitos-box ul { margin-left: 1.5rem; }
+.prerrequisitos-box li { margin-bottom: 0.5rem; }
+.conexion-semana-anterior { background: linear-gradient(135deg, #e8f4fd 0%, #bbdefb 100%); border-left: 4px solid var(--secondary); padding: 1.2rem 1.5rem; border-radius: 0 var(--border-radius) var(--border-radius) 0; margin-bottom: 1.5rem; }
+.conexion-semana-anterior h4 { color: var(--primary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+.reto-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: 0.5rem; }
+.reto-badge.esencial { background: var(--success); color: white; }
+.reto-badge.avanzado { background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); color: white; }
+.invariantes-box { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); border: 2px dashed #c2185b; border-radius: var(--border-radius); padding: 1.5rem; margin-top: 2rem; }
+.invariantes-box h4 { color: #880e4f; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-box { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid var(--success); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.checklist-box h4 { color: #1b5e20; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.checklist-item { background: white; padding: 0.8rem 1rem; border-radius: var(--border-radius); margin: 0.6rem 0; display: flex; align-items: flex-start; gap: 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.checklist-item .check-icon { font-size: 1.1rem; min-width: 24px; }
+.checklist-item .diagnostico { font-size: 0.85rem; color: var(--gray); margin-top: 0.3rem; font-style: italic; }
+.errores-comunes { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid var(--warning); border-radius: var(--border-radius); padding: 1.5rem; margin: 1.5rem 0; }
+.errores-comunes h4 { color: #e65100; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.error-item { background: white; padding: 1rem; border-radius: var(--border-radius); margin: 0.8rem 0; border-left: 4px solid var(--warning); }
+.error-item strong { color: #e65100; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+    .header-institucional h1 { font-size: 1.4rem; }
+    .container { padding: 1rem; }
+    .fase-header { flex-direction: column; text-align: center; }
+    .progress-step .step-label { display: none; }
+    .nav-links { flex-direction: column; align-items: center; }
+    .criterio-item { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .criterio-item .puntos { margin-left: 0; margin-top: 0.5rem; }
+}
+@media print { .progress-container, .nav-container { display: none; } body { background: white; } .reto-ia { break-inside: avoid; } }
+.text-center { text-align: center; } .text-primary { color: var(--primary); } .text-accent { color: var(--accent); } .text-muted { color: var(--gray); }
+.mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; } .mt-4 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 0.5rem; } .mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; } .mb-4 { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ========== HEADER INSTITUCIONAL ========== -->
+    <header class="header-institucional">
+        <div class="logo-container">
+            <div class="escudo">UAN</div>
+            <div>
+                <h1>Programación Distribuida del Lado del Cliente</h1>
+                <p class="subtitulo">Licenciatura en Sistemas Computacionales</p>
+            </div>
+            <div class="escudo">LSC</div>
+        </div>
+        <span class="badge-semana">📅 Semana 4 de 15 · Fase 1: Fundamentos de Comunicación · Unidad II: Patrones de Comunicación</span>
+    </header>
+
+    <!-- ========== BARRA DE PROGRESO ========== -->
+    <div class="progress-container">
+        <div class="progress-bar">
+            <a href="#comprende" class="progress-step active">
+                <div class="step-icon">📖</div>
+                <span class="step-label">Comprende</span>
+            </a>
+            <a href="#aplica" class="progress-step">
+                <div class="step-icon">⚡</div>
+                <span class="step-label">Aplica</span>
+            </a>
+            <a href="#reflexiona" class="progress-step">
+                <div class="step-icon">🔍</div>
+                <span class="step-label">Reflexiona</span>
+            </a>
+            <a href="#valida" class="progress-step">
+                <div class="step-icon">✔</div>
+                <span class="step-label">Valida</span>
+            </a>
+            <a href="#profundiza" class="progress-step">
+                <div class="step-icon">🚀</div>
+                <span class="step-label">Profundiza</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== NAVEGACIÓN ========== -->
+    <nav class="nav-container">
+        <div class="nav-links">
+            <a href="#escenario">🎬 Escenario</a>
+            <a href="#fundamentos">📚 Fundamentos</a>
+            <a href="#comprende">📖 Comprende</a>
+            <a href="#aplica">⚡ Aplica</a>
+            <a href="#reflexiona">🔍 Reflexiona</a>
+            <a href="#valida">✔ Valida</a>
+            <a href="#profundiza">🚀 Profundiza</a>
+            <a href="#evaluacion">📊 Evaluación</a>
+            <a href="#glosario">📖 Glosario</a>
+            <a href="#referencias">📚 Referencias</a>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- ========== PRERREQUISITOS ========== -->
+        <div class="prerrequisitos-box">
+            <h4>⚠️ Para tener éxito esta semana, asegúrate de dominar...</h4>
+            <ul>
+                <li><strong>Cliente asíncrono funcional:</strong> Cómo ejecutar múltiples peticiones con <code>asyncio.gather()</code> (o <code>Promise.all()</code>) y coordinar resultados</li>
+                <li><strong>Manejo de timeouts individuales:</strong> Configurar timeouts por petición y manejar <code>asyncio.TimeoutError</code> sin perder trabajo útil</li>
+                <li><strong>Diferencia 4xx vs 5xx:</strong> Por qué un 4xx no se reintenta pero un 5xx sí puede reintentarse</li>
+                <li><strong>Cancelación de tareas:</strong> Cómo cancelar peticiones que ya no se necesitan usando <code>task.cancel()</code></li>
+                <li><strong>Event loop conceptual:</strong> Qué hace el event loop cuando una corrutina llega a <code>await</code></li>
+            </ul>
+            <p style="margin-top: 1rem; font-style: italic;">💡 Si dudas en alguno de estos puntos, repasa tu cliente asíncrono de la Semana 3 durante 15-20 minutos antes de continuar.</p>
+        </div>
+
+        <!-- ========== CONEXIÓN CON SEMANA ANTERIOR ========== -->
+        <div class="conexion-semana-anterior">
+            <h4>🔗 Conexión directa con Semana 3: Programación Asíncrona y Concurrencia</h4>
+            <p>La semana anterior convertiste tu cliente síncrono en asíncrono: lanzaste múltiples peticiones con <code>gather()</code>, controlaste timeouts individuales y aprendiste a cancelar tareas. Sin embargo, todas esas peticiones fueron <strong>iniciadas por ti</strong> (el cliente). Esta semana te enfrentas al problema inverso: <strong>¿cómo sabe tu cliente que algo cambió en el servidor sin que tú lo preguntes?</strong> El polling usa tu capacidad asíncrona para preguntar periódicamente sin bloquear, y el patrón Observer prepara la arquitectura para recibir notificaciones que en semanas futuras llegarán vía WebSocket.</p>
+        </div>
+
+        <!-- ========== ESCENARIO INMERSIVO ========== -->
+        <section id="escenario" class="escenario-inmersivo">
+            <h3>🎬 ESCENARIO: El Dashboard que Siempre Miente</h3>
+            <div class="personaje">
+                <strong>Contexto:</strong> Llevas dos semanas en TechNova trabajando en el cliente del marketplace EcoMarket. Tu equipo ya tiene un cliente asíncrono funcional que consulta productos, precios e inventario. Pero esta mañana, la Product Manager convoca una reunión de emergencia.
+            </div>
+            <div class="dialogo">
+                "Tenemos un problema grave: el dashboard de inventario muestra datos desactualizados. Un productor actualizó el precio de la quinoa orgánica hace 20 minutos, pero los clientes siguen viendo el precio anterior. Ayer, tres usuarios intentaron comprar un producto que ya estaba agotado. El equipo de backend dice que su API está actualizada — el problema es que nuestro cliente solo consulta los datos cuando el usuario recarga la página manualmente."
+            </div>
+            <div class="personaje"><strong>El CTO de TechNova interviene:</strong></div>
+            <div class="dialogo">
+                "Necesitamos que el cliente detecte cambios automáticamente. Pero ojo: no podemos bombardear el servidor con peticiones cada segundo — tenemos 500 productores activos y el servidor ya está al límite. Necesito una solución inteligente que consulte con la frecuencia justa: rápido cuando hay cambios, despacio cuando todo está estable. Y la próxima semana vamos a evaluar si migramos a WebSocket para tiempo real, así que diseña la arquitectura de forma que sea fácil cambiar la estrategia de sincronización."
+            </div>
+            <div class="personaje">
+                <strong>Tu misión esta semana:</strong> Implementar un sistema de <strong>polling inteligente</strong> para el cliente de EcoMarket que detecte cambios en el inventario automáticamente, optimice la frecuencia de consultas según la actividad, y esté diseñado con el <strong>patrón Observer</strong> para que la semana que viene puedas intercambiar polling por WebSocket sin reescribir la lógica de negocio.
+            </div>
+        </section>
+
+        <!-- ========== FUNDAMENTOS TEÓRICOS AETL ========== -->
+        <section id="fundamentos" class="fundamentos-section">
+            <div class="fundamentos-header">
+                <h2>📚 Fundamentos del Modelo AETL</h2>
+                <p>Constructos teóricos que guían tu aprendizaje esta semana</p>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🧠 Constructivismo y Zona de Desarrollo Próximo</div>
+                <div class="card-body">
+                    <div class="referencia">(Vygotsky, 1978; Bognár, 2024)</div>
+                    <p>Ya sabes hacer peticiones asíncronas y coordinar múltiples respuestas. El polling añade una capa nueva: <strong>repetición periódica con lógica adaptativa</strong>. La IA te ayuda a cruzar la distancia entre "hacer una petición" y "diseñar un ciclo que decida cuándo y cómo preguntar".</p>
+                    <div class="operacional"><strong>Constructo operacional:</strong> Usa la IA para comprender los patrones de polling y el patrón Observer; tú decides cuándo aplicar short polling, long polling, o un híbrido para el escenario concreto de EcoMarket.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🔄 Aprendizaje Autorregulado (SRL)</div>
+                <div class="card-body">
+                    <div class="referencia">(Zimmerman, 2000; Chiu, 2024; Sari et al., 2025)</div>
+                    <p>Ciclo planificación → ejecución → autorreflexión. Antes de implementar tu polling, planifica: ¿cada cuánto es "razonable" consultar? ¿Cómo mido si estoy haciendo demasiadas peticiones?</p>
+                    <div class="operacional"><strong>Constructo operacional:</strong> Formula preguntas progresivamente más sofisticadas: primero "¿funciona el polling?", luego "¿es eficiente?", finalmente "¿qué pasa si 500 clientes hacen polling simultáneo?"</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">⚖️ Teoría de la Carga Cognitiva</div>
+                <div class="card-body">
+                    <div class="referencia">(Sweller, 1988/2020; Mahdi et al., 2025)</div>
+                    <p>Esta semana combinas tres conceptos: temporización (cuándo preguntar), detección de cambios (qué comparar), y desacoplamiento (patrón Observer). El riesgo de sobrecarga es real si los mezclas todos a la vez.</p>
+                    <div class="operacional"><strong>Constructo operacional:</strong> Separa la complejidad del protocolo (intrínseca: cómo funciona polling) de la complejidad del lenguaje (extrínseca: sintaxis de <code>asyncio.sleep</code>) para invertir la carga germana en el patrón arquitectónico Observer.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">🤝 Agencia Compartida</div>
+                <div class="card-body">
+                    <div class="referencia">(Bandura, 2001; Brod et al., 2023)</div>
+                    <p>El patrón Observer requiere decisiones de diseño que la IA no puede tomar por ti: ¿qué eventos son relevantes? ¿Quién se suscribe a qué? ¿Cómo desacoplas la detección del cambio de la reacción al cambio?</p>
+                    <div class="operacional"><strong>Constructo operacional:</strong> Tú eres el <strong>Arquitecto del Cliente</strong>: decides la frecuencia de polling, qué datos observar, y cómo notificar a los componentes interesados. La IA propone opciones y valida, pero no decide.</div>
+                </div>
+            </div>
+            <div class="constructo-card">
+                <div class="card-header">📊 Taxonomía de Bloom para la Era Digital</div>
+                <div class="card-body">
+                    <div class="referencia">(Anderson et al., 2001)</div>
+                    <p>Crear = co-autoría con IA del sistema de polling adaptativo para EcoMarket. Evaluar = auditoría crítica de la eficiencia del polling y la correcta implementación del Observer, detectando supuestos incorrectos.</p>
+                    <div class="operacional"><strong>Constructo operacional:</strong> Comprende (recordar/comprender) → Aplica (implementar polling + Observer) → Reflexiona (analizar trade-offs) → Valida (evaluar eficiencia) → Profundiza (crear extensiones hacia WebSocket).</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- FASE 1: COMPRENDE                                         -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <section id="comprende" class="fase-section">
+            <div class="fase-header comprende">
+                <div class="fase-icon">📖</div>
+                <div class="fase-info">
+                    <h2>FASE 1: COMPRENDE</h2>
+                    <span class="bloom-tag">Nivel Bloom: Recordar / Comprender</span>
+                </div>
+            </div>
+            <div class="fase-content">
+                <div class="objetivos-box">
+                    <h4>🎯 Objetivos de Aprendizaje</h4>
+                    <ul>
+                        <li><strong>Explicar</strong> la diferencia entre comunicación pull (cliente inicia) y push (servidor inicia) con ejemplos de EcoMarket</li>
+                        <li><strong>Describir</strong> cómo funcionan short polling y long polling, incluyendo el flujo HTTP completo</li>
+                        <li><strong>Identificar</strong> el patrón Observer y su rol como puente arquitectónico entre polling y futuros mecanismos push (WebSocket, SSE)</li>
+                        <li><strong>Reconocer</strong> los trade-offs de frecuencia de polling: latencia de datos vs. carga en el servidor</li>
+                    </ul>
+                </div>
+
+                <h3>El Problema Fundamental: ¿Quién Inicia la Conversación?</h3>
+                <p>Hasta ahora, tu cliente siempre ha sido el que <strong>inicia</strong> la comunicación: "Dame los productos", "Crea este pedido". El servidor responde y la conversación termina. Pero ¿qué pasa cuando el servidor tiene información nueva que el cliente debería conocer? El servidor no puede "llamar" al cliente — HTTP no funciona así. El cliente debe <strong>preguntar</strong>.</p>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│          PULL vs PUSH: ¿QUIÉN INICIA LA CONVERSACIÓN?                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  MODELO PULL (Semanas 1-3): El cliente siempre pregunta                │
+│                                                                         │
+│   CLIENTE                            SERVIDOR                          │
+│   ┌──────┐  "¿Hay novedades?"       ┌──────┐                          │
+│   │      │ ────────────────────────►│      │                          │
+│   │      │  "No, todo igual"        │      │                          │
+│   │      │ ◄────────────────────────│      │                          │
+│   │      │                          │      │                          │
+│   │      │  "¿Hay novedades?"       │      │                          │
+│   │      │ ────────────────────────►│      │                          │
+│   │      │  "¡Sí! Precio cambió"    │      │                          │
+│   │      │ ◄────────────────────────│      │                          │
+│   └──────┘                          └──────┘                          │
+│   Problema: si preguntas cada 30s, tardarás hasta 30s en enterarte.   │
+│                                                                         │
+│  MODELO PUSH (Semana 11): El servidor avisa cuando hay cambios        │
+│                                                                         │
+│   CLIENTE                            SERVIDOR                          │
+│   ┌──────┐  Conexión abierta        ┌──────┐                          │
+│   │      │ ═════════════════════════│      │                          │
+│   │      │                          │      │ ← Precio cambia         │
+│   │      │  "¡Precio cambió!"       │      │                          │
+│   │      │ ◄────────────────────────│      │                          │
+│   └──────┘                          └──────┘                          │
+│   Ventaja: notificación instantánea. Requiere WebSocket (Semana 11).  │
+│                                                                         │
+│  ESTA SEMANA: Polling — punto intermedio inteligente con HTTP estándar │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>¿Qué representa?</strong> La diferencia fundamental entre dos modelos de comunicación. En pull (polling), el cliente pregunta periódicamente; en push, el servidor avisa cuando hay novedades. Esta semana implementamos polling inteligente como paso previo a WebSocket.
+                </div>
+
+                <h3>Short Polling vs Long Polling</h3>
+                <p>Piensa en la analogía de <strong>pedir comida a domicilio</strong>: el short polling es como llamar al restaurante cada 5 minutos preguntando "¿ya está mi pedido?", mientras que el long polling es como llamar y decir "no cuelgues hasta que esté listo".</p>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│                 SHORT POLLING vs LONG POLLING                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  SHORT POLLING (el más simple):                                        │
+│   CLIENTE              SERVIDOR       TIEMPO                           │
+│   GET /productos ─────► Responde ──► t=0s                              │
+│   (espera 5 seg...)                                                     │
+│   GET /productos ─────► Responde ──► t=5s   (sin cambios)             │
+│   (espera 5 seg...)                                                     │
+│   GET /productos ─────► Responde ──► t=10s  (sin cambios)             │
+│   (espera 5 seg...)                                                     │
+│   GET /productos ─────► Responde ──► t=15s  (¡CAMBIÓ!)               │
+│                                                                         │
+│   ✅ Simple    ❌ Muchas peticiones vacías    ❌ Latencia 0-N seg      │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────         │
+│                                                                         │
+│  LONG POLLING (más eficiente):                                         │
+│   CLIENTE              SERVIDOR       TIEMPO                           │
+│   GET /productos ─────► (espera...) ► t=0s                             │
+│                         (espera...)                                     │
+│                ◄──────── ¡Cambió! ─── t=12s                            │
+│   GET /productos ─────► (espera...) ► t=12s  (reconecta)              │
+│                ◄──────── Timeout ──── t=42s  (sin cambios)            │
+│   GET /productos ─────► (espera...) ► t=42s  (reconecta)              │
+│                                                                         │
+│   ✅ Menos peticiones  ✅ Latencia casi cero  ❌ Conexiones abiertas  │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Diferencia clave:</strong> En short polling, el servidor siempre responde inmediatamente. En long polling, el servidor <em>retiene</em> la conexión hasta tener algo nuevo o cumplirse un timeout. El diagrama no muestra los headers HTTP de optimización (ETag) — los veremos en el pseudocódigo.
+                </div>
+
+                <h3>Pseudocódigo: Short Polling con Detección de Cambios</h3>
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│     PSEUDOCÓDIGO: SHORT POLLING ADAPTATIVO CON ETAG                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  // 1. Configurar parámetros del polling                               │
+│  intervalo_base = 5 segundos       // Frecuencia mínima               │
+│  intervalo_actual = intervalo_base // Puede crecer si no hay cambios   │
+│  intervalo_maximo = 60 segundos    // Nunca esperar más que esto       │
+│  ultimo_etag = null                // Para detectar cambios            │
+│  ejecutando = verdadero            // Bandera de control               │
+│                                                                         │
+│  // 2. Función principal del ciclo de polling                          │
+│  función async iniciar_polling():                                      │
+│      mientras ejecutando:                                              │
+│          intentar:                                                     │
+│              // 3. Preparar headers con ETag                           │
+│              headers = {}                                              │
+│              si ultimo_etag != null:                                   │
+│                  headers["If-None-Match"] = ultimo_etag                │
+│                                                                         │
+│              // 4. Hacer petición con timeout                          │
+│              resp = await GET("/api/productos",                        │
+│                  headers=headers, timeout=10s)                         │
+│                                                                         │
+│              // 5. Evaluar la respuesta                                │
+│              si resp.status == 200:     // ¡Datos nuevos!             │
+│                  ultimo_etag = resp.headers["ETag"]                    │
+│                  datos = resp.json()                                   │
+│                  notificar("datos_actualizados", datos)                │
+│                  intervalo_actual = intervalo_base  // Resetear        │
+│                                                                         │
+│              si resp.status == 304:     // Sin cambios                 │
+│                  intervalo_actual = min(                                │
+│                      intervalo_actual * 1.5, intervalo_maximo)         │
+│                                                                         │
+│              si resp.status >= 500:     // Error del servidor          │
+│                  notificar("error_servidor", resp)                     │
+│                  intervalo_actual = min(                                │
+│                      intervalo_actual * 2, intervalo_maximo)           │
+│                                                                         │
+│          capturar TimeoutError:                                        │
+│              notificar("timeout_polling", null)                        │
+│              intervalo_actual = min(intervalo_actual*2, intervalo_max) │
+│                                                                         │
+│          // 6. Esperar antes de la siguiente consulta                  │
+│          await dormir(intervalo_actual)                                │
+│                                                                         │
+│  // 7. Detener limpiamente                                            │
+│  función detener_polling():                                            │
+│      ejecutando = falso                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Línea por línea:</strong> Tres ideas clave: (1) <code>ETag</code>/<code>If-None-Match</code> permite al servidor responder 304 si no hay cambios; (2) el intervalo <em>crece</em> cuando no hay cambios (backoff); (3) la función <code>notificar()</code> es el puente al patrón Observer.
+                </div>
+
+                <h3>El Patrón Observer: Desacoplando Detección de Reacción</h3>
+                <p>Es como un servicio de <strong>lista de espera en un restaurante</strong>: el restaurante (sujeto) no sabe qué harás cuando te avise, solo te notifica que tu mesa está lista.</p>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│                 PATRÓN OBSERVER PARA POLLING                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  clase MonitorDeInventario:             // El "sujeto" observable      │
+│      constructor():                                                    │
+│          este.observadores = {}         // {evento: [callbacks]}       │
+│          este.polling_activo = falso                                   │
+│                                                                         │
+│      método suscribir(evento, callback):                               │
+│          si evento no está en este.observadores:                       │
+│              este.observadores[evento] = []                            │
+│          este.observadores[evento].agregar(callback)                   │
+│                                                                         │
+│      método desuscribir(evento, callback):                             │
+│          si evento está en este.observadores:                          │
+│              este.observadores[evento].remover(callback)               │
+│                                                                         │
+│      método notificar(evento, datos):                                  │
+│          si evento está en este.observadores:                          │
+│              para cada cb en este.observadores[evento]:                │
+│                  cb(datos)                                             │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────         │
+│  USO:                                                                  │
+│  monitor = MonitorDeInventario()                                       │
+│  monitor.suscribir("datos_actualizados", actualizar_tabla)            │
+│  monitor.suscribir("datos_actualizados", verificar_stock)             │
+│  monitor.suscribir("error_servidor", registrar_error)                 │
+│  await monitor.iniciar()                                               │
+│                                                                         │
+│  💡 Si cambias polling por WebSocket, solo cambias el interior        │
+│  de MonitorDeInventario. Los observadores NO cambian.                  │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>¿Por qué importa?</strong> Observer desacopla la <em>fuente</em> de datos del <em>consumidor</em>. Hoy la fuente es polling; la Semana 11 será WebSocket. Si diseñas bien el Observer, cambiar la fuente modifica UNA clase, no todo el sistema.
+                </div>
+
+                <h3>Tabla Comparativa: Patrones de Comunicación</h3>
+                <table class="tabla-comparativa">
+                    <thead>
+                        <tr>
+                            <th>Característica</th>
+                            <th>Request-Response<br>(Sem. 1-3)</th>
+                            <th>Short Polling<br>(Esta semana)</th>
+                            <th>Long Polling<br>(Esta semana)</th>
+                            <th>WebSocket<br>(Sem. 11)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Quién inicia</strong></td><td>Cliente</td><td>Cliente (periódico)</td><td>Cliente (con espera)</td><td>Ambos</td></tr>
+                        <tr><td><strong>Latencia de datos</strong></td><td>Solo al solicitar</td><td>0 a N segundos</td><td>Casi instantánea</td><td>Instantánea</td></tr>
+                        <tr><td><strong>Carga en servidor</strong></td><td>Baja</td><td>Alta (muchos GET)</td><td>Media (conexiones)</td><td>Baja (un socket)</td></tr>
+                        <tr><td><strong>Complejidad cliente</strong></td><td>Baja</td><td>Baja-Media</td><td>Media</td><td>Alta</td></tr>
+                        <tr><td><strong>Protocolo</strong></td><td>HTTP</td><td>HTTP</td><td>HTTP</td><td>WebSocket (RFC 6455)</td></tr>
+                        <tr><td><strong>Caso de uso ideal</strong></td><td>Consultas puntuales</td><td>Cambios cada minutos</td><td>Notificaciones casi real-time</td><td>Chat, dashboards vivos</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Reto 1 -->
+                <div class="reto-ia">
+                    <div class="reto-ia-header">
+                        <span class="reto-numero">1</span>
+                        <h4>Traza mental del ciclo de polling <span class="reto-badge esencial">Esencial</span></h4>
+                    </div>
+                    <div class="reto-ia-body">
+                        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Instructor de Sistemas Distribuidos que explica visualmente cómo funciona polling.</div>
+                        <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como llamar al restaurante para preguntar si tu pedido está listo, o revisar el buzón para ver si llegó una carta) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como instructor de sistemas distribuidos. Necesito entender el ciclo completo de short polling con detección de cambios usando ETag.
+
+Dado este escenario de EcoMarket:
+- El cliente consulta GET /api/productos cada 5 segundos
+- El servidor responde con un header ETag que cambia cuando los datos cambian
+- Consulta #1: servidor devuelve ETag: "abc123" con 200 OK
+- Consultas #2 y #3: cliente envía If-None-Match: "abc123" y recibe 304
+- Consulta #4: alguien actualizó un precio, servidor devuelve ETag: "def456" con 200
+
+Para cada una de las 4 consultas, muéstrame:
+1. ¿Qué headers HTTP envía el cliente?
+2. ¿Qué status code responde el servidor y por qué?
+3. ¿Cuántos bytes de datos se transfieren (200 completo vs 304 vacío)?
+4. ¿Qué hace el cliente con la respuesta?
+5. ¿Cómo se ajusta el intervalo de polling?
+
+Formato: usa una tabla o línea temporal clara.</div>
+                        <div class="entregable-box">
+                            <p><strong>Formato libre — elige el que más te salga natural:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Un bloque de comentario al inicio de tu archivo principal (<code># TRAZA: Consulta 1 → 200 + ETag abc123 → intervalo=5s...</code>), o</li>
+                                <li>Una foto de tu diagrama dibujado a mano en el README.</li>
+                            </ul>
+                            <p style="margin-top: 0.5rem;">No se requieren herramientas digitales (Lucidchart, draw.io, etc.). Lo importante: que muestre las 4 consultas con headers, status y cómo cambia el intervalo. <strong>2-3 líneas de texto junto al diagrama explicando por qué ETag es más eficiente que comparar datos completos.</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invariantes-box">
+                    <h4>🔒 Invariantes que no deben romperse — Fase COMPRENDE</h4>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Toda petición de polling debe tener un <strong>timeout configurado</strong></li>
+                        <li>El intervalo nunca debe ser menor que <code>intervalo_base</code> ni mayor que <code>intervalo_maximo</code></li>
+                        <li>Si el servidor responde 5xx, el cliente debe aplicar backoff, no reintentar inmediatamente</li>
+                        <li>El polling debe poder <strong>detenerse limpiamente</strong> con una bandera</li>
+                    </ul>
+                </div>
+
+                <div class="checkpoint">
+                    <h4>🪞 Checkpoint Metacognitivo - Fase COMPRENDE</h4>
+                    <div class="pregunta">¿Puedo explicar la diferencia entre short polling y long polling usando una analogía sin mirar notas?</div>
+                    <div class="pregunta">¿Entiendo por qué el patrón Observer es necesario? ¿Qué pasaría si el polling llamara directamente a cada componente?</div>
+                    <div class="pregunta">Si alguien pregunta "¿por qué no consultar cada segundo?", ¿puedo explicar el impacto con 500 clientes simultáneos?</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- FASE 2: APLICA                                             -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <section id="aplica" class="fase-section">
+            <div class="fase-header aplica">
+                <div class="fase-icon">⚡</div>
+                <div class="fase-info">
+                    <h2>FASE 2: APLICA</h2>
+                    <span class="bloom-tag">Nivel Bloom: Aplicar / Analizar</span>
+                </div>
+            </div>
+            <div class="fase-content">
+                <div class="objetivos-box">
+                    <h4>🎯 Objetivos de Aprendizaje</h4>
+                    <ul>
+                        <li><strong>Implementar</strong> un sistema de polling adaptativo que detecte cambios en la API de EcoMarket</li>
+                        <li><strong>Aplicar</strong> el patrón Observer para desacoplar detección de cambios de la reacción a esos cambios</li>
+                        <li><strong>Analizar</strong> cómo la frecuencia de polling afecta experiencia de usuario y carga del servidor</li>
+                        <li><strong>Decidir</strong> qué lenguaje/plataforma usar y qué aprendizajes emergen de esa elección</li>
+                    </ul>
+                </div>
+
+                <div class="context-box tip" style="border-left-color: #6f42c1; background: linear-gradient(135deg, #f3e8ff 0%, #e8d5f5 100%);">
+                    <div class="box-title" style="color: #6f42c1;">🧱 Punto de partida: Código base de referencia</div>
+                    <p>Si tu cliente asíncrono de la Semana 3 funciona correctamente, <strong>úsalo como base</strong>. Si tuviste problemas con el event loop o timeouts, aquí tienes un esqueleto mínimo para partir con confianza.</p>
+                    <p style="margin-top: 0.5rem; font-style: italic; color: #6f42c1;"><strong>No es "hacer trampa":</strong> es usar una base sólida para enfocarte en aprender polling y el patrón Observer, no en depurar bugs de asincronía previos.</p>
+                </div>
+
+                <div class="context-box success">
+                    <div class="box-title">📦 Observable: Ya implementada — léela, úsala, extiéndela</div>
+                    <p>El objetivo de esta semana es el <strong>polling adaptativo</strong>, no construir un sistema de eventos genérico desde cero. En la industria, los desarrolladores usan RxJS, EventEmitter o librerías similares. Aquí tienes la clase Observable lista, comentada línea por línea para que entiendas exactamente cómo funciona antes de usarla.</p>
+                </div>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│   CLASE OBSERVABLE — PROPORCIONADA (lee, entiende, usa)                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  clase Observable:                                                     │
+│                                                                         │
+│      constructor():                                                    │
+│          // Diccionario: cada clave es un nombre de evento,            │
+│          // su valor es una lista de funciones (callbacks) suscritas   │
+│          este._observadores = {}                                       │
+│                                                                         │
+│      método suscribir(evento, callback):                               │
+│          // Si es la primera suscripción a este evento, crear lista   │
+│          si evento no está en este._observadores:                      │
+│              este._observadores[evento] = []                           │
+│          // Agregar el callback a la lista de ese evento              │
+│          este._observadores[evento].agregar(callback)                  │
+│                                                                         │
+│      método desuscribir(evento, callback):                             │
+│          // Quitar solo ese callback (otros quedan intactos)          │
+│          si evento está en este._observadores:                         │
+│              este._observadores[evento].remover(callback)              │
+│                                                                         │
+│      método notificar(evento, datos):                                  │
+│          // Ejecutar todos los callbacks del evento con los datos      │
+│          si evento está en este._observadores:                         │
+│              para cada cb en este._observadores[evento]:               │
+│                  intentar:                                             │
+│                      cb(datos)   // llamar al callback                 │
+│                  capturar Error como e:                                │
+│                      // Un callback roto NO detiene a los demás       │
+│                      registrar_error("Observador falló:", e)           │
+│                                                                         │
+│  // ¿Qué heredas cuando extiendes Observable?                         │
+│  // → suscribir(), desuscribir(), notificar() y _observadores         │
+│  // → Tu ServicioPolling solo agrega la lógica HTTP encima            │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>¿Por qué se te da hecha?</strong> Implementar Observable correctamente (incluyendo el try/catch por callback) consume 1-2h de depuración de errores de sintaxis que no enseñan nada sobre sistemas distribuidos. Tu tiempo esta semana vale más en construir ServicioPolling. En el Reto 2, tú implementas las funciones marcadas con TODO — las de polling.
+                </div>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│   TU TAREA: ESQUELETO DE ServicioPolling (implementa los TODO)         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  clase ServicioPolling extiende Observable:   // hereda los eventos   │
+│                                                                         │
+│      constructor(url_base, intervalo_seg):                             │
+│          super()                    // inicializa _observadores        │
+│          este.url_base = url_base                                      │
+│          este.intervalo_actual = intervalo_seg  // empieza aquí        │
+│          // INTERVALO_BASE = 5   # Trade-off: cada 5s busca cambios   │
+│          //   → más corto = más fresco, pero cliente hace más trabajo  │
+│          //   → más largo = cliente descansa, pero datos más viejos    │
+│          este.intervalo_max = 60                                       │
+│          este.ultimo_etag = null                                       │
+│          este._activo = falso                                          │
+│                                                                         │
+│      método async iniciar():                                           │
+│          // TODO: poner _activo = verdadero                            │
+│          // TODO: ciclo "mientras _activo: await _consultar()          │
+│          //                                  await dormir(intervalo)"  │
+│                                                                         │
+│      método async _consultar():                                        │
+│          // TODO: preparar headers con ETag si existe                  │
+│          // TODO: GET a url_base con timeout                           │
+│          // TODO: si 200 → guardar etag, notificar("datos_actualizados")│
+│          // TODO: si 304 → aumentar intervalo (backoff)               │
+│          // TODO: si 5xx → notificar("error_servidor"), backoff        │
+│          // TODO: capturar TimeoutError → notificar("timeout")        │
+│                                                                         │
+│      método detener():                                                 │
+│          // TODO: _activo = falso  (el ciclo termina en el próximo    │
+│          //       await, sin matar nada a la fuerza)                  │
+│                                                                         │
+│  // === USO en EcoMarket (este código ya te lo damos también) ===     │
+│  monitor = ServicioPolling("https://api.ecomarket.com", 5)            │
+│  monitor.suscribir("datos_actualizados", actualizar_ui)               │
+│  monitor.suscribir("error_servidor", mostrar_error)                   │
+│  await monitor.iniciar()                                               │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Tu trabajo real:</strong> Implementar los 6 bloques TODO de ServicioPolling. Observable ya está hecha. Los comentarios de trade-off junto a las constantes (como INTERVALO_BASE) son parte del entregable — te servirán también para el Reto 3.
+                </div>
+
+                <div class="context-box info">
+                    <div class="box-title">🔧 Elige tu lenguaje/plataforma</div>
+                    <p>El objetivo es <strong>entender qué decisión de diseño impone cada plataforma</strong>:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li><strong>Python + <code>aiohttp</code>/<code>httpx</code>:</strong> Polling limpio con <code>asyncio.sleep()</code>. Ideal para aprender el patrón sin distracción.</li>
+                        <li><strong>JavaScript/TypeScript + <code>fetch</code>:</strong> <code>setTimeout</code> recursivo vs <code>setInterval</code>. Ideal para entender el event loop del navegador.</li>
+                        <li><strong>Java/Kotlin + <code>HttpClient</code>:</strong> <code>ScheduledExecutorService</code>. Ideal para manejo de hilos explícito.</li>
+                        <li><strong>CLI en cualquier lenguaje:</strong> Polling "puro" sin UI. La salida en consola muestra cada ciclo.</li>
+                    </ul>
+                </div>
+
+                <!-- Reto 2 - UNIFICADO -->
+                <div class="reto-ia">
+                    <div class="reto-ia-header">
+                        <span class="reto-numero">2</span>
+                        <h4>Proyecto: Monitor de Inventario — Cliente Polling para EcoMarket <span class="reto-badge esencial">Esencial</span></h4>
+                    </div>
+                    <div class="reto-ia-body">
+                        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Ingeniero Senior de APIs que guía sin resolver. La clase Observable ya está implementada en el material — tu trabajo es construir ServicioPolling encima de ella e integrarla en EcoMarket.</div>
+                        <p style="margin-bottom: 1rem;">Este reto unifica dos aprendizajes en un solo proyecto: usar el patrón Observer (que ya tienes listo) <strong>y</strong> construir el polling adaptativo. El entregable es tu repositorio/carpeta — no cuatro documentos separados.</p>
+                        <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como revisar el buzón periódicamente para ver si llegó un paquete, o la lista de espera de un restaurante que te avisa cuando tu mesa está lista) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Ingeniero Senior de APIs que me guía a construir un Monitor de Inventario para EcoMarket usando polling adaptativo. Ya tengo la clase Observable implementada y funcional. Vamos a construir encima de ella.
+
+Vamos a trabajar en dos etapas dentro del MISMO proyecto:
+
+═══ ETAPA 1: Implementar ServicioPolling (la lógica HTTP) ═══
+Guíame paso a paso para implementar SOLO los métodos de ServicioPolling:
+1. _consultar(): GET + ETag/If-None-Match + decisión de intervalo
+   → Verificar contra JSONPlaceholder antes de continuar
+   (Nota: ya tengo una clase Observable genérica funcional del material de la semana;
+    enfócate en ayudarme con ServicioPolling, no en reimplementar Observable)
+2. iniciar(): ciclo async que llama _consultar() y espera con dormir()
+3. detener(): para el ciclo limpiamente con la bandera _activo
+
+Para CADA método:
+- Pídeme que prediga qué debería pasar antes de codificar
+- Revisa mi código y señala casos frontera olvidados
+- Una pregunta de verificación antes de pasar al siguiente
+
+═══ ETAPA 2: Integrar en el flujo de EcoMarket ═══
+Usando ServicioPolling ya funcional:
+1. MonitorInventario contra GET /api/productos
+2. Observador que imprima productos actualizados (simular UI)
+3. Observador que detecte productos agotados (stock=0) y emita alerta
+4. Observador que registre errores en consola (con timestamp)
+5. Demostración: iniciar → detectar cambio → notificar → detener
+
+RESTRICCIONES:
+- Timeout 10 segundos por petición
+- Intervalo entre 5 y 60 segundos
+- Polling debe detenerse sin tareas pendientes
+- Cada observador es una función independiente (no clases)
+
+NO me des el código completo. Guíame método por método.
+Mi nivel: Ya tengo cliente asíncrono de la Semana 3 y la clase Observable.</div>
+                        <p style="margin-top: 1rem;"><strong>Instrucciones:</strong></p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><strong>Etapa 1:</strong> ServicioPolling contra JSONPlaceholder. Verifica cada método antes de pasar al siguiente.</li>
+                                <li><strong>Etapa 2:</strong> Reutiliza los mismos componentes. Cada observador es una función independiente.</li>
+                                <li>Ejecuta al menos 5 ciclos y observa cómo cambia el intervalo en los logs de consola.</li>
+                            </ul>
+                        <div class="entregable-box">
+                            <p><strong>Un solo entregable: tu carpeta/repositorio</strong> que contenga:</p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><code>monitor.py</code> (o el archivo de tu lenguaje) — con ServicioPolling implementada y docstrings de trade-off en el encabezado (ver Reto 3)</li>
+                                <li><code>README.md</code> — traza del Reto 1 (texto o foto a mano)</li>
+                                <li><code>validacion.log</code> — salida de consola de los escenarios de prueba del Reto 4</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="context-box info">
+                    <div class="box-title">💡 ¿Quieres practicar polling fuera del contexto EcoMarket?</div>
+                    <p>Si prefieres primero implementar un polling genérico (sin Observer) para sentirte seguro con el ciclo, usa <code>GET https://jsonplaceholder.typicode.com/posts/1</code> cada 3 segundos. No es obligatorio como entrega separada.</p>
+                </div>
+
+                <div class="invariantes-box">
+                    <h4>🔒 Invariantes que no deben romperse — Fase APLICA</h4>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Ninguna petición de polling debe enviarse sin un timeout definido</li>
+                        <li>Observable debe permitir múltiples observadores para el mismo evento sin interferencia</li>
+                        <li>Después de <code>detener()</code>, no debe haber peticiones pendientes ni tareas huérfanas</li>
+                        <li>El intervalo nunca debe salirse del rango <code>[base, máximo]</code></li>
+                        <li>Un observador que lance excepción no debe crashear el polling ni afectar otros observadores</li>
+                    </ul>
+                </div>
+
+                <div class="checkpoint">
+                    <h4>🪞 Checkpoint Metacognitivo - Fase APLICA</h4>
+                    <div class="pregunta">¿Puedo explicar cada línea de mi Observable sin consultar notas? ¿Copié código sin entenderlo?</div>
+                    <div class="pregunta">Si cambio el servidor a uno que devuelve 500, ¿mi polling lo maneja o crashea?</div>
+                    <div class="pregunta">¿Puedo agregar un nuevo observador sin modificar ServicioPolling?</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- FASE 3: REFLEXIONA                                        -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <section id="reflexiona" class="fase-section">
+            <div class="fase-header reflexiona">
+                <div class="fase-icon">🔍</div>
+                <div class="fase-info">
+                    <h2>FASE 3: REFLEXIONA</h2>
+                    <span class="bloom-tag">Nivel Bloom: Analizar</span>
+                </div>
+            </div>
+            <div class="fase-content">
+                <div class="objetivos-box">
+                    <h4>🎯 Objetivos de Aprendizaje</h4>
+                    <ul>
+                        <li><strong>Analizar</strong> los trade-offs de frecuencia de polling: latencia vs. carga vs. costo</li>
+                        <li><strong>Comparar</strong> short polling, long polling y los patrones de semanas anteriores</li>
+                        <li><strong>Justificar</strong> por qué Observer es preferible a acoplar polling con lógica de negocio</li>
+                        <li><strong>Evaluar</strong> qué pasa cuando el servidor falla o responde con datos inesperados</li>
+                    </ul>
+                </div>
+
+                <h3>Trade-offs de Diseño: No Hay Solución Perfecta</h3>
+
+                <div class="context-box warning">
+                    <div class="box-title">⚖️ Trade-off 1: Intervalo corto vs. intervalo largo</div>
+                    <p><strong>Intervalo corto (1-2s):</strong> Datos casi en tiempo real, pero 500 clientes × 1 petición/segundo = 500 req/s al servidor. ¿Puede tu backend con eso?</p>
+                    <p><strong>Intervalo largo (30-60s):</strong> Baja carga, pero datos desactualizados por hasta 60 segundos. ¿Es aceptable para un dashboard de inventario?</p>
+                    <p style="margin-top: 0.5rem;"><strong>La pregunta real:</strong> ¿Cuánta desactualización tolera tu caso de uso? Un chat necesita milisegundos. Un dashboard de inventario tal vez tolera 10 segundos.</p>
+                </div>
+
+                <div class="context-box warning">
+                    <div class="box-title">⚖️ Trade-off 2: Polling vs. push desde el inicio</div>
+                    <p><strong>A favor del polling:</strong> Funciona con HTTP estándar, no requiere infraestructura especial, simple de implementar y depurar.</p>
+                    <p><strong>A favor de push (WebSocket):</strong> Latencia cero, menos tráfico, escalabilidad real. Pero requiere soporte en servidor.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Decisión pragmática:</strong> Muchos equipos empiezan con polling y migran a WebSocket cuando la escala lo justifica. Si diseñaste bien el Observer, la migración es económica.</p>
+                </div>
+
+                <div class="context-box warning">
+                    <div class="box-title">⚖️ Trade-off 3: ETag vs. comparar datos completos</div>
+                    <p><strong>ETag:</strong> Eficiente en ancho de banda (304 sin body), pero requiere soporte del servidor.</p>
+                    <p><strong>Comparar datos:</strong> Funciona con cualquier servidor, pero transfiere datos innecesarios.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Alternativa:</strong> Si tu servidor no soporta ETag, ¿puedes usar un campo <code>updated_at</code> como timestamp?</p>
+                </div>
+
+                <!-- Reto 3 -->
+                <div class="reto-ia">
+                    <div class="reto-ia-header">
+                        <span class="reto-numero">3</span>
+                        <h4>Discusión socrática: ¿Qué le pasa a MI cliente con cada decisión? <span class="reto-badge avanzado">Avanzado</span></h4>
+                    </div>
+                    <div class="reto-ia-body">
+                        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Ingeniero de Clientes Distribuidos que te desafía con preguntas, una a la vez, sobre el impacto de tus decisiones en el código cliente.</div>
+                        <div class="context-box info" style="margin-bottom: 1rem;">
+                            <div class="box-title">⏱️ Tiempo estimado: 10-15 minutos de conversación</div>
+                            <p>No tienes que redactar un documento formal. Ten la conversación, luego pide a la IA un resumen de 5 puntos, <strong>léelo críticamente</strong> (¿dice algo incorrecto? ¿omite algo importante?), corrígelo si es necesario, y pégalo en tu README. Eso es todo.</p>
+                        </div>
+                        <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como decidir cada cuánto revisar el horno — si lo abres cada 10 segundos gastas gas, si esperas 30 minutos puede quemarse) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Ingeniero especialista en clientes distribuidos. Vamos a tener una discusión socrática sobre las decisiones de diseño de MI cliente de polling para EcoMarket.
+
+Mi implementación: ServicioPolling con short polling, backoff hasta 60s, ETag, 3 observadores, timeout 10s.
+
+Hazme UNA pregunta a la vez. Espera mi respuesta antes de continuar. Usa mis respuestas para profundizar o corregirme.
+
+Las preguntas deben ser sobre el impacto EN MI CÓDIGO CLIENTE:
+
+1. Mi Observable ejecuta los callbacks síncronamente. Si el observador de logs tarda 2 segundos en escribir a disco, ¿qué le pasa al intervalo de polling? ¿Cómo lo detectaría yo como desarrollador del cliente?
+
+2. Mi cliente lleva 20 consultas recibiendo 503. Con backoff hasta 60s, ¿cuánto tiempo pasa hasta llegar a ese máximo? ¿Mi cliente tiene alguna forma de "rendirse" limpiamente o intenta para siempre?
+
+3. Si decido cambiar a long polling, ¿qué tres cosas concretas cambian en el código de MI cliente? (sin hablar del servidor)
+
+4. Si agrego un 4° observador que tarda 500ms (animación en pantalla), ¿puede afectar al observador de alertas críticas? ¿Cómo protege mi código a los observadores rápidos de los lentos?
+
+Al final de nuestra conversación, genera un resumen de exactamente 5 puntos sobre las decisiones de diseño del cliente que discutimos. Sé específico: nombra las constantes y métodos de mi código.</div>
+                        <div class="entregable-box">
+                            <p><strong>Entregable integrado:</strong> No necesitas crear un documento separado. Responde las preguntas de trade-offs mediante <strong>comentarios detallados (docstrings) en el encabezado de tu archivo de código</strong>, explicando por qué elegiste tus valores de timeout e intervalo y qué aprendiste de la discusión. Ejemplo:</p>
+                            <pre style="background:#0d1117;color:#c9d1d9;padding:0.8rem;border-radius:6px;font-size:0.82rem;margin-top:0.5rem;overflow-x:auto;">"""
+DECISIONES DE DISEÑO — Monitor de Inventario EcoMarket
+=======================================================
+INTERVALO_BASE = 5s
+  → Trade-off: callbacks síncronos alargan el ciclo real.
+    Si el observador de logs tarda 2s, el ciclo efectivo es 7s.
+    Decisión: aceptable para inventario; en dashboards en tiempo
+    real habría que hacer los callbacks asíncronos.
+
+INTERVALO_MAX = 60s
+  → Trade-off: cliente descansa más, pero datos pueden tener
+    hasta 60s de retraso. Para EcoMarket esto es aceptable.
+
+TIMEOUT = 10s
+  → Si el servidor no responde en 10s, el cliente lo trata como
+    fallo y aplica backoff. Sin timeout, el ciclo quedaría colgado.
+
+[Corregí al resumen de la IA: dijo que backoff reduce carga del servidor —
+ lo que importa aquí es que protege el ciclo de eventos DEL CLIENTE.]
+"""</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkpoint">
+                    <h4>🪞 Checkpoint Metacognitivo - Fase REFLEXIONA</h4>
+                    <div class="pregunta">¿Puedo justificar por qué elegí short polling sobre long polling (o viceversa)?</div>
+                    <div class="pregunta">¿Qué pasa si el servidor cambia el formato JSON sin avisar? ¿Mi polling lo detecta?</div>
+                    <div class="pregunta">¿Puedo explicar a un compañero por qué el patrón Observer vale la pena, con un ejemplo concreto?</div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- FASE 4: VALIDA                                             -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <section id="valida" class="fase-section">
+            <div class="fase-header valida">
+                <div class="fase-icon">✔</div>
+                <div class="fase-info">
+                    <h2>FASE 4: VALIDA</h2>
+                    <span class="bloom-tag">Nivel Bloom: Evaluar</span>
+                </div>
+            </div>
+            <div class="fase-content">
+                <div class="objetivos-box">
+                    <h4>🎯 Objetivos de Aprendizaje</h4>
+                    <ul>
+                        <li><strong>Verificar</strong> que el sistema funciona en escenarios happy path y de error</li>
+                        <li><strong>Auditar</strong> el desacoplamiento Observer: ¿realmente puedo cambiar la estrategia sin afectar observadores?</li>
+                        <li><strong>Probar</strong> escenarios de fallo de red, servidor caído y datos malformados</li>
+                        <li><strong>Evaluar</strong> la calidad del uso de IA: ¿validaste críticamente o copiaste?</li>
+                    </ul>
+                </div>
+
+                <div class="checklist-box">
+                    <h4>✅ Checklist de Autoevaluación Rápida — Verifica antes de entregar</h4>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿El polling se detiene limpiamente al llamar <code>detener()</code>?</strong>
+                        <div class="diagnostico">→ Si queda en loop infinito: verificar que <code>_activo</code> se evalúa en cada iteración.</div></div>
+                    </div>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿El intervalo crece sin cambios y se resetea cuando los hay?</strong>
+                        <div class="diagnostico">→ Si no cambia: verificar lógica de backoff después de respuesta 304.</div></div>
+                    </div>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿Una excepción en un observador NO crashea el polling?</strong>
+                        <div class="diagnostico">→ Envolver cada callback en try/except dentro de <code>notificar()</code>.</div></div>
+                    </div>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿Ante error 500, el polling aplica backoff en lugar de reintentar inmediatamente?</strong>
+                        <div class="diagnostico">→ Verificar que el bloque de error 5xx duplica el intervalo.</div></div>
+                    </div>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿Puedo agregar un nuevo observador sin modificar ServicioPolling?</strong>
+                        <div class="diagnostico">→ Si necesitas modificarlo, el desacoplamiento Observer no está bien implementado.</div></div>
+                    </div>
+                    <div class="checklist-item">
+                        <span class="check-icon">☐</span>
+                        <div><strong>¿Cada petición tiene timeout configurado?</strong>
+                        <div class="diagnostico">→ Agregar timeout al crear la sesión HTTP o en cada petición.</div></div>
+                    </div>
+                    <p style="margin-top: 1rem; font-style: italic; color: #1b5e20;">💡 Si encuentras un error, reproduce el escenario de fallo con el servidor apagado o datos malformados y observa qué hace tu cliente.</p>
+                </div>
+
+                <h3>Casos de Prueba</h3>
+                <table class="tabla-comparativa">
+                    <thead>
+                        <tr><th>Escenario</th><th>Condición</th><th>Comportamiento Esperado</th><th>Verificación</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Happy path</strong></td><td>Servidor responde 200 con datos nuevos</td><td>Observadores reciben datos, intervalo se resetea</td><td>Imprimir intervalo</td></tr>
+                        <tr><td><strong>Sin cambios</strong></td><td>Servidor responde 304</td><td>Observadores NO notificados, intervalo crece ×1.5</td><td>Verificar crecimiento</td></tr>
+                        <tr><td><strong>Servidor caído</strong></td><td>Timeout (no responde)</td><td>Observador de error notificado, backoff ×2</td><td>Apagar servidor</td></tr>
+                        <tr><td><strong>Error 500</strong></td><td>Internal Server Error</td><td>Backoff aplicado, error notificado</td><td>Mock con 500</td></tr>
+                        <tr><td><strong>JSON malformado</strong></td><td>200 pero body no es JSON</td><td>Error capturado, polling continúa</td><td>Mock con texto plano</td></tr>
+                        <tr><td><strong>Observador falla</strong></td><td>Un callback lanza excepción</td><td>Otros observadores siguen funcionando</td><td>Registrar observador roto</td></tr>
+                        <tr><td><strong>Detención limpia</strong></td><td>Llamar <code>detener()</code></td><td>No quedan tareas pendientes</td><td>Sin warnings de asyncio</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="errores-comunes">
+                    <h4>⚠️ Errores Comunes esta Semana</h4>
+                    <div class="error-item">
+                        <strong>1. Usar <code>time.sleep()</code> en lugar de <code>await asyncio.sleep()</code></strong>
+                        <p><code>time.sleep()</code> bloquea TODO el event loop — ninguna otra tarea se ejecuta. Tu polling "funciona" pero bloquea cualquier otra operación del cliente.</p>
+                    </div>
+                    <div class="error-item">
+                        <strong>2. No proteger observadores que fallan</strong>
+                        <p>Si <code>notificar()</code> ejecuta callbacks sin try/except y uno falla, los observadores posteriores no se ejecutan. Peor: el polling puede detenerse silenciosamente.</p>
+                    </div>
+                    <div class="error-item">
+                        <strong>3. Acumular ciclos con <code>setInterval</code> (JavaScript)</strong>
+                        <p>Si usas <code>setInterval(fn, 5000)</code> y la petición tarda más de 5s, el siguiente ciclo se lanza antes de que el anterior termine. Usa <code>setTimeout</code> recursivo: programa el siguiente solo DESPUÉS de que el actual termine.</p>
+                    </div>
+                    <div class="error-item">
+                        <strong>4. Suponer que el servidor siempre devuelve JSON válido</strong>
+                        <p>Un servidor con problemas puede devolver HTML de error o body vacío con status 200. Si haces <code>response.json()</code> sin verificar Content-Type, obtendrás un error de parseo.</p>
+                    </div>
+                </div>
+
+                <div class="invariantes-box">
+                    <h4>🔒 Invariantes que no deben romperse — Fase VALIDA</h4>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>El cliente nunca debe crashear silenciosamente — siempre notificar o registrar el error</li>
+                        <li>Después de <code>detener()</code>, no deben quedar tareas asyncio pendientes</li>
+                        <li>El intervalo de polling debe ser verificable en cada ciclo (loguearlo)</li>
+                    </ul>
+                </div>
+
+                <!-- Reto 4 - VALIDA ESENCIAL -->
+                <div class="reto-ia">
+                    <div class="reto-ia-header">
+                        <span class="reto-numero">4</span>
+                        <h4>Auditoría del Monitor: Tester de Escenarios Críticos <span class="reto-badge esencial">Esencial</span></h4>
+                    </div>
+                    <div class="reto-ia-body">
+                        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Tester de Calidad Senior que diseña pruebas de escenarios de fallo para sistemas de polling.</div>
+                        <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como probar si una alarma de incendios realmente funciona encendiendo una vela cerca, no solo revisando que tiene batería) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Tester de Calidad Senior. Voy a mostrarte mi Monitor de Inventario para EcoMarket y necesito diseñar pruebas críticas.
+
+Mi sistema: ServicioPolling + Observable + 3 observadores. Necesito validar que es robusto.
+
+Para cada uno de estos 4 escenarios, dime:
+1. ¿Cómo simulo esta condición sin servidor real? (mock, apagar proceso, datos corruptos)
+2. ¿Qué comportamiento EXACTO debo observar para confirmar que mi cliente lo maneja bien?
+3. ¿Qué podría salir mal que la IA no me habría advertido?
+
+Escenarios a probar:
+A. El servidor tarda 15s en responder (timeout de mi cliente es 10s)
+B. El servidor responde con HTML en lugar de JSON (Content-Type incorrecto)
+C. Un observador lanza una excepción no capturada dentro de su callback
+D. El servidor devuelve 200 pero el campo "productos" viene como null
+
+Además: ¿Cómo verifico que mi Observer está correctamente desacoplado? Diseña una prueba específica de desacoplamiento.
+
+Dame los escenarios uno por uno. Espera que yo diseñe mi prueba antes de continuar.</div>
+                        <div class="entregable-box">
+                            <p><strong>Entregable de validación:</strong> Archivo <code>validacion.log</code> (o <code>.txt</code>) con la <strong>salida de consola</strong> de tu cliente enfrentando los 4 escenarios. Puedes generarlo redirigiendo la salida de tu programa (<code>python monitor.py &gt; validacion.log</code>) o copiando el output de la terminal. Añade al final del archivo una línea de comentario confirmando que la prueba de desacoplamiento funcionó:</p>
+                            <pre style="background:#0d1117;color:#c9d1d9;padding:0.8rem;border-radius:6px;font-size:0.82rem;margin-top:0.5rem;overflow-x:auto;"># PRUEBA DE DESACOPLAMIENTO:
+# Agregué observador_4 y lo quité sin modificar ServicioPolling. ✓
+# ServicioPolling no tiene referencia directa a ningún observador. ✓</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkpoint">
+                    <h4>🪞 Checkpoint Metacognitivo - Fase VALIDA</h4>
+                    <div class="pregunta">¿Probé mi polling con el servidor apagado, o solo con el escenario feliz?</div>
+                    <div class="pregunta">¿La IA generó código de observadores y lo copié? ¿Puedo explicar cada callback?</div>
+                    <div class="pregunta">¿Qué pasa si el servidor cambia <code>"precio"</code> a <code>"price"</code>? ¿Mi cliente lo detectaría?</div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- FASE 5: PROFUNDIZA                                        -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <section id="profundiza" class="fase-section">
+            <div class="fase-header profundiza">
+                <div class="fase-icon">🚀</div>
+                <div class="fase-info">
+                    <h2>FASE 5: PROFUNDIZA</h2>
+                    <span class="bloom-tag">Nivel Bloom: Crear</span>
+                </div>
+            </div>
+            <div class="fase-content">
+                <div class="objetivos-box">
+                    <h4>🎯 Objetivos de Aprendizaje</h4>
+                    <ul>
+                        <li><strong>Explorar</strong> patrones avanzados: polling diferencial, Server-Sent Events, webhooks</li>
+                        <li><strong>Conectar</strong> el sistema de polling con el proyecto integrador de EcoMarket</li>
+                        <li><strong>Anticipar</strong> la Semana 5 (evaluación) y la migración a WebSocket (Semana 11)</li>
+                        <li><strong>Crear</strong> extensiones originales al sistema de polling</li>
+                    </ul>
+                </div>
+
+                <h3>Conexión con el Proyecto Integrador TechNova/EcoMarket</h3>
+                <p>El sistema de polling encaja en la <strong>capa de sincronización</strong> del cliente, entre la capa de comunicación HTTP (Semanas 1-3) y la futura capa de estado/caché (Semanas 6-7).</p>
+
+                <div class="ascii-diagram">
+┌─────────────────────────────────────────────────────────────────────────┐
+│     ARQUITECTURA DEL CLIENTE ECOMARKET — CAPAS HASTA SEMANA 4         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌────────────────────────────────────────────────────────────┐        │
+│  │  CAPA DE PRESENTACIÓN (UI / CLI)                           │        │
+│  │  → Observadores que reaccionan a datos (Semana 4)          │        │
+│  └──────────────────────┬─────────────────────────────────────┘        │
+│                         │                                              │
+│  ┌──────────────────────▼─────────────────────────────────────┐        │
+│  │  CAPA DE SINCRONIZACIÓN (NUEVA — Semana 4)                 │        │
+│  │  → MonitorInventario (Observable + Polling adaptativo)     │        │
+│  │  → Detección de cambios (ETag / timestamp)                 │        │
+│  │  → Futuramente: WebSocket (Sem. 11), Caché (Sem. 7)      │        │
+│  └──────────────────────┬─────────────────────────────────────┘        │
+│                         │                                              │
+│  ┌──────────────────────▼─────────────────────────────────────┐        │
+│  │  CAPA DE COMUNICACIÓN HTTP (Semanas 1-3)                   │        │
+│  │  → Cliente asíncrono, timeout, cancelación, errores        │        │
+│  └──────────────────────┬─────────────────────────────────────┘        │
+│                         │                                              │
+│  ┌──────────────────────▼─────────────────────────────────────┐        │
+│  │  API del Servidor EcoMarket                                │        │
+│  └────────────────────────────────────────────────────────────┘        │
+└─────────────────────────────────────────────────────────────────────────┘
+                </div>
+                <div class="diagrama-descripcion">
+                    <strong>Tu progreso:</strong> Semanas 1-3 = capa de comunicación. Semana 4 = capa de sincronización. Semanas 6-7 = caché y estado. Semana 11 = WebSocket (reemplazará polling en la capa de sincronización SIN modificar las demás capas, gracias al Observer).
+                </div>
+
+                <h3>Hacia la Semana 5: Evaluación Práctica</h3>
+                <p>La próxima semana es el <strong>Examen Práctico 1</strong> (consumo de APIs, 12%) y la entrega del <strong>Hito 1: Cliente REST Básico</strong> (15%). Todo lo construido en las Semanas 1-4 es el material evaluable. Asegúrate de que tu cliente funcione de extremo a extremo.</p>
+
+                <div class="context-box info">
+                    <div class="box-title">🔮 ¿Qué viene después? Semanas 6-7: Arquitectura en Capas y Caché</div>
+                    <p>Sin entender polling y Observer, no podrás implementar las estrategias de caché. El caché necesita decidir "¿uso datos locales o consulto al servidor?" — basándose en los mismos principios de detección de cambios. Además, el Observer será la base del <strong>estado reactivo</strong> del cliente.</p>
+                </div>
+
+                <div class="context-box tip">
+                    <div class="box-title">💡 Píldora avanzada (opcional): SSE y Webhooks</div>
+                    <p><strong>Server-Sent Events (SSE):</strong> Punto intermedio entre polling y WebSocket — el servidor envía eventos al cliente por HTTP, solo en una dirección. Útil para dashboards y feeds.</p>
+                    <p><strong>Webhooks:</strong> El servidor llama a una URL del cliente cuando algo cambia. Muy usado en integraciones B2B (Stripe, GitHub). Requiere endpoint público en el cliente.</p>
+                    <p style="margin-top: 0.5rem; font-style: italic;">Opcionales para profundizar. En la Semana 11 veremos WebSocket en detalle.</p>
+                </div>
+
+                <!-- Reto 5 - PROFUNDIZA AVANZADO -->
+                <div class="reto-ia">
+                    <div class="reto-ia-header">
+                        <span class="reto-numero">5</span>
+                        <h4>Diseño de la Migración: ¿Qué cambia en MI código al pasar a WebSocket? <span class="reto-badge avanzado">Avanzado</span></h4>
+                    </div>
+                    <div class="reto-ia-body">
+                        <div class="rol-ia"><strong>🤖 Rol de la IA:</strong> Ingeniero de Clientes Distribuidos especialista en migración evolutiva de código cliente.</div>
+                        <div class="prompt-box">Explica de forma simple, usando analogías cotidianas (como cambiar el motor de un carro mientras sigue rodando — sin que los pasajeros lo noten, y sin cambiar el volante ni los asientos) antes de entrar en detalles técnicos. Usa lenguaje de estudiante de segundo-tercer semestre.
+
+Actúa como Ingeniero especialista en código cliente. Tengo un Monitor de Inventario con polling + Observer y quiero diseñar la migración a WebSocket DESDE LA PERSPECTIVA DEL CLIENTE.
+
+Mi arquitectura actual: Observable (base) → ServicioPolling (extiende Observable) → Observadores (UI, alertas, logs).
+
+Guíame en estos 3 puntos, uno por uno. Espera mi respuesta antes de continuar:
+
+1. CONTRATO DEL CLIENTE: ¿Qué métodos (iniciar, detener, suscribir, desuscribir) deben ser idénticos en ServicioWebSocket para que mis observadores no cambien ni una línea? Ayúdame a definir la interfaz común desde la perspectiva del código cliente.
+   → Después de mi propuesta, dime si hay un método que olvidé o que está mal pensado.
+
+2. MANEJO DE CONEXIÓN EN EL CLIENTE: ¿Qué lógica nueva debo escribir en mi cliente que en polling no existía?
+   - ¿Cómo detecta el cliente que la conexión WebSocket se cayó?
+   - ¿Qué hace mi cliente mientras reconecta? ¿Degrada automáticamente a polling como respaldo?
+   - ¿Cómo notifica mi cliente a la UI que está en modo degradado vs. modo conectado?
+
+3. DIFERENCIAS EN EL ESTADO INTERNO DEL CLIENTE: Con polling, cada ciclo es independiente. Con WebSocket, el cliente mantiene una conexión persistente. ¿Qué nuevo estado interno debe manejar mi clase ServicioWebSocket que ServicioPolling no necesitaba? (Ej: estado de conexión, cola de mensajes pendientes, contador de reconexiones.)
+
+No me expliques la implementación del servidor WebSocket. Solo me interesa qué cambia en MI código cliente.</div>
+                        <div class="entregable-box">
+                            <p><strong>Entregable (opcional, bono +5%):</strong> (1) Interfaz común propuesta para ServicioMonitor con sus métodos justificados desde la perspectiva del cliente, (2) diagrama de estados del cliente WebSocket: Desconectado → Conectando → Conectado → Degradado (polling de respaldo), (3) lista de los cambios de código que habría que hacer en el cliente y los que NO cambiarían gracias al Observer.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkpoint">
+                    <h4>🪞 Checkpoint Metacognitivo - Fase PROFUNDIZA</h4>
+                    <div class="pregunta">¿Puedo ubicar mi sistema de polling dentro de la arquitectura completa de EcoMarket?</div>
+                    <div class="pregunta">¿Entiendo por qué el Observer de esta semana es la base del estado reactivo de las Semanas 6-7?</div>
+                    <div class="pregunta">¿Estoy preparado para el Hito 1? ¿Mi cliente funciona de extremo a extremo?</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== EVALUACIÓN ========== -->
+        <section id="evaluacion" class="evaluacion-section">
+            <div class="evaluacion-header">
+                <h2>📊 Sistema de Evaluación — Semana 4</h2>
+                <p>Criterios alineados a las fases AETL · Porcentajes suman 100%</p>
+            </div>
+
+            <div class="context-box success" style="margin: 1.5rem; border-left-color: #28a745; background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+                <div class="box-title" style="color: #1b5e20;">📁 Un solo entregable: tu carpeta/repositorio</div>
+                <p>No son cuatro tareas separadas. Entrega una carpeta con tres archivos:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong><code>monitor.py</code></strong> (o tu lenguaje) — código con docstrings de trade-off en el encabezado</li>
+                    <li><strong><code>README.md</code></strong> — traza del Reto 1 (texto o foto a mano)</li>
+                    <li><strong><code>validacion.log</code></strong> — salida de consola de los 4 escenarios de prueba</li>
+                </ul>
+                <p style="margin-top: 0.5rem; font-style: italic;">Tiempo estimado realista: <strong>4.5 a 7 horas</strong> — incluyendo lectura, codificación, discusión con IA y pruebas.</p>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: #667eea;">Comprende · Reto 1</span>
+                <span>Diagrama temporal del ciclo de polling con ETag — correctitud, claridad y explicación con tus propias palabras</span>
+                <span class="puntos">10%</span>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: #f5576c;">Aplica · Reto 2</span>
+                <span>Monitor de Inventario funcional: Observable + ServicioPolling con backoff + mínimo 3 observadores desacoplados</span>
+                <span class="puntos">35%</span>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: #4facfe;">Reflexiona · Reto 3</span>
+                <span>Análisis de trade-offs: tabla comparativa, cálculo de carga con 500 usuarios, propuesta de mejora fundamentada</span>
+                <span class="puntos">15%</span>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: #43e97b;">Valida · Reto 4</span>
+                <span>Validación documentada: 4 escenarios críticos en <code>validacion.log</code> + comentario de confirmación de desacoplamiento Observer</span>
+                <span class="puntos">20%</span>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: var(--accent);">Calidad IA</span>
+                <span>Evidencia de uso crítico de IA: prompts documentados, errores detectados, decisiones que modificaste tras validar</span>
+                <span class="puntos">10%</span>
+            </div>
+            <div class="criterio-item">
+                <span class="fase-badge" style="background: var(--dark);">Código</span>
+                <span>Calidad: comentarios, nombres descriptivos, manejo de errores completo, estructura en capas clara</span>
+                <span class="puntos">10%</span>
+            </div>
+            <div class="criterio-item" style="background: #f3e8ff;">
+                <span class="fase-badge" style="background: #9c27b0;">Profundiza · Reto 5</span>
+                <span>Documento de arquitectura para migración a WebSocket (OPCIONAL — bono de hasta +5% sobre la calificación final)</span>
+                <span class="puntos" style="background: #9c27b0; color: white;">+5%</span>
+            </div>
+        </section>
+
+        <!-- ========== GLOSARIO ========== -->
+        <section id="glosario" class="glosario-section">
+            <div class="glosario-header">
+                <h3>📖 Glosario</h3>
+            </div>
+            <div class="glosario-grid">
+                <div class="termino-card">
+                    <dl><dt>Polling</dt>
+                    <dd>Técnica donde el cliente consulta periódicamente al servidor para detectar cambios. Variantes: short polling (respuesta inmediata) y long polling (respuesta diferida).</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Short Polling</dt>
+                    <dd>El cliente hace peticiones periódicas al servidor, que siempre responde inmediatamente con los datos actuales o un indicador de "sin cambios" (304).</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Long Polling</dt>
+                    <dd>El cliente hace una petición y el servidor retiene la conexión abierta hasta que tiene datos nuevos o se cumple un timeout. Reduce peticiones vacías.</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>ETag (Entity Tag)</dt>
+                    <dd>Header HTTP que identifica una versión específica de un recurso. Combinado con <code>If-None-Match</code>, permite al servidor responder 304 si los datos no han cambiado.</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Patrón Observer</dt>
+                    <dd>Patrón de diseño donde un "sujeto" mantiene una lista de "observadores" y los notifica automáticamente cuando su estado cambia. Desacopla la fuente de datos de los consumidores.</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Backoff (Retroceso Adaptativo)</dt>
+                    <dd>Estrategia de aumentar progresivamente el intervalo entre reintentos o consultas cuando no hay cambios o hay errores. Reduce la carga en el servidor.</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Server-Sent Events (SSE)</dt>
+                    <dd>Tecnología HTTP que permite al servidor enviar eventos al cliente de forma unidireccional sobre una conexión persistente. Más simple que WebSocket para flujos servidor→cliente.</dd></dl>
+                </div>
+                <div class="termino-card">
+                    <dl><dt>Webhook</dt>
+                    <dd>Mecanismo donde el servidor hace una petición HTTP a una URL del cliente cuando ocurre un evento. Invierte el modelo: el servidor es quien "llama" al cliente.</dd></dl>
+                </div>
+                <div class="termino-card aetl">
+                    <dl><dt>Agencia Compartida (AETL)</dt>
+                    <dd>Balance entre autonomía del estudiante y asistencia de la IA. El estudiante es el Arquitecto del Cliente; la IA propone y valida, pero no decide.</dd></dl>
+                </div>
+                <div class="termino-card aetl">
+                    <dl><dt>Trade-off (Compromiso)</dt>
+                    <dd>Decisión de diseño donde ganar en un aspecto implica perder en otro. Ej: intervalo de polling corto = datos frescos pero alta carga.</dd></dl>
+                </div>
+                <div class="termino-card aetl">
+                    <dl><dt>Contrato de API</dt>
+                    <dd>Acuerdo implícito o explícito sobre el formato, estructura y comportamiento esperado de una API. Si el servidor rompe el contrato, el cliente puede fallar.</dd></dl>
+                </div>
+                <div class="termino-card aetl">
+                    <dl><dt>Resiliencia del Cliente</dt>
+                    <dd>Capacidad del cliente de seguir funcionando (posiblemente degradado) ante fallos del servidor, la red o datos inesperados.</dd></dl>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== REFERENCIAS ========== -->
+        <section id="referencias" class="referencias-section">
+            <h3>📚 Referencias Bibliográficas</h3>
+
+            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--secondary);">Contenido Disciplinar</h4>
+            <div class="referencia-item">
+                Fielding, R. T. (2000). <em>Architectural Styles and the Design of Network-based Software Architectures.</em> Doctoral dissertation, University of California, Irvine. [Capítulo 5: REST — restricciones de comunicación cliente-servidor]
+            </div>
+            <div class="referencia-item">
+                Kleppmann, M. (2017). <em>Designing Data-Intensive Applications.</em> O'Reilly Media. [Capítulo 11: Stream Processing — polling vs. event-driven, detección de cambios]
+            </div>
+            <div class="referencia-item">
+                Nygard, M. (2018). <em>Release It! Design and Deploy Production-Ready Software</em> (2nd ed.). Pragmatic Bookshelf. [Capítulo 4: Timeouts. Capítulo 5: Circuit Breaker]
+            </div>
+            <div class="referencia-item">
+                Newman, S. (2021). <em>Building Microservices</em> (2nd ed.). O'Reilly Media. [Capítulo 4: Communication Styles — sync vs async, polling vs event-driven]
+            </div>
+            <div class="referencia-item">
+                Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). <em>Design Patterns: Elements of Reusable Object-Oriented Software.</em> Addison-Wesley. [Observer Pattern, pp. 293-303]
+            </div>
+
+            <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">Documentación Técnica</h4>
+            <div class="referencia-item">
+                IETF. RFC 7232 — <em>Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests.</em> Secciones sobre ETag y If-None-Match para detección de cambios.
+            </div>
+            <div class="referencia-item">
+                MDN Web Docs. (2024). <em>HTTP conditional requests.</em> Mozilla Developer Network. Referencia sobre ETags, 304 Not Modified y caché condicional.
+            </div>
+            <div class="referencia-item">
+                Python Software Foundation. (2024). <em>asyncio — Asynchronous I/O.</em> Documentación oficial de asyncio para ciclos de polling y sleep no-bloqueante.
+            </div>
+            <div class="referencia-item">
+                WHATWG. (2024). <em>Server-Sent Events.</em> Especificación del estándar EventSource para comunicación unidireccional servidor→cliente.
+            </div>
+
+            <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">Fundamentos Pedagógicos</h4>
+            <div class="referencia-item">
+                Sweller, J. (1988). Cognitive load during problem solving: Effects on learning. <em>Cognitive Science</em>, 12(2), 257-285.
+            </div>
+            <div class="referencia-item">
+                Vygotsky, L. S. (1978). <em>Mind in Society: The Development of Higher Psychological Processes.</em> Harvard University Press.
+            </div>
+            <div class="referencia-item">
+                Zimmerman, B. J. (2000). Attaining self-regulation: A social cognitive perspective. In M. Boekaerts et al. (Eds.), <em>Handbook of Self-Regulation</em> (pp. 13-39). Academic Press.
+            </div>
+            <div class="referencia-item">
+                Anderson, L. W., Krathwohl, D. R., et al. (2001). <em>A Taxonomy for Learning, Teaching, and Assessing: A Revision of Bloom's Taxonomy.</em> Longman.
+            </div>
+
+            <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">Estándares Curriculares</h4>
+            <div class="referencia-item">
+                ACM, IEEE-CS, AAAI. (2023). <em>Computer Science Curricula 2023 (CS2023).</em> Association for Computing Machinery. [NC — Networking and Communication: polling, event-driven communication; PDC — Parallel and Distributed Computing: async patterns]
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <span class="modelo-badge">Modelo AETL v1.0</span>
+        <p>Universidad Autónoma de Nayarit · Licenciatura en Sistemas Computacionales</p>
+        <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+            Programación Distribuida del Lado del Cliente · Semana 4: Patrones de Comunicación — Polling y Suscripción a Eventos
+        </p>
+        <p style="font-size: 0.85rem; opacity: 0.7; margin-top: 1rem;">
+            Documento diseñado con el modelo de Aprendizaje Técnico Aumentado por IA (AETL)
+        </p>
+        <p>Dr. Eligardo Cruz Sánchez</p>
+    </footer>
+
+    <!-- ========== SCRIPT DE INTERACTIVIDAD ========== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = ['comprende', 'aplica', 'reflexiona', 'valida', 'profundiza'];
+            const progressSteps = document.querySelectorAll('.progress-step');
+
+            function updateProgress() {
+                const scrollPosition = window.scrollY + window.innerHeight / 2;
+                sections.forEach((sectionId, index) => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const sectionTop = section.offsetTop;
+                        const sectionBottom = sectionTop + section.offsetHeight;
+                        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                            progressSteps.forEach((step, stepIndex) => {
+                                step.classList.remove('active');
+                                if (stepIndex < index) {
+                                    step.classList.add('completed');
+                                } else {
+                                    step.classList.remove('completed');
+                                }
+                            });
+                            progressSteps[index].classList.add('active');
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateProgress);
+            updateProgress();
+
+            // Smooth scroll para navegación
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
