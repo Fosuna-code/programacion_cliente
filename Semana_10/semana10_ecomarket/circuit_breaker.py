@@ -320,5 +320,38 @@ class CircuitBreaker:
                 try:
                     self._lock.release()
                 except RuntimeError:
-                    # Lock ya liberado — ignora silenciosamente
                     pass
+
+
+async def reintentar_con_backoff(
+    fn,
+    max_reintentos: int = 5,
+    espera_inicial: float = 1.0,
+    espera_max: float = 30.0,
+    nombre: str = "operacion",
+):
+    """
+    Ejecuta `fn()` (async callable) reintentando con backoff exponencial.
+
+    Retorna el resultado de fn() si tiene exito.
+    Lanza la ultima excepcion si se agotan los reintentos.
+    """
+    ultimo_error = None
+    for intento in range(max_reintentos + 1):
+        try:
+            return await fn()
+        except Exception as e:
+            ultimo_error = e
+            if intento < max_reintentos:
+                espera = min(espera_inicial * (2 ** intento), espera_max)
+                logger.warning(
+                    "[%s] Intento %d/%d fallo (%s: %s). Reintentando en %.1fs...",
+                    nombre, intento + 1, max_reintentos, type(e).__name__, e, espera,
+                )
+                await asyncio.sleep(espera)
+            else:
+                logger.error(
+                    "[%s] Todos los intentos (%d) fallaron. Ultimo error: %s: %s",
+                    nombre, max_reintentos + 1, type(e).__name__, e,
+                )
+    raise ultimo_error

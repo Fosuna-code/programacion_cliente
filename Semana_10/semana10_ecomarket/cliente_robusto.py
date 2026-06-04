@@ -82,6 +82,7 @@ class ClienteRobusto:
         self._cache_sse: dict = {}
         self._max_retries = max_retries
         self._espera_inicial = espera_inicial
+        self._credentials: Optional[dict] = None
 
         self._cb.on_circuit_open = lambda: self._notificar(
             EstadoUI.DEGRADADO,
@@ -121,6 +122,21 @@ class ClienteRobusto:
     async def cerrar(self):
         if self._session and not self._session.closed:
             await self._session.close()
+
+    async def login(self, username: str = "op1", rol: str = "viewer", password: str = "") -> bool:
+        self._credentials = {"username": username, "rol": rol, "password": password}
+        try:
+            await self._tm.login(username=username, rol=rol, password=password)
+            self._notificar(EstadoUI.CONECTADO, "Login exitoso")
+            return True
+        except Exception as e:
+            logger.error("Login fallido: %s", type(e).__name__)
+            self._notificar(
+                EstadoUI.DESCONECTADO,
+                f"Servidor no disponible: {type(e).__name__}",
+                {"error_login": True}
+            )
+            return False
 
     async def get(self, path: str, **kwargs):
         return await self._request_con_cb("GET", path, **kwargs)
@@ -206,6 +222,14 @@ class ClienteRobusto:
                     await asyncio.sleep(espera)
                 else:
                     break
+            except ValueError as e:
+                ultimo_error = e
+                if intento < self._max_retries:
+                    espera = self._espera_inicial * (2 ** intento)
+                    logger.warning("Reintento %d/%d en %.1fs | error=%s", intento + 1, self._max_retries, espera, str(e))
+                    await asyncio.sleep(espera)
+                else:
+                    break
             except Exception:
                 raise
 
@@ -217,10 +241,22 @@ class ClienteRobusto:
         """
         Ejecuta el refresh proactivo antes de entrar al CircuitBreaker.
 
-        Esta es la parte crítica de ADR-001: /auth/token no debe quedar
+        Esta es la parte critica de ADR-001: /auth/token no debe quedar
         bloqueado por el estado ABIERTO/SEMIABIERTO del breaker principal.
+
+        Si no hay token, intenta login con las credenciales almacenadas.
         """
-        if self._tm.access_token and self._tm.is_expiring_soon():
+        if not self._tm.access_token:
+            if self._credentials:
+                try:
+                    await self._tm.login(**self._credentials)
+                    logger.info("Token obtenido via login (sin pasar por CB)")
+                    return True
+                except Exception as e:
+                    logger.error("Login fallido al asegurar token: %s", type(e).__name__)
+                    return False
+            return False
+        if self._tm.is_expiring_soon():
             return await self._refrescar_token_silencioso()
         return True
 
@@ -297,22 +333,31 @@ async def demo_resiliencia():
 
     # Helper para cambiar modo del servidor
     async def cambiar_modo(modo: str):
-        session = await cliente._session_actual()
-        async with session.post("http://localhost:3000/admin/modo", json={"modo": modo}) as resp:
-            data = await resp.json()
-            print(f"  [ADMIN] Modo servidor -> {data['modo']}")
+        try:
+            session = await cliente._session_actual()
+            async with session.post("http://localhost:3000/admin/modo", json={"modo": modo}) as resp:
+                data = await resp.json()
+                print(f"  [ADMIN] Modo servidor -> {data['modo']}")
+        except Exception as e:
+            print(f"  [ADMIN] No se pudo cambiar modo: {type(e).__name__}")
 
     async def reset_contador():
-        session = await cliente._session_actual()
-        async with session.post("http://localhost:3000/admin/reset") as resp:
-            return await resp.json()
+        try:
+            session = await cliente._session_actual()
+            async with session.post("http://localhost:3000/admin/reset") as resp:
+                return await resp.json()
+        except Exception:
+            print("  [ADMIN] No se pudo resetear contador (servidor no disponible)")
 
     # FASE 0: Login
     print("\nFASE 0: Login")
     print("-" * 40)
-    login_data = await tm.login(username="op1", rol="viewer")
-    payload = tm.decode_payload(tm.access_token)
-    print(f"  [LOGIN] Token almacenado · rol={payload.get('rol')} · sub={payload.get('sub')}")
+    login_ok = await cliente.login(username="op1", rol="viewer")
+    if login_ok:
+        payload = tm.decode_payload(tm.access_token)
+        print(f"  [LOGIN] Token almacenado · rol={payload.get('rol')} · sub={payload.get('sub')}")
+    else:
+        print("  [LOGIN] Servidor no disponible — continuando en modo degradado")
 
     # FASE 1: Operacion normal
     print("\nFASE 1: Operacion Normal (3 peticiones exitosas)")

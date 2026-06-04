@@ -23,7 +23,7 @@ import time
 import aiohttp
 
 from token_manager import TokenManager
-from circuit_breaker import CircuitBreaker, CircuitOpenError, EstadoCircuito
+from circuit_breaker import CircuitBreaker, CircuitOpenError, EstadoCircuito, reintentar_con_backoff
 from cliente_robusto import ClienteRobusto
 
 
@@ -65,12 +65,17 @@ async def demo_integrado():
     print("─" * 70)
 
     try:
-        login_data = await tm.login(username="op1", rol="viewer")
+        login_data = await reintentar_con_backoff(
+            lambda: tm.login(username="op1", rol="viewer"),
+            max_reintentos=5,
+            espera_inicial=1.0,
+            nombre="login",
+        )
         payload = tm.decode_payload(tm.access_token)
         print(f"[LOGIN] Token almacenado · rol={payload.get('rol')} · sub={payload.get('sub')}")
         print(f"[LOGIN] Token expira en {payload.get('exp', 0) - int(time.time())}s")
     except Exception as e:
-        print(f"[LOGIN] ERROR: {e}")
+        print(f"[LOGIN] ERROR tras reintentos: {e}")
         print("Asegurate de que servidor_mock.py esta corriendo en localhost:3000")
         await tm.close()
         return
@@ -79,13 +84,24 @@ async def demo_integrado():
     session = await cliente._session_actual()
 
     async def cambiar_modo(modo: str):
-        async with session.post("http://localhost:3000/admin/modo", json={"modo": modo}) as resp:
-            data = await resp.json()
-            print(f"[ADMIN] Modo servidor -> {data['modo']}")
+        try:
+            async def _do():
+                async with session.post("http://localhost:3000/admin/modo", json={"modo": modo}) as resp:
+                    data = await resp.json()
+                    print(f"[ADMIN] Modo servidor -> {data['modo']}")
+            await reintentar_con_backoff(_do, max_reintentos=3, espera_inicial=0.5, nombre="cambiar_modo")
+        except Exception as e:
+            print(f"[ADMIN] No se pudo cambiar modo a '{modo}': {type(e).__name__}: {e}")
 
     async def reset_contador():
-        async with session.post("http://localhost:3000/admin/reset") as resp:
-            return await resp.json()
+        try:
+            async def _do():
+                async with session.post("http://localhost:3000/admin/reset") as resp:
+                    return await resp.json()
+            return await reintentar_con_backoff(_do, max_reintentos=3, espera_inicial=0.5, nombre="reset_contador")
+        except Exception as e:
+            print(f"[ADMIN] No se pudo resetear contador: {type(e).__name__}: {e}")
+            return {}
 
     # ── FASE 1: 3 respuestas 200 ──────────────────────────────
     print("\n" + "─" * 70)

@@ -25,6 +25,9 @@ import logging
 
 import aiohttp
 
+from circuit_breaker import reintentar_con_backoff
+from token_manager import TokenManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -292,7 +295,18 @@ async def demo_sse():
     print()
 
     tm = TokenManager(base_url="http://localhost:3000")
-    await tm.login(username="op1", rol="viewer")
+    try:
+        await reintentar_con_backoff(
+            lambda: tm.login(username="op1", rol="viewer"),
+            max_reintentos=5,
+            espera_inicial=1.0,
+            nombre="sse_login",
+        )
+    except Exception as e:
+        logger.error("SSE Demo: No se pudo conectar al servidor tras reintentos: %s", e)
+        logger.error("Asegurate de que servidor_mock.py este corriendo en localhost:3000")
+        await tm.close()
+        return
     payload = tm.decode_payload(tm.access_token)
     logger.info("SSE Demo: Login como %s (rol=%s)", payload.get('sub'), payload.get('rol'))
 
@@ -311,6 +325,8 @@ async def demo_sse():
         await cliente.conectar()
     except asyncio.CancelledError:
         pass
+    except Exception as e:
+        logger.error("SSE conexion termino con error: %s: %s", type(e).__name__, e)
     finally:
         cliente.detener()
         await cliente.close()
